@@ -1,0 +1,161 @@
+%levelContent = new t2dSceneGraph() {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new t2dStaticSprite() {
+      imageMap = "chowMountain";
+      position = "0 27.5";
+      size = "90 15";
+         mountID = "2";
+   };
+   new t2dSceneObject() {
+      position = "-40 30";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.99 -0.0252 0.0671 -0.59 0.876 -0.563 0.997 -0.38 0.993 0.99 -0.997 0.99";
+      Immovable = "1";
+         mountID = "3";
+   };
+   new t2dSceneObject() {
+      position = "-17.8 32.5";
+      size = "11.1 5";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.98 -0.932 0.972 -0.925 0.992 0.975 -0.989 0.988";
+      Immovable = "1";
+         mountID = "4";
+   };
+   new t2dSceneObject() {
+      position = "-7.62 30.7";
+      size = "9.19 8.55";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.97 -0.211 -0.575 -0.717 0.0774 -0.972 0.974 0.129 0.977 0.982 -0.98 0.986";
+      Immovable = "1";
+         mountID = "5";
+   };
+   new t2dSceneObject() {
+      position = "5.04 30";
+      size = "16 10";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.989 0.261 -0.67 -0.113 -0.274 -0.509 0.274 -0.782 0.979 -0.132 0.981 0.979 -0.992 0.983";
+      Immovable = "1";
+         mountID = "6";
+   };
+   new t2dSceneObject() {
+      position = "29.1 30";
+      size = "31.9 10";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.977 -0.161 -0.491 -0.452 0.185 -0.589 0.67 -0.444 0.982 0 0.992 0.944 -0.995 0.944";
+      Immovable = "1";
+         mountID = "7";
+   };
+   new t2dSceneObject() {
+      position = "-29.2 30";
+      size = "11.6 10";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.991 0.983 -0.979 -0.329 0.361 -0.931 0.982 0.00516 0.982 0.983";
+      Immovable = "1";
+         mountID = "8";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowTree";
+      position = "-39.7 5";
+      size = "9.48 50";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.194 0.979 -0.563 -0.771 0.165 -0.966 0.709 -0.275 0.107 0.979";
+      Immovable = "1";
+         mountID = "9";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowTree";
+      position = "40.3 5";
+      size = "9.48 50";
+      CollisionActiveReceive = "1";
+      CollisionPolyList = "-0.194 0.979 -0.563 -0.771 0.165 -0.966 0.709 -0.275 0.107 0.979";
+      Immovable = "1";
+         mountID = "10";
+   };
+   new t2dStaticSprite() {
+      imageMap = "asteroidsImageMap";
+      position = "13.5 -18.5";
+      size = "5 5";
+      CollisionActiveSend = "1";
+      CollisionActiveReceive = "1";
+      CollisionResponseMode = "RIGID";
+      CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+      ConstantForce = "0 100";
+      ConstantForceGravitic = "1";
+      Restitution = "0.8";
+         mountID = "11";
+   };
+   new t2dStaticSprite() {
+      imageMap = "asteroidsImageMap";
+      position = "13.5 -18.5";
+      size = "5 5";
+      CollisionActiveSend = "1";
+      CollisionActiveReceive = "1";
+      CollisionResponseMode = "BOUNCE";
+      CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+      ConstantForceGravitic = "1";
+      Restitution = "0.8";
+         mountID = "12";
+   };
+   new t2dStaticSprite() {
+      imageMap = "asteroidsImageMap";
+      position = "-21.5 -13.5";
+      size = "5 5";
+      CollisionActiveSend = "1";
+      CollisionActiveReceive = "1";
+      CollisionResponseMode = "RIGID";
+      CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+      ConstantForce = "0 100";
+      ConstantForceGravitic = "1";
+      Restitution = "0.8";
+         mountID = "13";
+   };
+   new t2dStaticSprite() {
+      imageMap = "asteroidsImageMap";
+      position = "-9.1 -26.5";
+      size = "5 5";
+      CollisionActiveSend = "1";
+      CollisionActiveReceive = "1";
+      CollisionResponseMode = "RIGID";
+      CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+      ConstantForce = "0 100";
+      ConstantForceGravitic = "1";
+      Restitution = "0.8";
+         mountID = "14";
+   };
+   new t2dSceneObjectGroup() {
+      canSaveDynamicFields = "1";
+
+      new t2dStaticSprite() {
+         imageMap = "asteroidsImageMap";
+         position = "-20.3 -28.2";
+         size = "5 5";
+         CollisionActiveSend = "1";
+         CollisionActiveReceive = "1";
+         CollisionResponseMode = "RIGID";
+         CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+         ConstantForce = "0 100";
+         ConstantForceGravitic = "1";
+         Restitution = "0.8";
+            mountID = "15";
+            mountID = "1";
+      };
+      new t2dStaticSprite() {
+         imageMap = "asteroidsImageMap";
+         position = "0.0775 -24.4";
+         size = "5 5";
+         CollisionActiveSend = "1";
+         CollisionActiveReceive = "1";
+         CollisionResponseMode = "RIGID";
+         CollisionPolyList = "-0.442 -0.96 0.0643 -0.932 0.534 -0.707 0.988 0.0643 0.988 0.313 0.683 0.743 0.506 0.964 0.0683 0.876 -0.51 0.735 -0.984 0.386 -0.96 -0.0321 -0.799 -0.538 -0.631 -0.839";
+         ConstantForce = "0 100";
+         ConstantForceGravitic = "1";
+         Restitution = "0.8";
+            mountID = "16";
+            mountID = "2";
+      };
+   };
+};
+

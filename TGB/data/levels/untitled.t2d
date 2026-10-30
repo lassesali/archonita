@@ -1,0 +1,6 @@
+%levelContent = new t2dSceneGraph(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraPosition = "0 0";
+      cameraSize = "100 75";
+};
+

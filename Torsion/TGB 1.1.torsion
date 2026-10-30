@@ -1,0 +1,31 @@
+<TorsionProject>
+<Name>TGB 1.1</Name>
+<WorkingDir>..\</WorkingDir>
+<EntryScript>main.cs</EntryScript>
+<IgnoredMods/>
+<ScannerExts>cs; gui</ScannerExts>
+<Configs>
+<Config>
+<Name>Release</Name>
+<Executable>..\TGB.exe</Executable>
+<Arguments/>
+<HasExports>true</HasExports>
+<Precompile>true</Precompile>
+<InjectDebugger>true</InjectDebugger>
+<UseSetModPaths>false</UseSetModPaths>
+</Config>
+<Config>
+<Name>Debug</Name>
+<Executable>..\TGB_DEBUG.exe</Executable>
+<Arguments/>
+<HasExports>true</HasExports>
+<Precompile>true</Precompile>
+<InjectDebugger>true</InjectDebugger>
+<UseSetModPaths>false</UseSetModPaths>
+</Config>
+</Configs>
+<SearchURL/>
+<SearchProduct>TGE</SearchProduct>
+<SearchVersion>HEAD</SearchVersion>
+<ExecModifiedScripts>true</ExecModifiedScripts>
+</TorsionProject>

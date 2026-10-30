@@ -1,0 +1,68 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(LBPlayLevel) {
+   canSaveDynamicFields = "0";
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "right";
+   VertSizing = "bottom";
+   Position = "0 0";
+   Extent = "800 600";
+   MinExtent = "8 2";
+   canSave = "1";
+   Visible = "1";
+   hovertime = "1000";
+   
+   new GuiStackControl(LBPlayWindowCtrlStack) {
+      StackingType = "Horizontal";
+      HorizStacking = "Left to Right";
+      VertStacking = "Top to Bottom";
+      Padding = "4";
+      canSaveDynamicFields = "0";
+      Profile = "EditorButtonRight";
+      HorizSizing = "right";
+      VertSizing = "bottom";
+      Position = "0 0";
+      Extent = "120 24";
+      MinExtent = "24 24";
+      canSave = "1";
+      Visible = "1";
+      hovertime = "1000";
+
+      new GuiTextCtrl(LBPlayWindowToolbarCaption) {
+         canSaveDynamicFields = "0";
+         Profile = "EditorTextHLBoldCenter";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         Position = "0 0";
+         Extent = "91 24";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         text = "Level Control";
+         maxLength = "1024";
+      };
+      new GuiIconButtonCtrl(LBPlayWindowStopBtn) {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButtonToolbar";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         Position = "95 0";
+         Extent = "24 24";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         iconBitmap = "./images/iconStop.png";
+         sizeIconToButton = "0";
+         textLocation = "None";
+         textMargin = "4";
+         buttonMargin = "4 4";
+         command = "toggleLevelEditor();";
+         consoleCommand = "toggleLevelEditor();";
+         accelerator = "escape";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

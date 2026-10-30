@@ -1,0 +1,347 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(packagingUtilityDlg) {
+   canSaveDynamicFields = "0";
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "width";
+   VertSizing = "height";
+   position = "0 0";
+   Extent = "1024 768";
+   MinExtent = "8 2";
+   canSave = "1";
+   Visible = "1";
+   hovertime = "1000";
+
+   new GuiWindowCtrl(bigRedWindow) {
+      canSaveDynamicFields = "0";
+      internalName = "bigRedWindow";
+      Profile = "EditorWindowProfile";
+      HorizSizing = "center";
+      VertSizing = "center";
+      position = "155 164";
+      Extent = "713 440";
+      MinExtent = "500 402";
+      canSave = "1";
+      Visible = "1";
+      hovertime = "1000";
+      text = "Torque Game Builder Packaging Utility";
+      maxLength = "255";
+      resizeWidth = "1";
+      resizeHeight = "1";
+      canMove = "1";
+      canClose = "1";
+      canMinimize = "1";
+      canMaximize = "1";
+      minSize = "50 50";
+      closeCommand = "cleanUpBuild();";
+
+      new GuiMenuBar(packagingUtilityMenu) {
+         canSaveDynamicFields = "0";
+         internalName = "packagingUtilityMenu";
+         Profile = "EditorButton";
+         HorizSizing = "width";
+         VertSizing = "bottom";
+         position = "4 22";
+         Extent = "704 22";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         Padding = "0";
+      };
+      new GuiControl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorPanelDark";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "13 52";
+         Extent = "687 37";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextHLBoldLeft";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "377 8";
+            Extent = "133 20";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Output Directory Name";
+            maxLength = "255";
+         };
+         new GuiTextEditCtrl(outDirectory) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextEdit";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "518 7";
+            Extent = "160 23";
+            MinExtent = "160 23";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            maxLength = "255";
+            historySize = "0";
+            password = "0";
+            tabComplete = "0";
+            sinkAllKeyEvents = "0";
+            password = "0";
+            passwordMask = "*";
+         };
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextHLBoldLeft";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "12 7";
+            Extent = "88 20";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Target Platform";
+            maxLength = "255";
+         };
+         new GuiPopUpMenuCtrlEx(targetPlatformDropDown) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorPopupMenuLarge";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "111 8";
+            Extent = "160 19";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Windows";
+            maxLength = "255";
+            maxPopupHeight = "200";
+            sbUsesNAColor = "0";
+            reverseTextList = "0";
+            bitmapBounds = "16 16";
+         };
+      };
+      new GuiControl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorPanelMedium";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "13 98";
+         Extent = "687 253";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextHLBoldLeft";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "11 7";
+            Extent = "137 20";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Packaging Build Output";
+            maxLength = "255";
+         };
+         new GuiScrollCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTransparentScrollProfile";
+            HorizSizing = "width";
+            VertSizing = "height";
+            position = "11 25";
+            Extent = "666 218";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            willFirstRespond = "1";
+            hScrollBar = "dynamic";
+            vScrollBar = "alwaysOn";
+            constantThumbHeight = "0";
+            childMargin = "0 0";
+
+            new GuiStackControl(packagingBuildStack) {
+               StackingType = "Vertical";
+               HorizStacking = "Left to Right";
+               VertStacking = "Top to Bottom";
+               Padding = "0";
+               canSaveDynamicFields = "0";
+               internalName = "packagingBuildStack";
+               Profile = "EditorTransparentScrollProfile";
+               HorizSizing = "width";
+               VertSizing = "height";
+               position = "1 1";
+               Extent = "644 60";
+               MinExtent = "60 60";
+               canSave = "1";
+               Visible = "1";
+               hovertime = "1000";
+            };
+         };
+      };
+      new GuiControl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorPanelLight";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "13 362";
+         Extent = "687 26";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+
+         new GuiProgressCtrl(packagingProgress) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTransparentProfile";
+            HorizSizing = "width";
+            VertSizing = "top";
+            position = "8 5";
+            Extent = "668 17";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            maxLength = "255";
+         };
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButton";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "432 400";
+         Extent = "125 25";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "preAnalyzeBuild();";
+         hovertime = "1000";
+         text = "Analyze Game";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         buttonMargin = "4 4";
+         iconBitmap = "~/levelEditor/gui/images/iconCameraTool.png";
+         iconLocation = "Left";
+         sizeIconToButton = "0";
+         textLocation = "Center";
+         textMargin = "4";
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButton";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "575 400";
+         Extent = "125 25";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "processUserBuildModification();";
+         hovertime = "1000";
+         text = "Build Selected";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         buttonMargin = "4 4";
+         iconBitmap = "~/levelEditor/gui/images/iconSaveAll.png";
+         iconLocation = "Left";
+         sizeIconToButton = "0";
+         textLocation = "Center";
+         textMargin = "4";
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButtonRight";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "112 400";
+         Extent = "100 25";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "cleanUpBuild();";
+         hovertime = "1000";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         buttonMargin = "4 4";
+         iconBitmap = "~/levelEditor/gui/images/iconCancel.png";
+         iconLocation = "Left";
+         sizeIconToButton = "0";
+         textLocation = "Center";
+         textMargin = "4";
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButtonLeft";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "13 400";
+         Extent = "100 25";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "configurePackagingOptions();";
+         hovertime = "1000";
+         text = "Options";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         buttonMargin = "4 4";
+         iconBitmap = "~/levelEditor/gui/images/iconCameraTool.png";
+         iconLocation = "Left";
+         sizeIconToButton = "0";
+         textLocation = "Center";
+         textMargin = "4";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
+
+function packagingUtilityDlg::onWake()
+{
+   %menu = packagingUtilityMenu;
+   
+   %menu.clearMenus();
+   
+   // File menu.
+   %menu.addMenu("File", 0);
+   %menu.addMenuItem("File", "Load...", 0);
+   %menu.scriptCommand["File", 0] = "loadPackageFile();";
+   %menu.addMenuItem("File", "Save...", 1);
+   %menu.scriptCommand["File", 1] = "savePackageFile();";
+   %menu.addMenuItem("File", "-", 2);
+   %menu.addMenuItem("File", "Close", 3);
+   %menu.scriptCommand["File", 3] = "cleanUpBuild();";
+   
+   // Package menu.
+   %menu.addMenu("Package", 1);
+   %menu.addMenuItem("Package", "Analyze", 0);
+   %menu.scriptCommand["Package", 0] = "preAnalyzeBuild();";
+   %menu.addMenuItem("Package", "Build", 1);
+   %menu.scriptCommand["Package", 1] = "processUserBuildModification();";
+   %menu.addMenuItem("Package", "-", 2);
+   %menu.addMenuItem("Package", "Options...", 3);
+   %menu.scriptCommand["Package", 3] = "configurePackagingOptions();";
+   %menu.addMenuItem("Package", "Extensions...", 4);
+   %menu.scriptCommand["Package", 4] = "configurePackagingExtensions();";
+}
+
+function packagingUtilityMenu::onMenuItemSelect(%this, %menuId, %menu, %itemId, %item)
+{
+   // Script-Command Available?
+   if(%this.scriptCommand[%menu, %itemId] !$= "")
+      // Yes, so execute it.
+      eval(%this.scriptCommand[%menu, %itemId]);
+   else
+      // No, so error!
+      error("No script command defined for menu " @ %menu  @ " item " @ %item);
+}

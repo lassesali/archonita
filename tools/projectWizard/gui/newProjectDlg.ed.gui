@@ -1,0 +1,169 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(NewProjectDlg) {
+   canSaveDynamicFields = "0";
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "right";
+   VertSizing = "bottom";
+   position = "0 0";
+   Extent = "800 600";
+   MinExtent = "8 2";
+   canSave = "1";
+   Visible = "1";
+   hovertime = "1000";
+
+   new GuiWindowCtrl() {
+      canSaveDynamicFields = "0";
+      Profile = "EditorWindowProfile";
+      HorizSizing = "center";
+      VertSizing = "center";
+      position = "228 211";
+      Extent = "344 178";
+      MinExtent = "8 2";
+      canSave = "1";
+      Visible = "1";
+      hovertime = "1000";
+      text = "New Project";
+      maxLength = "1024";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "1";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+      closeCommand = "Canvas.popDialog(NewProjectDlg);";
+
+      new GuiControl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorPanelDark";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "10 29";
+         Extent = "324 40";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+
+         new GuiTextEditCtrl(newProjectNameText) {
+            canSaveDynamicFields = "0";
+            Profile = "GuiTextEditProfile";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "140 10";
+            Extent = "167 18";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            maxLength = "1024";
+            historySize = "0";
+            password = "0";
+            tabComplete = "0";
+            sinkAllKeyEvents = "0";
+            password = "0";
+            passwordMask = "*";
+         };
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorFontHLBold";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "18 10";
+            Extent = "85 18";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Project Name:";
+            maxLength = "1024";
+         };
+      };
+      new GuiControl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorPanelMedium";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "10 82";
+         Extent = "324 40";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorFontHLBold";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "16 10";
+            Extent = "107 18";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Project Template:";
+            maxLength = "1024";
+         };
+         new GuiPopUpMenuCtrlEx(templateListBox) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorPopupMenuLarge";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "140 10";
+            Extent = "167 20";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            maxLength = "1024";
+            maxPopupHeight = "200";
+         };
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButtonLeft";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "64 137";
+         Extent = "130 26";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "Canvas.popDialog(NewProjectDlg);";
+         hovertime = "1000";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         iconBitmap = "~/levelEditor/gui/images/iconCancel.png";
+         sizeIconToButton = "0";
+         accelerator = "escape";
+         textLocation = "Center";
+         textMargin = "4";
+         buttonMargin = "4 4";
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorButtonLeft";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "204 137";
+         Extent = "130 26";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "createNewProject(NewProjectNameText.getText(), templateListBox.getText());";
+         hovertime = "1000";
+         text = "Create";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         iconBitmap = "~/levelEditor/gui/images/iconAccept.png";
+         sizeIconToButton = "0";
+         accelerator = "return";
+         textLocation = "Center";
+         textMargin = "4";
+         buttonMargin = "4 4";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

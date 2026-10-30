@@ -1,0 +1,220 @@
+//----------------------------------------------------------------
+
+new GuiControl(GuiEditorGui) {
+   profile = GuiDefaultProfile;
+   position = "0 0";
+   extent = "800 600";
+   helpPage = "3. Gui Editor";
+   new GuiMenuBar(GuiEditorMenuBar) {
+      profile = "EditorButtonLeft";
+      horizSizing = "width";
+      vertSizing = "bottom";
+      position = "0 0";
+      extent = "800 22";
+      minExtent = "8 8";
+      visible = "1";
+      helpTag = "0";
+   };
+   new GuiFrameSetCtrl()
+   {
+      position = "0 22";
+      extent = "800 578";
+      profile = "GuiFrameSetProfile";
+      horizSizing = "width";
+      vertSizing = "height";
+      columns = "0 640";
+      rows = "0";
+      autoBalance = "1";
+      fudgeFactor = "2";     
+
+      new GuiControl() {
+         position = "0 0";
+         extent = "640 578";
+         minExtent = "64 64";
+         horizSizing = "width";
+         vertSizing = "height";
+         profile = GuiDefaultProfile;
+         //----------------------------------------
+         // toolbar
+         new GuiControl() {
+            profile = "EditorButton";
+            horizSizing = "width";
+            vertSizing = "bottom";
+            position = "0 0";
+            extent = "640 28";
+
+            new GuiControlListPopup(GuiEditorClassPopup)
+            {
+                  profile = "EditorPopupMenuLarge";
+                  position = "8 7";
+                  extent = "180 19";
+            };
+            new GuiPopUpMenuCtrl(GuiEditorContentList)
+            {
+                  profile = "EditorPopupMenuLarge";
+                  position = "196 7";
+                  extent = "180 19";
+            };
+            new GuiPopUpMenuCtrl(GuiEditorResList)
+            {
+                  profile = "EditorPopupMenuLarge";
+                  position = "382 7";
+                  extent = "180 19";
+            };
+         };
+         new GuiEditorRuler(GuiEditorTopRuler) {
+            position = "10 28";
+            extent = "630 10";
+            horizSizing = "width";
+            vertSizing = "bottom";
+            profile = "GuiButtonProfile";
+            refCtrl = GuiEditorScroll;
+         };
+         new GuiEditorRuler(GuiEditorLeftRuler) {
+            position = "0 38";
+            extent = "10 540";
+            horizSizing = "right";
+            vertSizing = "height";
+            profile = "GuiButtonProfile";
+            refCtrl = GuiEditorScroll;
+         };
+         new GuiScrollCtrl(GuiEditorScroll) 
+         {
+            profile = "EditorScrollProfile";
+            position = "10 38";
+            extent = "630 540";
+            horizSizing = "width";
+            vertSizing = "height";
+            vScrollBar = "dynamic";
+            hScrollBar = "dynamic";
+
+            new GuiControl(GuiEditorRegion)
+            {
+               profile = "GuiDefaultProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "0 0";
+               extent = "640 480";
+
+               new GuiControl() // background
+               {
+                  profile = "GuiBackFillProfile";
+		            horizSizing = "width";
+		            vertSizing = "height";
+                  position = "0 0";
+                  extent = "640 480";
+               };
+               new GuiControl(GuiEditorContent)
+               {
+                  profile = "GuiDefaultProfile";
+		            horizSizing = "width";
+		            vertSizing = "height";
+                  position = "0 0";
+                  extent = "640 480";
+               };
+               new GuiEditCtrl(GuiEditor)
+               {
+                  profile = "GuiTextEditProfile"; // so it's tabable
+		            horizSizing = "width";
+		            vertSizing = "height";
+                  position = "0 0";
+                  extent = "640 480";
+               };
+            };
+         };
+      };
+      new GuiFrameSetCtrl()
+      {
+         position = "640 0";
+         minExtent = "128 64";
+         extent = "160 600";
+         profile = "GuiFrameSetProfile";
+         horizSizing = "width";
+         vertSizing = "height";
+         columns = "0";
+         rows = "0 300";
+         autoBalance = "1";
+         fudgeFactor = "2";
+         //----------------------------------------
+         // Tree View
+		   new GuiScrollCtrl() 
+         {
+            profile = "EditorScrollProfile";
+			   minExtent = "72 64";
+			   position = "0 0";
+			   extent = "160 300";
+			   horizSizing = "width";
+			   vertSizing = "height";
+			   vScrollBar = "alwaysOn";
+			   hScrollBar = "dynamic";
+
+			   new GuiTreeViewCtrl(GuiEditorTreeView)
+            {
+               profile = "GuiTreeViewProfile";
+				   position = "0 0";
+				   horizSizing = "width";
+			   };
+		   };
+         //----------------------------------------
+         // Inspector
+         new GuiControl() { 
+            profile = "GuiInspectorBackgroundProfile";
+            horizSizing = "width";
+            vertSizing = "height";
+            position = "0 0";
+            extent = "160 300";
+            minExtent = "64 64";
+            fillColor = "128 128 128";
+         
+            new GuiButtonCtrl () {
+               profile = "GuiInspectorTypeFileNameProfile";
+   		      position = "6 3";
+   		      border = 5;
+   		      extent = "40 20";
+   		      text = "Apply";
+   		      command = "GuiEditorInspectApply();";
+   	      };
+
+   	      new GuiTextCtrl() {
+               profile = "GuiInspectorFieldProfile";
+   		      position = "52 4";
+   		      extent = "42 16";
+   		      text = "Name:";
+   	      };
+
+   	      new GuiTextEditCtrl (GuiEditorInspectName) {
+               profile = "GuiInspectorBackgroundProfile";
+   		      position = "97 4";
+   		      extent = "62 18";
+   		      text = "";
+   		      horizSizing = "width";
+   		      AltCommand = "GuiEditorInspectApply();";
+   		      vertSizing = "bottom";
+               autoSizeWidth = false;
+               autoSizeHeight = true;
+               textOffset = "0 2";
+   	      };
+
+   	      new GuiScrollCtrl() {
+               profile = "EditorScrollProfile";
+   		      position = "0 26";
+   		      extent = "160 274";
+   		      horizSizing = "width";
+   		      vertSizing = "height";
+   		      vScrollBar = "alwaysOn";
+   		      hScrollBar = "alwaysOff";
+
+   			   new GuiInspector (GuiEditorInspectFields) {
+                  useFieldGrouping = false;
+                  profile = "GuiDefaultProfile";
+   				   position = "0 0";
+   				   extent = "140 0";
+   				   horizSizing = "width";
+   				   vertSizing = "bottom";
+   		      };
+   	      };
+         };
+      };
+
+   };
+};

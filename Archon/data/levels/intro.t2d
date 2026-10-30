@@ -1,0 +1,33 @@
+%levelContent = new t2dSceneGraph(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new t2dStaticSprite(logo1) {
+      imageMap = "gamelonlogoImageMap";
+      position = "1.8 -1.15";
+      size = "29.3 42.3";
+         mountID = "2";
+   };
+   new t2dScroller(logo1tex) {
+      imageMap = "jee1ImageMap";
+      scrollX = "10";
+      scrollY = "10";
+      scrollPositionX = "0.822445";
+      scrollPositionY = "0.116249";
+      position = "1.81 -0.792";
+      size = "29.7 43.3";
+      SrcBlendFactor = "ONE_MINUS_DST_COLOR";
+         mountID = "3";
+   };
+   new t2dStaticSprite() {
+      imageMap = "blackImageMap";
+      position = "-9.54e-007 0";
+      size = "102 76.8";
+      Layer = "31";
+      SrcBlendFactor = "ONE_MINUS_SRC_ALPHA";
+      DstBlendFactor = "SRC_COLOR";
+         mountID = "4";
+   };
+};
+

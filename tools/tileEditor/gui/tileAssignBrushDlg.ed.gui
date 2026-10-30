@@ -1,0 +1,132 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(tileAssignBrushDlg) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+
+   new GuiWindowCtrl() {
+      profile = "GuiWindowProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "183 117";
+      extent = "273 246";
+      minExtent = "8 2";
+      visible = "1";
+      text = "Assign Brush...";
+      maxLength = "255";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "0";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "185 219";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "Canvas.popDialog(tileAssignBrushDlg); assignBrushTarget(comAssignBrushList.getSelected());";
+         text = "Save";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "11 219";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "Canvas.popDialog(tileAssignBrushDlg); destroyBrush(\" @ $tempBrushIndex @ \");";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "15 31";
+         extent = "99 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Select Brush Target:";
+         maxLength = "255";
+      };
+      new GuiPopUpMenuCtrl(comAssignBrushList) {
+         profile = "GuiPopUpMenuProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "14 49";
+         extent = "243 20";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         maxPopupHeight = "200";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "15 81";
+         extent = "99 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Select Brush Target:";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtBrushTargetName) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "14 101";
+         extent = "243 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
+
+
+//-----------------------------------------------------------------------------
+// List Active Brushes.
+//-----------------------------------------------------------------------------
+function listAssignBrushes()
+{
+	// Clear Brush Assignments.
+	comAssignBrushList.clear();
+	
+	// Compile Brush Lists.	
+	for ( %n = 1; %n <= $maxBrushes; %n++ )
+		comAssignBrushList.add( $brush[%n].name, %n );
+		
+	// Select Current Brush.
+	comAssignBrushList.setSelected( $currentBrush );		
+}
+
+
+//-----------------------------------------------------------------------------
+// Brush Assignment Selection.
+//-----------------------------------------------------------------------------
+function comAssignBrushList::onSelect( %this, %id, %text )
+{
+	// Set Brush Name.
+	txtBrushTargetName.setValue( %text );
+}
+

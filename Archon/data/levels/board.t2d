@@ -1,0 +1,249 @@
+%levelContent = new t2dSceneGraph(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new t2dStaticSprite() {
+      imageMap = "diceblueImageMap";
+      position = "37.5 -28.1";
+      size = "8.38 8.85";
+      Rotation = "340";
+      AutoRotation = "-10";
+      Layer = "30";
+      BlendColor = "1 1 1 0.862745";
+         mountID = "2";
+   };
+   new t2dStaticSprite() {
+      imageMap = "diceredImageMap";
+      position = "27.4 -20.9";
+      size = "11.4 11.4";
+      AutoRotation = "10";
+      Layer = "30";
+      BlendColor = "1 1 1 0.901961";
+         isSelectable = "False";
+         mountID = "3";
+   };
+   new t2dStaticSprite(heroicongrid) {
+      imageMap = "grid_2ImageMap";
+      position = "-40 16";
+      size = "16 16";
+      Layer = "30";
+         mountID = "4";
+   };
+   new t2dParticleEffect() {
+      effectFile = "Archon/data/particles/magic_trail.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      position = "-30.5 -7.68";
+      size = "10.2 10.9";
+      WorldLimitMin = "3.25e-038 0";
+      WorldLimitMax = "0 2.24e-044";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      BlendingEnabled = "0";
+      SrcBlendFactor = "ZERO";
+      DstBlendFactor = "ZERO";
+      BlendColor = "0 0.101961 0.996078 1";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "5";
+   };
+   new t2dStaticSprite(background) {
+      imageMap = "background1ImageMap";
+      size = "102 76";
+      Layer = "31";
+         isIconAttack = "0";
+         isSelectable = "False";
+         isIconMagic = "0";
+         mountID = "6";
+         isIconDefence = "0";
+   };
+   new t2dStaticSprite(iconDefence1) {
+      imageMap = "icon_shieldImageMap";
+      position = "28.2 8.73";
+      size = "16 16";
+      Layer = "29";
+         isIconAttack = "0";
+         isSelectable = "False";
+         isIconMagic = "0";
+         mountID = "7";
+         isIconDefence = "0";
+   };
+   new t2dStaticSprite(iconDefence2) {
+      imageMap = "grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "28.3 8.1";
+      size = "16 16";
+      Layer = "31";
+         isSelectable = "True";
+         mountID = "8";
+         Alpha = "0.7";
+         isIconDefence = "1";
+   };
+   new t2dStaticSprite(iconMagic3) {
+      imageMap = "grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "40 15.1";
+      size = "16 16";
+      Layer = "31";
+         isSelectable = "True";
+         isIconMagic = "1";
+         mountID = "9";
+         Alpha = "0.7";
+   };
+   new t2dStaticSprite(iconAttack2) {
+      imageMap = "grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "40 1.35";
+      size = "16 16";
+      Layer = "31";
+         isIconAttack = "1";
+         isSelectable = "True";
+         mountID = "10";
+         Alpha = "0.7";
+   };
+   new t2dStaticSprite(iconAttack1) {
+      imageMap = "icon_attackImageMap";
+      position = "39.9 1.38";
+      size = "16 16";
+      Layer = "29";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "11";
+         isIconDefence = "0";
+   };
+   new t2dStaticSprite(iconMagic2) {
+      imageMap = "MoonbaseImageMap";
+      position = "39.9 15.4";
+      size = "10.8 10.3";
+      Layer = "29";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "12";
+         isIconDefence = "0";
+   };
+   new t2dStaticSprite(heroicon) {
+      imageMap = "heroiconsImageMap";
+      position = "-40 16";
+      size = "16 16";
+      Layer = "31";
+         mountID = "13";
+   };
+   new t2dStaticSprite(sijoitaText) {
+      imageMap = "textsImageMap";
+      frame = "2";
+      position = "-1.91e-006 -32.8";
+      size = "64 8";
+      Layer = "30";
+         mountID = "14";
+   };
+   new t2dStaticSprite(manapisteet) {
+      imageMap = "numbersImageMap";
+      Visible = "0";
+      position = "-34 -24.5";
+      size = "4 4";
+         mountID = "15";
+   };
+   new t2dParticleEffect(mouseTrail) {
+      effectFile = "Archon/data/particles/magic_trail.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      UseMouseEvents = "1";
+      position = "8 -40";
+      size = "16 16";
+      WorldLimitMin = "3.25e-038 0";
+      WorldLimitMax = "0 2.24e-044";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "16";
+   };
+   new t2dStaticSprite() {
+      imageMap = "icon_manaImageMap";
+      Visible = "0";
+      position = "-41 -24.3";
+      size = "8 8";
+         mountID = "17";
+   };
+   new t2dStaticSprite(olentopisteetcounter) {
+      imageMap = "numbersImageMap";
+      position = "-36 20";
+      size = "8 8";
+      Layer = "29";
+         mountID = "18";
+   };
+   new t2dStaticSprite(iconMagic1) {
+      imageMap = "icon_manaImageMap";
+      position = "39.5 15.6";
+      size = "8 8";
+      Layer = "28";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "19";
+         isIconDefence = "0";
+   };
+   new t2dStaticSprite(secondText) {
+      imageMap = "textImageMap";
+      Visible = "0";
+      position = "0.607 -32";
+      size = "102 7.47";
+         mountID = "20";
+   };
+   new t2dStaticSprite(secondCounter) {
+      imageMap = "numbersImageMap";
+      Visible = "0";
+      position = "-13.5 -32";
+      size = "4.97 8";
+         mountID = "21";
+   };
+   new t2dStaticSprite(hero2icon) {
+      imageMap = "heroiconsImageMap";
+      frame = "2";
+      position = "-40 -24";
+      size = "16 16";
+      Layer = "29";
+         mountID = "22";
+   };
+   new t2dStaticSprite(hero2icongrid) {
+      imageMap = "grid_2ImageMap";
+      position = "-40 -24";
+      size = "16 16";
+      Layer = "28";
+         mountID = "23";
+   };
+   new t2dParticleEffect(blood) {
+      effectFile = "Archon/data/particles/blood.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "1";
+      position = "23.7 -46.7";
+      size = "11.3 10.8";
+      WorldLimitMin = "7.46e-041 3.59e-043";
+      WorldLimitMax = "3.23e-041 6.74e-041";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "24";
+   };
+
+};
+

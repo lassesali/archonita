@@ -1,0 +1,150 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(TGBAboutDialog) {
+   canSaveDynamicFields = "0";
+   Profile = "GuiDefaultProfile";
+   HorizSizing = "right";
+   VertSizing = "bottom";
+   position = "0 0";
+   Extent = "800 600";
+   MinExtent = "8 2";
+   canSave = "1";
+   Visible = "1";
+   hovertime = "1000";
+
+   new GuiControl(TGBAboutFrame) {
+      canSaveDynamicFields = "0";
+      Profile = "EditorPanelLight";
+      HorizSizing = "center";
+      VertSizing = "center";
+      position = "134 152";
+      Extent = "568 254";
+      MinExtent = "8 2";
+      canSave = "1";
+      Visible = "1";
+      hovertime = "1000";
+
+      new GuiBitmapCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "GuiTransparentProfile";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "6 26";
+         Extent = "556 176";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         bitmap = "~/gui/images/tgbAbout.png";
+         wrap = "1";
+
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextWhiteRight";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "266 135";
+            Extent = "178 19";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Torque2D Version :";
+            maxLength = "1024";
+         };
+         new GuiTextCtrl(TGBVersion) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextWhiteBoldCenter";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "439 135";
+            Extent = "124 19";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "1.0.DefaultValue";
+            maxLength = "1024";
+         };
+         new GuiTextCtrl(TGBLBVersion) {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextWhiteBoldCenter";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "439 153";
+            Extent = "124 19";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "1.0.DefaultValue";
+            maxLength = "1024";
+         };
+         new GuiTextCtrl() {
+            canSaveDynamicFields = "0";
+            Profile = "EditorTextWhiteRight";
+            HorizSizing = "right";
+            VertSizing = "bottom";
+            position = "266 153";
+            Extent = "178 19";
+            MinExtent = "8 2";
+            canSave = "1";
+            Visible = "1";
+            hovertime = "1000";
+            text = "Torque Game Builder Version :";
+            maxLength = "1024";
+         };
+      };
+      new GuiTextCtrl(AboutDialogTitle) {
+         canSaveDynamicFields = "0";
+         Profile = "EditorTextHLBoldLeft";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "11 3";
+         Extent = "373 19";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         text = "About Torque Game Builder";
+         maxLength = "1024";
+      };
+      new GuiSeparatorCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "GuiSeparatorProfile";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "217 7";
+         Extent = "344 12";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         hovertime = "1000";
+         type = "Horizontal";
+         BorderMargin = "2";
+         Invisible = "0";
+         LeftMargin = "0";
+      };
+      new GuiIconButtonCtrl() {
+         canSaveDynamicFields = "0";
+         Profile = "EditorRegisterPanelButton";
+         HorizSizing = "right";
+         VertSizing = "bottom";
+         position = "222 210";
+         Extent = "130 33";
+         MinExtent = "8 2";
+         canSave = "1";
+         Visible = "1";
+         Command = "Canvas.popDialog(TGBAboutDialog);";
+         hovertime = "1000";
+         text = "Close";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         buttonMargin = "4 4";
+         iconLocation = "Left";
+         sizeIconToButton = "0";
+         textLocation = "Center";
+         textMargin = "4";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

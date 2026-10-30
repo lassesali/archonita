@@ -1,0 +1,70 @@
+%levelContent = new t2dSceneGraph() {
+   canSaveDynamicFields = "1";
+      cameraPosition = "0 0";
+      cameraSize = "100 75";
+
+   new t2dStaticSprite() {
+      imageMap = "particles4ImageMap";
+      frame = "1";
+      position = "-2.5 -2.5";
+      size = "45 45";
+      Layer = "5";
+      WorldLimitMode = "BOUNCE";
+      WorldLimitMin = "-80 -60";
+      WorldLimitMax = "80 60";
+      LinearVelocity = "15 25";
+      AngularVelocity = "15";
+         mountID = "2";
+   };
+   new t2dStaticSprite() {
+      imageMap = "tileMapImageMap";
+      size = "100 75";
+      Layer = "10";
+      SrcBlendFactor = "ZERO";
+      DstBlendFactor = "ZERO";
+         mountID = "3";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowBackground";
+      position = "1.19e-006 0";
+      size = "100 75";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "4";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowGrass";
+      position = "-1.91e-006 29.5";
+      size = "100 16";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "5";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowTree";
+      position = "-38.2 15.2";
+      size = "16.5 35.2";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "6";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowTree";
+      position = "33.3 10.2";
+      size = "21.4 44.8";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "7";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowClouds1";
+      position = "-27.8 -24.3";
+      size = "32 16";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "8";
+   };
+   new t2dStaticSprite() {
+      imageMap = "chowClouds2";
+      position = "12.6 -15.2";
+      size = "32 16";
+      SrcBlendFactor = "DST_COLOR";
+         mountID = "9";
+   };
+};
+

@@ -1,0 +1,107 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(resizeLayerDlg) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 8";
+   visible = "1";
+
+   new GuiWindowCtrl() {
+      profile = "GuiWindowProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "210 165";
+      extent = "219 150";
+      minExtent = "8 2";
+      visible = "1";
+      text = "Resize Tiles...";
+      maxLength = "255";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "0";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "15 31";
+         extent = "85 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Tile Count (Width)";
+         maxLength = "255";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "127 119";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "MessageBoxYesNo( \"Resize Tile Layer\", \"Are you sure you want to resize the tile-layer?  If the new layer is smaller, all tiles clipped will be lost!\", \"Canvas.popDialog(resizeLayerDlg); actionResizeTileLayer();\", \"Canvas.popDialog(resizeLayerDlg);\" );";
+         text = "Resize";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "11 119";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "Canvas.popDialog(resizeLayerDlg);";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiTextEditCtrl(txtResizeLayerCountX) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "15 50";
+         extent = "86 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "115 31";
+         extent = "88 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Tile Count (Height)";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtResizeLayerCountY) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "115 50";
+         extent = "86 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

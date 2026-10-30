@@ -1,0 +1,434 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(editTileDlg) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   fitParentWidth = "0";
+   fitParentHeight = "0";
+   position = "0 0";
+   extent = "1024 768";
+   minExtent = "8 8";
+   visible = "1";
+      layerRef = "1644";
+      tileRef = "3 5";
+
+   new GuiWindowCtrl() {
+      profile = "GuiWindowProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      fitParentWidth = "0";
+      fitParentHeight = "0";
+      position = "303 186";
+      extent = "418 395";
+      minExtent = "8 2";
+      visible = "1";
+      text = "Edit Tile...";
+      maxLength = "255";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "0";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "331 366";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "Canvas.popDialog(editTileDlg); assignTileEdit();";
+         text = "Save";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "11 366";
+         extent = "74 19";
+         minExtent = "8 2";
+         visible = "1";
+         command = "Canvas.popDialog(editTileDlg);";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiCheckBoxCtrl(chkTileEditTileFlipY) {
+         profile = "GuiCheckBoxProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "74 162";
+         extent = "61 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Flip Y?";
+         groupNum = "-1";
+         buttonType = "ToggleButton";
+      };
+      new GuiPopUpMenuCtrl(comTileEditCustomData) {
+         profile = "GuiPopUpMenuProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "34 128";
+         extent = "370 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         maxPopupHeight = "200";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "15 31";
+         extent = "107 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Script (when shown):";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtTileEditScript) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 48";
+         extent = "390 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "4096";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+         password = "0";
+         passwordMask = "*";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "15 92";
+         extent = "64 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Custom Data:";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtTileEditCustomData) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 109";
+         extent = "390 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "4096";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+         password = "0";
+         passwordMask = "*";
+      };
+      new GuiCheckBoxCtrl(chkTileEditCollisionActive) {
+         profile = "GuiCheckBoxProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 194";
+         extent = "98 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Collision Active?";
+         groupNum = "-1";
+         buttonType = "ToggleButton";
+      };
+      new GuiCheckBoxCtrl(chkTileEditTileFlipX) {
+         profile = "GuiCheckBoxProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 162";
+         extent = "57 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Flip X?";
+         groupNum = "-1";
+         buttonType = "ToggleButton";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "15 255";
+         extent = "114 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Collision Polygon Count:";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtTileEditPolyCount) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 272";
+         extent = "125 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+         password = "0";
+         passwordMask = "*";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "15 295";
+         extent = "130 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Collision Polygon Definition:";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtTileEditPolyDefinition) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 312";
+         extent = "390 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "4096";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+         password = "0";
+         passwordMask = "*";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 215";
+         extent = "113 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Collision Polygon Scale:";
+         maxLength = "255";
+      };
+      new GuiTextEditCtrl(txtTileEditPolyScale) {
+         profile = "GuiTextEditProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 232";
+         extent = "125 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         historySize = "0";
+         password = "0";
+         tabComplete = "0";
+         sinkAllKeyEvents = "0";
+         password = "0";
+         passwordMask = "*";
+      };
+      new GuiPopUpMenuCtrl(comTileEditPolyDefinition) {
+         profile = "GuiPopUpMenuProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 331";
+         extent = "390 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         maxPopupHeight = "200";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 129";
+         extent = "18 16";
+         minExtent = "8 2";
+         visible = "1";
+         command = "fetchCustomTileData();";
+         text = ">";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiButtonCtrl() {
+         profile = "GuiButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "14 68";
+         extent = "18 16";
+         minExtent = "8 2";
+         visible = "1";
+         command = "fetchScriptTileData();";
+         text = ">";
+         groupNum = "-1";
+         buttonType = "PushButton";
+      };
+      new GuiPopUpMenuCtrl(comTileEditScriptData) {
+         profile = "GuiPopUpMenuProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         fitParentWidth = "0";
+         fitParentHeight = "0";
+         position = "34 67";
+         extent = "370 18";
+         minExtent = "8 2";
+         visible = "1";
+         maxLength = "255";
+         maxPopupHeight = "200";
+      };
+   };
+};
+//--- OBJECT WRITE END ---
+
+
+//-----------------------------------------------------------------------------
+// Dialog Wake.
+//-----------------------------------------------------------------------------
+function editTileDlg::onWake( %this )
+{
+	// Populate Prefab Collisions Polygons.
+	populatePrefabCollisionPolygons();	
+}
+
+
+//-----------------------------------------------------------------------------
+// Tile Custom Data Selection.
+//-----------------------------------------------------------------------------
+function comTileEditCustomData::onSelect( %this, %id, %text )
+{
+	// Set Custom Data.
+	txtTileEditCustomData.setValue( %text );
+}
+
+
+//-----------------------------------------------------------------------------
+// Tile Script Selection.
+//-----------------------------------------------------------------------------
+function comTileEditScriptData::onSelect( %this, %id, %text )
+{
+	// Set Script.
+	txtTileEditScript.setValue( %text );
+}
+
+
+//-----------------------------------------------------------------------------
+// Prefab Collision Polygons.
+//-----------------------------------------------------------------------------
+function populatePrefabCollisionPolygons()
+{
+	// Clear Polygon List.
+	comTileEditPolyDefinition.clear();
+
+	// Add Prefab Polygons.	
+	comTileEditPolyDefinition.add("Full", 0);
+	comTileEditPolyDefinition.add("Triangle (Top-Left)", 1);
+	comTileEditPolyDefinition.add("Triangle (Top-Right)", 2);
+	comTileEditPolyDefinition.add("Triangle (Bottom-Left)", 3);
+	comTileEditPolyDefinition.add("Triangle (Bottom-Right)", 4);
+	comTileEditPolyDefinition.add("Rectangle (Left-Half)", 5);
+	comTileEditPolyDefinition.add("Rectangle (Right-Half)", 6);
+	comTileEditPolyDefinition.add("Rectangle (Top-Half)", 7);
+	comTileEditPolyDefinition.add("Rectangle (Bottom-Half)", 8);
+	comTileEditPolyDefinition.add("Quadrant (Top-Left)", 9);
+	comTileEditPolyDefinition.add("Quadrant (Top-Right)", 10);
+	comTileEditPolyDefinition.add("Quadrant (Bottom-Left)", 11);
+	comTileEditPolyDefinition.add("Quadrant (Bottom-Right)", 12);
+	comTileEditPolyDefinition.add("Spike (Wide-Up)", 13);
+	comTileEditPolyDefinition.add("Spike (Wide-Down)", 14);
+	comTileEditPolyDefinition.add("Spike (Narrow-Up)", 15);
+	comTileEditPolyDefinition.add("Spike (Narrow-Down)", 16);
+	//comTileEditPolyDefinition.add("Circle (low-res)", 17);
+	//comTileEditPolyDefinition.add("Circle (high-res)", 18);
+	
+	// Setup Polygon Definition Array.
+	$tileEditPolyDef[0]		= "-1 -1 1 -1 1 1 -1 1";
+	$tileEditPolyDef[1]		= "-1 -1 1 -1 -1 1";
+	$tileEditPolyDef[2]		= "-1 -1 1 -1 1 1";
+	$tileEditPolyDef[3]		= "1 1 -1 1 -1 -1";
+	$tileEditPolyDef[4]		= "1 -1 1 1 -1 1";
+	$tileEditPolyDef[5]		= "-1 -1 0 -1 0 1 -1 1";
+	$tileEditPolyDef[6]		= "0 -1 1 -1 1 1 0 1";
+	$tileEditPolyDef[7]		= "-1 -1 1 -1 1 0 -1 0";
+	$tileEditPolyDef[8]		= "-1 0 1 0 1 1 -1 1";
+	$tileEditPolyDef[9]		= "-1 -1 0 -1 0 0 -1 0";
+	$tileEditPolyDef[10]	= "0 -1 1 -1 1 0 0 0";
+	$tileEditPolyDef[11]	= "-1 0 0 0 0 1 -1 1";
+	$tileEditPolyDef[12]	= "0 0 1 0 1 1 0 1";
+	$tileEditPolyDef[13]	= "-1 1 0 -1 1 1";
+	$tileEditPolyDef[14]	= "-1 -1 1 -1 0 1";
+	$tileEditPolyDef[15]	= "-0.25 1 0 -1 0.25 1";
+	$tileEditPolyDef[16]	= "-0.25 -1 0.25 -1 0 1";
+	//$tileEditPolyDef[17]	= "0.707107 0.707107 0.258819 0.965926 -0.258819 0.965926 -0.707107 0.707107 -0.965926 0.258819 -0.965926 -0.258819 -0.707107 -0.707107 -0.258819 -0.965926 0.258819 -0.965926 0.707107 -0.707107 0.965926 -0.258819 0.965926 0.258819";
+	//$tileEditPolyDef[18]	= "0.866025 0.500000 0.642788 0.766044 0.342020 0.939693 0.000000 1.000000 -0.342020 0.939693 -0.642788 0.766044 -0.866025 0.500000 -0.984808 0.173648 -0.984808 -0.173648 -0.866025 -0.500000 -0.642788 -0.766044 -0.342020 -0.939693 -0.000000 -1.000000 0.342020 -0.939693 0.642788 -0.766045 0.866025 -0.500000 0.984808 -0.173648 0.984808 0.173648";
+}
+
+
+//-----------------------------------------------------------------------------
+// Tile Edit - Prefab Polygon Definitions.
+//-----------------------------------------------------------------------------
+function comTileEditPolyDefinition::onSelect( %this, %id, %text )
+{
+	// Fetch Polygon Definition.
+	%polyDefinition = $tileEditPolyDef[%id];
+	
+	// Calculate Polygon Edge Count.
+	%polyCount = getWordCount( %polyDefinition ) / 2;
+	
+	// Set Polygon Count.
+	txtTileEditPolyCount.setValue( %polyCount );
+	// Set Polygon Definition.
+	txtTileEditPolyDefinition.setValue( $tileEditPolyDef[%id] );
+}
+
