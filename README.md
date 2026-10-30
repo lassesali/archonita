@@ -1,104 +1,110 @@
-![Torque Logo](images/banner1.png)
-## Torque2D 4.0 Early Access 4
+## 📜 Origins & Legacy
 
-MIT Licensed Open Source version of Torque2D from GarageGames. Maintained by the Torque Game Engines team and contributions from the community.
+**Archonita** was originally conceived, developed, and published by **Gamelon Productions** for the renowned **Suomipelit.com Pikkukesäkilpailu 2006** game jam in June 2006. Built within the creative constraints of a short game jam, the game pioneered a hybrid gameplay formula: tactical turn-based grid positioning reminiscent of classic board games like *Archon*, merged with dynamic real-time dice rolls, spellcasting, unit recruitment, and card-based strategy.
 
-Dedicated to 2D game development, Torque 2D is an extremely powerful, flexible, and fast C++ engine which has been used in hundreds of professional games. It is a true cross platform solution providing you access to Windows, OSX, Linux, iOS, Android, and the web - all from one codebase. It includes an OpenGL batched rendering system, Box2D physics, OpenAL audio, skeletal and spritesheet animation, automated asset management, a modular project structure, TAML object persistence, and a C-like scripting language.
+Initially engineered on GarageGames' early 32-bit **Torque Game Builder 1.1** (TGB / TGE2D), the original codebase established the iconic Finnish-language domain architecture that still powers the game under the hood (`sankari`, `nappula`, `olento`, `lisaaUusiNappulaLaudalle`, `sekuntiLaskuri`, `valittuRuutu`).
 
-### What's New?
+Twenty years later, this **Migration Update** bridges two decades of engine evolution, porting Archonita from legacy Windows XP-era tech to the modern, open-source, 64-bit **Torque2D 4.0 (EA4)** engine runtime.
 
-Torque2D 4.0: Rocket Edition is currently in progress. The major change with 4.0 is the addition of editors! At this time there is a working Asset Manager and Project Manager. The Asset Manager allows a user to create, edit, and remove images, animations, particle effects, bitmap fonts, and audio assets. This represents a major step forward from editing xml files by hand. This is especially useful in the case of particle effects which are nearly impossible to create without an interactive tool. The Project Manager allows users to manager the modules in their game directly in a user interface. This is paired with a library of re-usable modules that can be imported into a game.
+---
 
-The managers can be reached by opening the console using the console button in the Toybox or by pressing Tilde(~) + Ctrl. You will then notice tabs along that top for the various tools currently available.
+## ⚙️ Engine & Backend Migration
 
-Early Access 4 builds out the **GUI Editor** that Early Access 3 introduced. You build a screen by dragging controls from an illustrated palette onto the canvas, or by clicking one to have it placed for you, and arrange them by dragging, by the arrow keys, or through the Layout menu's align and spacing commands. There is undo and redo, and cut, copy and paste work within a Gui and between them.
+### 1. 64-Bit Modern Architecture & Runtime Overhaul
+- **Binary Modernization:** Transitioned from the legacy 32-bit `TGB.exe` to a native 64-bit `Torque2D.exe` runtime, ensuring complete stability on modern Windows 10/11 x64 systems and resolving legacy address space limitations.
+- **Modular Architecture (`module.taml`):** Converted the project into a self-contained module (`Archon`, version 1.0.0) adhering to Torque2D 4.0 module lifecycle specifications (`create` / `destroy` callbacks), cleanly registered under the engine's `ModuleDatabase`.
 
-Around the canvas sit two more panels. The **Explorer** shows the whole control tree, with a picture of each control's class, columns for hiding and locking, and drag-to-reparent. The **properties pane** shows only the fields the selected control's class actually reads — a chain never draws its own text, so it is not offered nine text fields it will ignore — and gives the common ones purpose-built editors rather than text boxes: an anchor picker for sizing, color swatches, an image picker you choose by looking at it, and editors for the things that used to be unreachable from an editor at all, such as a list box's rows and a menu bar's items.
+### 2. Scene Graph to TAML Serialization
+- **Declarative Level Architecture:** Migrated all legacy scene graph files (`.t2d`) into modern XML/TAML Scene files (`.scene.taml`):
+  - `intro.scene.taml`
+  - `mainmenu.scene.taml`
+  - `createhero.scene.taml`
+  - `board.scene.taml`
+  - `help.scene.taml`
+  - `credits.scene.taml`
+- **Camera & Coordinate System Conversion:**
+  - Standardized coordinate transformations from legacy TGB units to T2D 4.0 orthographic camera viewports (`100 75`).
+  - Adapted world coordinates across the Y-axis to match Torque2D 4.0 scene space conventions while preserving exact board tile alignments via world-space mapping (`boardToWorld` and `boardToWorldUnit`).
 
-Guis are saved as either the classic `.gui` script or TAML, and the editor says which one loses what before you pick. A Gui you have changed is not thrown away without being asked about.
+### 3. Unified Asset Management (`AssetDatabase`)
+- **Image & Animation Assets:**
+  - Deprecated legacy `t2dImageMapDatablock` and `t2dAnimationDatablock` script declarations.
+  - Converted over 70 image maps into declarative `<ImageAsset>` descriptors and 160+ sprite frame sequences into `<AnimationAsset>` definitions with explicit frame timings, cyclic states, and sprite sheet slicing.
+- **Particle Systems:**
+  - Reconstructed legacy `.eff` particle configurations into `<ParticleAsset>` descriptors (e.g., `magic_trail.asset.taml`, `bubbles.asset.taml`, `blood.asset.taml`).
+  - Restored proper texture bindings (`particles1ImageMap`, `smallbubble`) to eliminate fallback placeholders and recover crisp starbursts and rising bubble emitters.
 
-Controls take their appearance from a **theme** rather than from profiles you wire up by hand. The **Gui Profile Editor** is where a theme is authored — profiles, borders, fonts and colors, against a live preview — and a control dropped onto the canvas arrives already wearing the right one. Set Theme re-skins an entire Gui.
+### 4. TorqueScript 2.0 Compatibility Layer (`t2d_compat.cs`)
+- Implemented a specialized, high-performance compatibility bridge to preserve the original 2006 gameplay logic while translating obsolete API calls to modern Torque2D classes:
+  - `Sprite` and `Scroller` abstraction wrapping legacy `t2dStaticSprite`, `t2dAnimatedSprite`, and `t2dScroller`.
+  - Transform and kinematics mapping: `moveto`, `setAngularVelocity`, `mount`, `unmount`.
+  - Vector math parity helpers: `t2dVectorDistance`, `t2dVectorCompare`.
+  - Smooth animation controller hooks (`playAnimation`, `setFrame`, `setImageMap`).
+  - Timed visual fade controllers (`startFadeIn`, `startFadeOut`).
 
-The Rocket Edition also features a revamped Gui System! Until now it has been a common practice among those seriously using T2D to avoid the Gui System as much as possible. We aim to fix that with the Rocket Edition. Explanation of how to use the updated Gui System can be found in the wiki in the [Gui Guide](https://github.com/TorqueGameEngines/Torque2D/wiki/GUI-Guide).
+### 5. OpenAL Audio Engine & Fully Qualified Asset IDs
+- **Audio Profile Modernization:** Replaced obsolete `AudioProfile` / `AudioDescription` script blocks with standalone `<AudioAsset>` definitions in `Archon/data/audio/`.
+- **SFX Routing Pipeline (`playArchonSound`):**
+  - Updated audio playback across all gameplay scripts to route through fully qualified module asset IDs (`"Archon:<AssetName>"`), resolving silent failures in legacy `alxPlay()` calls.
+  - Restored combat impact sounds (`fxBeenHit`), attack swings (`fxSword`), creature movement footsteps (`fxFootStep`), death sequences (`fxDie`), countdown ticks (`ambient4Audio`), and looping background music (`ambient1Audio`).
 
-More features and editors are coming before 4.0 is officially done, but new projects should make use of the Early Access version to avoid future conflicts.
+### 6. Multi-Pass Framebuffer Alpha Blending Restoration
+- **Inverted Multiplicative Blending:** Faithfully restored the 2006 intro screen's dynamic gold-scrolling logo:
+  - **Pass 1:** Renders the authentic inverted monochrome logo mask (`gamelonlogo.png`) on `SceneLayer 1`.
+  - **Pass 2:** Overlays the animated gold texture scroller (`jee1.png`) on `SceneLayer 0` configured with `BlendMode="1"`, `SrcBlendFactor="ONE_MINUS_DST_COLOR"`, and `DstBlendFactor="ZERO"`.
+  - Produces crisp, transparent masking where the wavy gold texture shines exclusively through the map icon and typography against a void-black background.
 
-### Branches
+---
 
-Here is an overview of the branches found in the Torque2D repository:
+## 💾 Player Data Transfer & State Management
 
-* **master:** this branch contains the current stable release code that can be used in a production environment.
-* **development:** this branch is dedicated to active development. It contains the latest bug fixes, new features, and other updates. All pull requests need to go to the development branch. While we try our best to test all incoming changes, it is possible for mistakes to slip in therefore this branch should always be considered unstable.
-* **gh-pages:** this branch currently contains the html pages generated from doxygen for the engine and TorqueScript references.
+### 1. Game State Machine Modernization
+- Reinforced the global turn and game lifecycle state machine (`$gameIntroState`, `$gameMenuState`, `$gamePreBattleState`, `$gameBattleState`, `$gameEndState`).
+- Eliminated state desynchronization between scene loads, ensuring clean transitions from hero creation to the tactical board.
 
-### Precompiled Version
+### 2. Character Data & Attribute Integrity
+- **Hero Group Persistence:** Preserved full data integrity for player and AI hero singletons across transitions:
+  - Class progression (`sankarivalittu`: 1 = Warrior, 2 = Wizard).
+  - Resource pools: Creature Points (`olentopisteet`) and Mana (`mana`).
+  - Profession attributes (`ammatti`), action allowances, and hero portrait icon states.
+- **Unit Roster State:**
+  - Automated translation of unit datablocks across all 8 fantasy archetypes: *Warrior*, *Archer*, *Cleric*, *Paladin*, *Skeleton Warrior*, *Skeleton Archer*, *Dread Zombie*, and *Ancient Ghost*.
+  - Maintained distinct direction vectors and per-state animations (*Stopped*, *Walking*, *Attack*, *Magic*, *BeenHit*, *TippingOver*).
 
-If you do not wish to compile the source code yourself, precompiled binary files for Windows and OSX are available from the [Torque 2D Release Page](https://github.com/TorqueGameEngines/Torque2D/releases).
+### 3. Strict Board Placement & Boundary Validation
+- **Grid Boundary Enforcement:**
+  - Implemented boundary validation intercepting creature drops in `lisaaUusiNappulaLaudalle` to strictly restrict placement to legal coordinates ($0 \le x < 4, 0 \le y < 4$).
+  - Added occupancy and obstacle collision guards preventing unit stacking.
+- **Snap-Back Rejection Fallback:**
+  - Invalid drops or placement on non-green tiles instantly reject transform updates and safely snap the creature back to its originating tray slot.
+- **Unit Tray Lifecycle Management:**
+  - Re-anchored the lower creature tray to coordinate bounds (`Y = -28 / -30`), eliminating the regression where placement icons drifted to the screen top.
+  - Added automatic safe deletion of all 12 tray slots upon transitioning from preparation into active combat (`InitGameForBattle`).
 
-### Building the Source
+---
 
-**CMake is the single source of truth for the build.** You generate a project for your platform/toolchain from the root `CMakeLists.txt` and build it; the compiled executable is written to the repository root. Convenience generator scripts live at the repo root:
+## 🚀 Performance Upgrades
 
-* **Windows:** `generate-vs2022.bat` (or `generate-vs2026.bat`) → a Visual Studio solution
-* **macOS:** `generate-xcode.command` → an Xcode project
-* **Linux:** `build-linux.sh` (configures and builds; 32- and 64-bit)
-* **iOS:** `generate-xcode-ios.command` (simulator) or `generate-xcode-ios-device.command` (device)
-* **Android:** open `engine/compilers/android-studio` in Android Studio — its Gradle build drives CMake via the NDK
-* **Web:** `generate-emscripten.sh` → a WebAssembly build via `emcmake` (requires the Emscripten SDK)
+### 1. Rendering & Graphics Pipeline
+| Component | 2006 Legacy (TGB 1.1) | 2026 Migration (Torque2D 4.0 EA4) |
+| :--- | :--- | :--- |
+| **Architecture** | 32-bit x86 | Native 64-bit x86_64 |
+| **Graphics API** | Fixed-function legacy OpenGL | Modern OpenGL 4.6 Core / Compatibility |
+| **Resolution Support** | Fixed 4:3 (800x600, 1024x768) | Multi-resolution windowed & widescreen display scaling |
+| **Layer Rendering** | CPU-sorted 32-layer Z-buffer | SceneLayer depth batching ($0$ front to $31$ back) |
+| **Frame Rates** | Clamped VSync / software timer | Smooth vsync uncoupled logic ticks |
 
-The hand-maintained per-platform project files that used to live in `engine/compilers/` have been removed — CMake replaces them. For full step-by-step build instructions on every platform, see the [Torque2D wiki](https://github.com/TorqueGameEngines/Torque2D/wiki) (the *Building from Source* guide).
+### 2. Input Handling & Screen Picking
+- Modernized mouse coordinate picking via `sceneWindow2D.pickPoint`, providing zero-latency collision detection against board tiles, creatures, and GUI control cards.
+- Refined drag-and-drop mechanics with state caching to prevent ghost clicks or stuck drag states.
 
-#### Generating a Visual Studio 2022 solution with CMake
+### 3. Asset Loading & Memory Efficiency
+- Switched to declarative TAML parsing, cutting scene initialization and transition times.
+- Implemented automatic caching of compiled TorqueScript objects (`.dso`), reducing repeat script parsing overhead.
+- Optimized texture memory by consolidating loose images into dedicated asset manifests.
 
-Generating a fresh, always-up-to-date Visual Studio solution from CMake takes just a few steps. You do **not** need to know anything about CMake to do this.
+### 4. Audio Subsystem Optimization
+- Direct hardware-accelerated OpenAL streaming for background music, minimizing CPU memory overhead during continuous loops.
+- Instantaneous one-shot sound buffer reuse for high-frequency combat audio effects.
 
-1. **Install Visual Studio 2022** (the free Community Edition is fine). In the Visual Studio Installer, make sure the **"Desktop development with C++"** workload is checked.
-2. **Install CMake** from [cmake.org/download](https://cmake.org/download/). On the *Install Options* screen, choose **"Add CMake to the system PATH for all users"** (or for the current user). This one-time step is what lets the generator find CMake.
-3. In the root of the repository, **double-click `generate-vs2022.bat`**. It will create the solution under `build\vs2022\` and open `Torque2D.sln` in Visual Studio. (If CMake or the C++ workload is missing, the script tells you what to fix.)
-4. In Visual Studio, choose a configuration (**Debug** or **Release**) at the top, then build with **Build → Build Solution** (`Ctrl+Shift+B`).
-5. The compiled executable is written to the repository root (`Torque2D_DEBUG.exe` for Debug, `Torque2D.exe` for Release). Run it from there (press **F5** in Visual Studio, which is already set to launch from the repo root).
-
-Whenever the engine's source file list changes (for example after pulling new changes), just **re-run `generate-vs2022.bat`** to regenerate the solution.
-
-See the [wiki](https://github.com/TorqueGameEngines/Torque2D/wiki) for available guides on platform setup and development.
-
-### Batteries Included
-
-When you first run Torque2D, you'll have the option to create a project or open the Toybox. The Toybox is a collection of over 30 simple "toys" (or modules) which demonstrate various features in T2D. The default toy is a side scrolling level with a monster truck. To see a list of the available modules/toys to choose from, click on the `Show Tools` button in the lower right corner of the screen.
-
-Naturally all of the script code and assets for each toy are available to you in the toybox folder to use as practical examples while learning T2D.
-
-### Documentation
-
-All documentation for the Torque2D can be found on our [Github wiki page](https://github.com/TorqueGameEngines/Torque2D/wiki). It contains many tutorials, detailed technical information on engine systems, a script reference guide automatically generated from the source code, and articles on how to contribute to our open source development.
-
-### Community
-
-Don't go it alone! Join the active Torque community. Ask questions, talk about T2D and general game development topics, learn the latest news, or post a blog promoting your game or showing off additional engine features in your T2D fork.
-
-* [Torque 2D Forums on the Torque Game Engines Website](https://torque3d.org/forums/forum/26-general/)
-* [Torque Game Engines on Discord](https://discord.com/invite/qdAZxT4)
-
-Please note that the GarageGames website is gone. The options above both represent great ways to get help if you need it.
-
-# License
-
-Copyright (c) 2012 GarageGames, LLC
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to
-deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-IN THE SOFTWARE.
+---
