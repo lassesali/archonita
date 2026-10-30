@@ -1,0 +1,40 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Image="@asset=Archon:blackImageMap"
+        Position="-0.526 -0.553"
+        Size="104 78.9"
+        SceneLayer="31" />
+    <Scroller
+        Name="scrolleri"
+        Image="@asset=Archon:jee2ImageMap"
+        Size="100 76"
+        SceneLayer="31" />
+    <Sprite
+        Name="card_0"
+        Image="@asset=Archon:cardsImageMap"
+        Frame="1"
+        Position="-24 0"
+        Size="64 64"
+        SceneLayer="10"
+        isSelectable="1" />
+    <Sprite
+        Name="card_1"
+        Image="@asset=Archon:cardsImageMap"
+        Frame="2"
+        Position="25.6 0"
+        Size="64 64"
+        SceneLayer="10"
+        isSelectable="1" />
+    <Sprite
+        Name="teksti"
+        Image="@asset=Archon:textsImageMap"
+        Position="-9.54e-07 33.7"
+        Size="64 8"
+        SceneLayer="2" />
+    <ParticlePlayer
+        Name="mouseTrail"
+        Particle="@asset=Archon:magic_trail"
+        Position="19.6 45.4"
+        Size="16 16"
+        SceneLayer="1" />
+</Scene>

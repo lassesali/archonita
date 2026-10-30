@@ -1,0 +1,5 @@
+<AudioAsset
+    AssetName="ambient4Audio"
+    AssetAutoUnload="0"
+    AudioFile="popclick.wav"
+    Looping="false" />

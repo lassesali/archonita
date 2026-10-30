@@ -1,0 +1,19 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Image="@asset=Archon:cardlollipopImageMap"
+        Position="16 16"
+        Size="32 32" />
+    <Sprite
+        Image="@asset=Archon:cardmagichatImageMap"
+        Position="-32 16"
+        Size="32 32" />
+    <Sprite
+        Image="@asset=Archon:cardsausageImageMap"
+        Position="-8 16"
+        Size="32 32" />
+    <Sprite
+        Image="@asset=Archon:blackImageMap"
+        Position="0.0367 -0.107"
+        Size="100 75.5"
+        SceneLayer="31" />
+</Scene>

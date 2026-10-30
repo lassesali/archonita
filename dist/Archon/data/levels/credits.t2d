@@ -1,0 +1,45 @@
+%levelContent = new Scene() {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new Sprite(credits1) {
+      image = "Archon:creditsImageMap";
+      Image = "@asset=Archon:creditsImageMap";
+      position = "-9.54e-07 0.14";
+      size = "80 60";
+         mountID = "2";
+   };
+   new Sprite(credits2) {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "-0.312 0.173";
+      size = "102 76.6";
+      SceneLayer = "31";
+      Layer = "31";
+         mountID = "3";
+   };
+
+   new ParticlePlayer(explosion) {
+      effectFile = "Archon/data/particles/big_explosion.eff";
+      useEffectCollisions = "1";
+      effectMode = "CYCLE";
+      effectTime = "3";
+      position = "-0.718 12";
+      size = "40.5 15.3";
+      SceneLayer = "31";
+      Layer = "31";
+      WorldLimitMax = "0 3.95e-038";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "5";
+   };
+};
+
