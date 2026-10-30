@@ -1,0 +1,12 @@
+<ModuleDefinition
+	ModuleId="AppCore"
+	VersionId="1"
+	BuildId="1"
+	Description="Barebones startup module. Please note that this module is historically different from the library AppCore. Do not update it."
+	Synchronized="1"
+	ScriptFile="main.cs"
+	CreateFunction="create"
+	DestroyFunction="destroy"
+	Project="Toy Box"
+	ProjectDescription="A collection of simple programs to demonstrate different features of Torque2D."
+	Icon="projectIcon.png" />

@@ -1,0 +1,623 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2013 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+function EditorCore::SetProfileColors(%this)
+{
+	%this.color[1] = "43 43 43 255";
+	%this.color[2] = "81 92 102 255";
+	%this.color[3] = "224 224 224 255";
+	%this.color[4] = "54 135 196 255";
+	%this.color[5] = "245 210 50 255";
+	%this.color[6] = "196 54 71 255";
+}
+
+function EditorCore::SetProfileFont(%this)
+{
+	if ($platform $= "windows")
+		%this.platformFontType = "share tech mono";
+	else if ($platform $= "Android")
+		// "Droid" is gone from modern Android (Roboto since ~2014); request "Roboto",
+		// which is the system face AND the bundled assets/fonts/Roboto-Regular.ttf.
+		%this.platformFontType = "Roboto";
+	else if ($platformUnixType $= "emscripten")
+		// Web build: no system fonts; use a face that ships a pre-baked .uft cache.
+		// ($platform is "x86UNIX" on web, same as Linux, so key off $platformUnixType.)
+		%this.platformFontType = "share tech mono";
+	else
+		%this.platformFontType = "monaco";
+	if ($platform $= "ios")
+		%this.platformFontSize = 18;
+	else if ($platform $= "Android")
+		%this.platformFontSize = 14;
+	else
+		%this.platformFontSize = 12;
+
+	// Where GuiDefaultProfile looks for its pre-baked .uft glyph cache. The legacy
+	// default "^EditorCore/gui/fonts" does NOT exist on disk — desktop survives only
+	// because createPlatformFont() synthesizes the font from a system face. The web
+	// build has no font backend, so the cache lookup must point at a real, resolvable
+	// dir that actually ships the requested .uft. Use an EXPANDED path (the resource
+	// manager does not resolve the ^Module expando for cache lookups), under the
+	// ^EditorCore module (the only expando registered at editor boot — ^AppCore is
+	// not loaded), to the LabCoat theme's fonts, which bundle "share tech mono".
+	if ($platformUnixType $= "emscripten")
+		%this.platformFontDirectory = expandPath("^EditorCore/Themes/LabCoat/fonts");
+	else
+		%this.platformFontDirectory = "^EditorCore/gui/fonts";
+}
+
+function EditorCore::AdjustColorValue(%this, %color, %percent)
+{
+	%red = getWord(%color, 0);
+	%green = getWord(%color, 1);
+	%blue = getWord(%color, 2);
+	%alpha = getWord(%color, 3);
+
+	%largest = mGetMax(%red, mGetMax(%blue, %green));
+	%currentValue = %largest / 255;
+	%fullRed = %red / %currentValue;
+	%fullGreen = %green / %currentValue;
+	%fullBlue = %blue / %currentValue;
+
+	%newValue = %currentValue += (%percent/100);
+	%newValue = mClamp(%newValue, 0, 100);
+	%newColor = mRound(mClamp((%fullRed * %newValue), 0, 255)) SPC
+		mRound(mClamp((%fullGreen * %newValue), 0, 255)) SPC
+		mRound(mClamp((%fullBlue * %newValue), 0, 255)) SPC %alpha;
+
+	return %newColor;
+}
+
+function EditorCore::SetColorAlpha(%this, %color, %newAlpha)
+{
+	%red = getWord(%color, 0);
+	%green = getWord(%color, 1);
+	%blue = getWord(%color, 2);
+	return %red SPC %green SPC %blue SPC mRound(mClamp(%newAlpha, 0, 255));
+}
+
+function EditorCore::SafeCreateNamedObject(%this, %name, %object)
+{
+	if(isObject(%name))
+	{
+		%originalObject = nameToID(%name);
+		if(%originalObject.getClassName() !$= %object.getClassName())
+		{
+			warn("Attempted to change the class of the named object " @ %name @ "!");
+			warn("Original Class: " @ %originalObject.getClassName());
+			warn("New Class: " @ %object.getClassName());
+			return;
+		}
+		%originalObject.assignFieldsFrom(%object);
+		%object.delete();
+	}
+	else
+	{
+		%object.setName(%name);
+	}
+}
+
+function EditorCore::createGuiProfiles(%this)
+{
+	%this.SetProfileColors();
+	%this.SetProfileFont();
+
+	// GuiDefaultProfile and GuiDefaultBorderProfile are not created here - the
+	// engine makes them at start-up (GuiControlProfile::createDefaultProfile), so
+	// the name every control falls back to can never be missing. What is left is
+	// tuning them for the editor, and that still matters: a new profile copies its
+	// unset fields from these two, and 28 of BaseTheme's profiles name no font of
+	// their own, so this is where the editor's face and border colors come from.
+	GuiDefaultBorderProfile.borderColor   = %this.color1;
+	GuiDefaultBorderProfile.borderColorHL = %this.AdjustColorValue(%this.color1, 10);
+	GuiDefaultBorderProfile.borderColorSL = %this.AdjustColorValue(%this.color1, 10);
+	GuiDefaultBorderProfile.borderColorNA = %this.SetColorAlpha(%this.color1, 100);
+
+	GuiDefaultProfile.fontType = %this.platformFontType;
+	GuiDefaultProfile.fontDirectory = %this.platformFontDirectory;
+	GuiDefaultProfile.fontSize = %this.platformFontSize;
+
+	%this.SafeCreateNamedObject("GuiBrightBorderProfile", new GuiBorderProfile()
+	{
+		border = 2;
+		borderHL = 2;
+		borderSL = 2;
+		borderNA = 2;
+
+		borderColor = "255 255 255 50";
+		borderColorHL = "255 255 255 50";
+		borderColorSL = "255 255 255 50";
+		borderColorNA = "255 255 255 50";
+
+		underfill = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiDarkBorderProfile", new GuiBorderProfile()
+	{
+		border = 2;
+		borderHL = 2;
+		borderSL = 2;
+		borderNA = 2;
+
+		borderColor = "0 0 0 50";
+		borderColorHL = "0 0 0 50";
+		borderColorSL = "0 0 0 50";
+		borderColorNA = "0 0 0 50";
+
+		underfill = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiPanelProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color1;
+	    fillColorHL = %this.AdjustColorValue(%this.color1, 10);
+	    fillColorSL = %this.AdjustColorValue(%this.color1, 15);
+	    fillColorNA = %this.SetColorAlpha(%this.color1, 100);
+		borderDefault = GuiBrightBorderProfile;
+		category = "defaultPanel";
+	});
+
+	%listBorderProfile = new GuiBorderProfile()
+	{
+		margin = 1;
+		marginHL = 1;
+		marginSL = 1;
+		marginNA = 1;
+
+		padding = 4;
+		paddingHL = 4;
+		paddingSL = 4;
+		paddingNA = 4;
+	};
+
+	%this.SafeCreateNamedObject("GuiListBoxProfile", new GuiControlProfile()
+	{
+	    // fill color
+	    fillColor = %this.color1;
+	    fillColorHL = %this.AdjustColorValue(%this.color1, 10);
+	    fillColorSL = %this.color4;
+	    fillColorNA = %this.SetColorAlpha(%this.color1, 100);
+		align = left;
+
+		tab = false;
+		canKeyFocus = true;
+		category = "defaultListBox";
+
+		fontColor = %this.color3;
+		fontColorHL = %this.AdjustColorValue(%this.color3, 20);
+		fontColorSL = %this.AdjustColorValue(%this.color3, 20);
+		fontColorNA = %this.AdjustColorValue(%this.color3, -30);
+
+		borderDefault = %listBorderProfile;
+	});
+
+	%windowBorderProfile = new GuiBorderProfile()
+	{
+		padding = 10;
+		paddingHL = 10;
+		paddingSL = 10;
+		paddingNA = 4;
+	};
+
+	%this.SafeCreateNamedObject("GuiWindowProfile", new GuiControlProfile()
+	{
+	   fillColor = %this.AdjustColorValue(%this.color1, 10);
+	   fillColorHL = %this.AdjustColorValue(%this.color1, 12);
+	   fillColorSL = %this.color4;
+	   fillColorNA = %this.color1;
+	   category = "defaultWindow";
+	   align = "Left";
+
+	   fontColorSL = %this.color5;
+
+	   borderLeft = %windowBorderProfile;
+	});
+
+	%windowContentProfile = new GuiBorderProfile()
+	{
+		borderColor = %this.AdjustColorValue(%this.color1, 10);
+		borderColorSL = %this.AdjustColorValue(%this.color4, -10);
+
+		border = 3;
+		borderSL = 3;
+	};
+
+	%this.SafeCreateNamedObject("GuiWindowContentProfile", new GuiControlProfile()
+	{
+		fillColor = %this.AdjustColorValue(%this.color1, -10);
+		fillColorSL = %this.AdjustColorValue(%this.color1, -10);
+
+		borderDefault = %windowContentProfile;
+		borderTop = GuiDefaultBorderProfile;
+	});
+
+	%windowButtonBorderProfile = new GuiBorderProfile()
+	{
+		margin = 1;
+		marginHL = 1;
+		marginSL = 1;
+		marginNA = 1;
+
+		padding = 3;
+		paddingHL = 3;
+		paddingSL = 3;
+		paddingNA = 3;
+	};
+
+	%this.SafeCreateNamedObject("GuiWindowCloseButtonProfile", new GuiControlProfile()
+	{
+		fillColor = %this.SetColorAlpha(%this.color1, 150);
+		fillColorHL = %this.SetColorAlpha(%this.color6, 150);
+		fillColorSL = %this.AdjustColorValue(%this.color6, 10);
+		fillColorNA = %this.color1;
+
+		fontColor = %this.SetColorAlpha(%this.color3, 150);
+		fontColorHL = %this.SetColorAlpha(%this.color3, 170);
+		fontColorSL = %this.color5;
+		fontColorNA = %this.SetColorAlpha(%this.color3, 150);
+
+		borderDefault = %windowButtonBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiWindowMinButtonProfile", new GuiControlProfile()
+	{
+		fillColor = %this.SetColorAlpha(%this.color1, 150);
+		fillColorHL = %this.SetColorAlpha(%this.color4, 150);
+		fillColorSL = %this.AdjustColorValue(%this.color4, 10);
+		fillColorNA = %this.color1;
+
+		fontColor = %this.SetColorAlpha(%this.color3, 150);
+		fontColorHL = %this.SetColorAlpha(%this.color3, 170);
+		fontColorSL = %this.color5;
+		fontColorNA = %this.SetColorAlpha(%this.color3, 150);
+
+		borderDefault = %windowButtonBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiWindowMaxButtonProfile", new GuiControlProfile()
+	{
+		fillColor = %this.SetColorAlpha(%this.color1, 150);
+		fillColorHL = %this.SetColorAlpha(%this.color4, 150);
+		fillColorSL = %this.AdjustColorValue(%this.color4, 10);
+		fillColorNA = %this.color1;
+
+		fontColor = %this.SetColorAlpha(%this.color3, 150);
+		fontColorHL = %this.SetColorAlpha(%this.color3, 170);
+		fontColorSL = %this.color5;
+		fontColorNA = %this.SetColorAlpha(%this.color3, 150);
+
+		borderDefault = %windowButtonBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiTabProfile", new GuiControlProfile()
+	{
+		fontColor = "255 255 255 255";
+	    fontColorHL = "232 240 248 255";
+	    fontColorSL= "255 255 255 255";
+	    fontColorNA = "0 0 0 255";
+		fillColor = %this.color1;
+		fillColorHL = %this.AdjustColorValue(%this.color1, 10);
+		fillColorSL = %this.AdjustColorValue(%this.color1, 15);
+		fillColorNA = %this.SetColorAlpha(%this.color1, 100);
+		borderDefault = GuiBrightBorderProfile;
+		align = Center;
+		category = "defaultTab";
+	});
+
+	%this.SafeCreateNamedObject("GuiTabPageProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color1;
+		fillColorHL = %this.AdjustColorValue(%this.color1, 10);
+		fillColorSL = %this.AdjustColorValue(%this.color1, 15);
+		fillColorNA = %this.SetColorAlpha(%this.color1, 100);
+		category = "defaultTabPage";
+	});
+
+	%this.SafeCreateNamedObject("GuiToolTipProfile", new GuiControlProfile()
+	{
+		// fill color
+	    fillColor = %this.SetColorAlpha(%this.color1, 220);
+	    fillColorHL = %this.AdjustColorValue(%this.color1, 10);
+	    fillColorSL = %this.AdjustColorValue(%this.color1, 15);
+	    fillColorNA = %this.SetColorAlpha(%this.color1, 100);
+
+		fontColor = %this.color5;
+
+		borderDefault = GuiBrightBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiScrollTrackProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color1;
+	    fillColorHL = %this.color1;
+	    fillColorSL = %this.color1;
+	    fillColorNA = %this.color1;
+	});
+
+	%this.SafeCreateNamedObject("GuiScrollThumbProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color3;
+	    fillColorHL = %this.AdjustColorValue(%this.color3, 10);
+	    fillColorSL = %this.color4;
+	    fillColorNA = %this.SetColorAlpha(%this.color3, 100);
+
+		borderDefault = GuiBrightBorderProfile;
+		borderRight = GuiDarkBorderProfile;
+		borderBottom = GuiDarkBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiScrollArrowProfile", new GuiControlProfile()
+	{
+		fontColor = "0 0 0 100";
+	    fontColorHL = "0 0 0 150";
+	    fontColorSL = %this.color5;
+	    fontColorNA = "0 0 0 50";
+
+		borderDefault = GuiBrightBorderProfile;
+		borderRight = GuiDarkBorderProfile;
+		borderBottom = GuiDarkBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiScrollProfile", new GuiControlProfile()
+	{
+	    fillColor = %this.color2;
+	    borderDefault = GuiDefaultBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiProgressProfile", new GuiControlProfile()
+	{
+	   fillColor = %this.color1;
+	   fillColorHL = %this.color4;
+	   fillColorSL = %this.AdjustColorValue(%this.color4, 10);
+
+	   fontColorHL = %this.color3;
+	   fontColorSL = %this.color5;
+
+	   borderDefault = GuiBrightBorderProfile;
+	   borderBottom = GuiDarkBorderProfile;
+	   borderRight = GuiDarkBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiDropDownProfile", new GuiControlProfile()
+	{
+	    // fill color
+	    fillColor = %this.AdjustColorValue(%this.color3, -15);
+		fillColorHL = %this.AdjustColorValue(%this.color3, -8);
+		fillColorSL = %this.color4;
+		fillColorNA = %this.SetColorAlpha(%this.color3, 100);
+
+	    fontColor = %this.color1;
+		fontColorHL = %this.color1;
+		fontColorSL = %this.color3;
+		fontColorNA = %this.SetColorAlpha(%this.color1, 100);
+		align = "left";
+
+		tab = true;
+		canKeyFocus = true;
+
+		borderDefault = GuiBrightBorderProfile;
+		borderRight = GuiDarkBorderProfile;
+		borderBottom = GuiDarkBorderProfile;
+		category = "dropDown";
+	});
+
+	%this.SafeCreateNamedObject("GuiMenuBarProfile", new GuiControlProfile()
+	{
+		fillColor = %this.AdjustColorValue(%this.color1, -7);
+		canKeyFocus = true;
+		category = "defaultMenuBar";
+	});
+
+	%this.SafeCreateNamedObject("GuiMenuProfile", new GuiControlProfile()
+	{
+		fillColor = "0 0 0 0";
+		fillColorHL = "255 255 255 10";
+		fillColorSL = %this.AdjustColorValue(%this.color4, -15);
+		fillColorNA = "0 0 0 0";
+
+		borderDefault = GuiDarkBorderProfile;
+		category = "defaultMenuBar";
+
+		fontColor = %this.color3;
+		fontColorHL = %this.AdjustColorValue(%this.color3, 10);
+		fontColorSL = %this.color3;
+		fontColorNA = %this.SetColorAlpha(%this.color3, 100);
+	});
+
+	%this.SafeCreateNamedObject("GuiMenuContentProfile", new GuiControlProfile()
+	{
+		fillColor = %this.AdjustColorValue(%this.color1, -5);
+
+		borderDefault = GuiDefaultBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiMenuItemProfile", new GuiControlProfile()
+	{
+		fillColor = %this.AdjustColorValue(%this.color1, -5);
+		fillColorHL = %this.AdjustColorValue(%this.color4, -15);
+		fillColorNA = %this.color1;
+		align = left;
+
+		fontColor = %this.color3;
+		fontColorHL = %this.AdjustColorValue(%this.color3, 10);
+		fontColorNA = %this.SetColorAlpha(%this.color3, 150);
+
+		borderDefault = GuiDefaultBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiTextEditProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color4;
+		fillColorHL = %this.AdjustColorValue(%this.color4, 10);
+		fillColorSL = %this.color4;
+		fillColorNA = %this.AdjustColorValue(%this.color4, 80);
+		fillColorTextSL = %this.color5;
+
+		fontColor = %this.SetColorAlpha(%this.color1, 220);
+		fontColorHL = %this.AdjustColorValue(%this.color1, 10);
+		fontColorSL = %this.color1;
+		fontColorNA = %this.SetColorAlpha(%this.color1, 100);
+		fontColorTextSL = %this.color1;
+		align = left;
+		vAlign = middle;
+		cursorColor = %this.color2;
+
+		tab = true;
+		canKeyFocus = true;
+		returnTab = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiButtonProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color4;
+		fillColorHL = %this.AdjustColorValue(%this.color4, 10);
+		fillColorSL = %this.color5;
+		fillColorNA = %this.SetColorAlpha(%this.color4, 80);
+
+		fontColor = %this.color1;
+		fontColorHL = %this.AdjustColorValue(%this.color1, 10);
+		fontColorSL = %this.color1;
+		fontColorNA = %this.SetColorAlpha(%this.color1, 100);
+		align = center;
+		vAlign = middle;
+
+		borderLeft = GuiBrightBorderProfile;
+		borderRight = GuiDarkBorderProfile;
+		borderTop = GuiBrightBorderProfile;
+		borderBottom = GuiDarkBorderProfile;
+
+		canKeyFocus = true;
+		tab = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiCheckboxProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color4;
+		fillColorHL = %this.AdjustColorValue(%this.color4, 10);
+		fillColorSL = %this.color5;
+		fillColorNA = %this.SetColorAlpha(%this.color4, 80);
+
+		fontColor = %this.color1;
+		fontColorHL = %this.AdjustColorValue(%this.color1, 10);
+		fontColorSL = %this.color1;
+		fontColorNA = %this.SetColorAlpha(%this.color1, 100);
+		align = center;
+		vAlign = middle;
+
+		borderLeft = GuiBrightBorderProfile;
+		borderRight = GuiDarkBorderProfile;
+		borderTop = GuiBrightBorderProfile;
+		borderBottom = GuiDarkBorderProfile;
+
+		canKeyFocus = true;
+		tab = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiColorPopupBorderProfile", new GuiBorderProfile()
+	{
+		border = 1;
+		borderHL = 1;
+		borderSL = 1;
+		borderNA = 1;
+
+		borderColor = %this.AdjustColorValue(%this.color1, -5);
+		borderColorHL = %this.AdjustColorValue(%this.color1, -5);
+		borderColorSL = %this.AdjustColorValue(%this.color1, -5);
+		borderColorNA = %this.AdjustColorValue(%this.color1, -5);
+
+		padding = 3;
+		paddingHL = 3;
+		paddingSL = 3;
+		paddingNA = 3;
+	});
+
+	%this.SafeCreateNamedObject("GuiColorPopupProfile", new GuiControlProfile()
+	{
+		fillColor = %this.color1;
+		fillColorHL = %this.color1;
+		fillColorSL = %this.color1;
+		fillColorNA = %this.color1;
+
+		borderDefault = GuiColorPopupBorderProfile;
+	});
+
+	%this.SafeCreateNamedObject("GuiColorPickerBorderProfile", new GuiBorderProfile()
+	{
+		border = 1;
+		borderHL = 1;
+		borderSL = 1;
+		borderNA = 1;
+
+		borderColor = %this.color1;
+		borderColorHL = %this.color2;
+		borderColorSL = %this.color4;
+		borderColorNA = %this.color1;
+
+		padding = 1;
+		paddingHL = 1;
+		paddingSL = 1;
+		paddingNA = 1;
+
+		margin = 1;
+		marginHL = 1;
+		marginSL = 1;
+		marginNA = 1;
+	});
+
+	%this.SafeCreateNamedObject("GuiColorPickerProfile", new GuiControlProfile()
+	{
+		fillColor = "0 0 0 0";
+		fillColorHL = "0 0 0 0";
+		fillColorSL = "0 0 0 0";
+		fillColorNA = "0 0 0 0";
+		
+		borderDefault = GuiColorPickerBorderProfile;
+
+		tab = false;
+		canKeyFocus = true;
+		underfill = true;
+	});
+
+	%this.SafeCreateNamedObject("GuiColorSelectorBorderProfile", new GuiBorderProfile()
+	{
+		border = 1;
+		borderHL = 1;
+		borderSL = 1;
+
+		borderColor = "0 0 0 180";
+		borderColorHL = "0 0 0 190";
+		borderColorSL = "0 0 0 220";
+
+		//Margin and padding are used to determine the size of the selector ring in the normal state.
+		padding = 2;//Radius of the outer circle minus the inner circle. The meat of the donut.
+		margin = 1;//Radius of the inner circle plus 1. This is different from the normal use of the margin.
+	});
+
+	%this.SafeCreateNamedObject("GuiColorSelectorProfile", new GuiControlProfile()
+	{
+		fillColor = "240 240 240 255";
+		fillColorHL = "250 250 250 255";
+		fillColorSL = %this.color5;
+		
+		borderDefault = GuiColorSelectorBorderProfile;
+	});
+}

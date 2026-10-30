@@ -1,0 +1,5 @@
+<AudioAsset
+    AssetName="fxDie"
+    AssetAutoUnload="0"
+    AudioFile="die.wav"
+    Looping="false" />

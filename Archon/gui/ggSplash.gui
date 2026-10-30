@@ -1,27 +1,21 @@
 //--- OBJECT WRITE BEGIN ---
-new GuiFadeinBitmapCtrl(ggSplash) {
+new GuiControl(ggSplash) {
    canSaveDynamicFields = "0";
    Profile = "GuiDefaultProfile";
-   HorizSizing = "right";
-   VertSizing = "bottom";
+   HorizSizing = "width";
+   VertSizing = "height";
    position = "0 0";
-   Extent = "640 480";
+   Extent = "1024 768";
    MinExtent = "8 2";
    canSave = "1";
    Visible = "1";
-   hovertime = "1000";
-   bitmap = "~/data/images/logoblack.png";
-   wrap = "0";
-   fadeinTime = "1000";
-   waitTime = "2000";
-   fadeoutTime = "1000";
-   done = "0";
+   done = "1";
 };
 //--- OBJECT WRITE END ---
 
 function loadGGSplash()
 {
-   canvas.setContent(ggSplash);
+   Canvas.setContent(ggSplash);
    schedule(100, 0, checkGGSplash);
 }
 
@@ -29,6 +23,6 @@ function checkGGSplash()
 {
    if (ggSplash.done)
       gamelonIntro();
-    else
+   else
       schedule(100, 0, checkGGSplash);
 }

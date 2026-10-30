@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="skeletonarcherTippingOverImageMap"
+    ImageFile="disintegrateImageMap.png"
+    CellCountX="13"
+    CellCountY="3"
+    CellWidth="96"
+    CellHeight="96" />

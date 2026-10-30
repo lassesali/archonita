@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="dreadzombieStoppedImageMap"
+    ImageFile="stoppedImageMap.png"
+    CellCountX="13"
+    CellCountY="1"
+    CellWidth="96"
+    CellHeight="96" />

@@ -7,16 +7,36 @@
 // initializeProject
 // Perform game initialization here.
 //---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+// Torque2D 4.0 Module Lifecycle Callbacks
+//---------------------------------------------------------------------------------------------
+function Archon::create(%this)
+{
+   initializeProject();
+}
+
+function Archon::destroy(%this)
+{
+   shutdownProject();
+}
+
 function initializeProject()
 {
 
    %res = getDesktopResolution();
    echo(%res);
-   setScreenMode(  getWord( %res,0 ) , getWord( %res,1 ) , 32, true  );
+   %fs = false;
+   if ($pref::Video::fullScreen !$= "")
+      %fs = $pref::Video::fullScreen;
+   setScreenMode( 1024, 768, 32, %fs );
 
    // Load up the in game gui.
-   exec("~/gui/ggSplash.gui");
-   exec("~/gui/mainScreen.gui");
+   exec("./gameScripts/t2d_compat.cs");
+   OpenALInitDriver();
+   Canvas.setCursor(DefaultCursor);
+   Canvas.showCursor();
+   exec("./gui/ggSplash.gui");
+   exec("./gui/mainScreen.gui");
       
    // Exec game scripts.
    exec("./gameScripts/intro.cs");
@@ -34,7 +54,8 @@ function initializeProject()
    exec("./gameScripts/gameObject.cs");
       
    SetRandomSeed(getRealTime());
-   loadGGsplash();
+   if (!$Archon::skipSplash)
+      loadGGsplash();
 
    
 }

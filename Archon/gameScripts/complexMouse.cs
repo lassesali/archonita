@@ -112,70 +112,64 @@ function mouseOverMovementGrid( %mod, %worldPos )
 
 function mouseOverGreenGrid( %mod, %worldPos )
 {
-                                 %sankari = HeroGroup.getObject(0);
-                //lets get a list of all the objects at the clicked point in the t2dScene
-                %objList = t2dScene.pickPoint(%worldPos);
-                //lets get a count of how many objects in the list
-                %objCount = getWordCount(%objList);
-        
-                //we will start looping through the list
-                for(%i=0;%i<%objCount;%i++)
-                {
-                        //grabing the entry corresponding to the loop
-                        %obj = getWord(%objList, %i);
-                
-                        //if we find an object in the list that "isSelectable = true"
-        
+   %sankari = HeroGroup.getObject(0);
+   %sankari.setValittuRuutu("-1 -1");
 
+   for (%ux = 0; %ux < 4; %ux++) 
+   {
+      for (%uy = 2; %uy < 4; %uy++) 
+      {
+         if ($board.obstacles[%ux, %uy] == 0) 
+         {
+            if (isObject($green[%ux, %uy])) 
+            {
+               $green[%ux, %uy].setFrame("0");
+            }
+         }
+      }
+   }
 
-                                %sankari.setValittuRuutu("-1 -1");
-                                for (%ux=0; %ux<4; %ux++) 
-                                {
-                                    for (%uy=2; %uy<4; %uy++) 
-                                    {
-                                       if ($board.obstacles[%ux,%uy]==0) 
-                                       {
-                                          if(isObject($green[%ux,%uy])) {
-                                             $green[%ux,%uy].setFrame("0");
-                                          }
-                                       }
+   for (%j = 0; %j < 4; %j++) 
+   {
+      if (isObject($setupNappulaSprite[%j]))
+         $setupNappulaSprite[%j].setVisible(false);
+   }
 
-                                    }
-                                }
-                                
-                                for (%j=0; %j<3; %j++) 
-                                {
-                                  $setupNappulaSprite[%j].setVisible(false);
-                                }
+   %selected = false;
+   %selectedObj = "";
+   %objList = t2dScene.pickPoint(%worldPos);
+   %objCount = getWordCount(%objList);
 
-                        if(%obj.isValintakehys)
-                        {
+   for (%i = 0; %i < %objCount; %i++)
+   {
+      %obj = getWord(%objList, %i);
+      if (%obj.isValintakehys)
+      {
+         %selected = true;
+         %selectedObj = %obj;
+         %i = %objCount;
+      }
+   }
 
-                                
-                                //we toggle a value so we know we found an object that "isSelectable"
-                                %selected = true;
-                                //we kick out of the loop
-                                %i = %objCount;
+   if (%selected)
+   {
+      %selectedObj.setFrame("1");
+      %sankari.setValittuRuutu(%selectedObj.positionOnBoard);
 
-                        }                         
-                }
-        
-                //if we found an "isSelectable" object
-                if(%selected)
-                {
-
-                        %obj.setFrame("1");
-                        %sankari.setValittuRuutu(%obj.positionOnBoard);
-                     
-                     if($mouseObj::isObjMounted) {
-                        %objMounted=$mouseObj::objMounted;
-                        $setupNappulaSprite[%objMounted.creatureLevel - 1].setPosition(%sankari.getValittuRuutuX()*8-16 SPC %sankari.getValittuRuutuY()*8-18 );
-                        $setupNappulaSprite[%objMounted.creatureLevel - 1].setVisible(true);
-                     }
-                        
-                     
-                }
-        
+      if ($mouseObj::isObjMounted) 
+      {
+         %objMounted = $mouseObj::objMounted;
+         if (isObject(%objMounted))
+         {
+            %lvlIndex = %objMounted.creatureLevel - 1;
+            if (isObject($setupNappulaSprite[%lvlIndex]))
+            {
+               $setupNappulaSprite[%lvlIndex].setPosition(boardToWorldUnit(%sankari.getValittuRuutuX(), %sankari.getValittuRuutuY()));
+               $setupNappulaSprite[%lvlIndex].setVisible(true);
+            }
+         }
+      }
+   }
 }
 
 
@@ -194,6 +188,8 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
         $mouseObj::stopped = false;
          if ($hiiri.piilota) 
             Canvas.hideCursor();
+         else
+            Canvas.showCursor();
 
          if (isObject(mouseTrail)) {
             
@@ -203,6 +199,11 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
          if (getGameState() == $gamePreBattleState) 
          {
             mouseOverGreenGrid(%mod, %worldPos);
+            if (%this.objectSelected)
+            {
+               if (%this.mouseDownPos $= "" || distBetween(%this.mouseDownPos, %worldPos) > 2.0)
+                  %this.dragStarted = true;
+            }
          }
 
          if (getGameState() == $gameBattleState) 
@@ -230,6 +231,28 @@ function sceneWindow2D::onMouseDragged( %this, %mod, %worldPos, %mouseClicks )
         $mouseObj::stopped = false;
          if ($hiiri.piilota) 
             Canvas.hideCursor();
+         else
+            Canvas.showCursor();
+
+         if (isObject(mouseTrail)) {
+            mouseTrail.setPosition(%worldPos);
+         }
+
+         if (getGameState() == $gamePreBattleState) 
+         {
+            mouseOverGreenGrid(%mod, %worldPos);
+            if (%this.objectSelected)
+            {
+               if (%this.mouseDownPos $= "" || distBetween(%this.mouseDownPos, %worldPos) > 2.0)
+                  %this.dragStarted = true;
+            }
+         }
+
+         if (getGameState() == $gameBattleState) 
+         {
+            mouseOverMovementGrid(%mod, %worldPos);
+            mouseOverActionIcons(%mod, %worldPos);
+         }
 
 }
 
@@ -253,6 +276,125 @@ function dismountobject() {
 }
 
 
+function sceneWindow2D::placeSelectedCharacter(%this, %obj)
+{
+   if (!isObject(%obj))
+      %obj = $mouseObj::objMounted;
+
+   if (!isObject(%obj))
+   {
+      %this.objectSelected = false;
+      return false;
+   }
+
+   %sankari = HeroGroup.getObject(0);
+   %targetRuutu = %sankari.getValittuRuutu();
+   %targetX = %sankari.getValittuRuutuX();
+   %targetY = %sankari.getValittuRuutuY();
+
+   // Strict validation of target tile:
+   // 1. Must not be unselected (-1 -1 or empty)
+   // 2. Must fall within board array bounds: 0 <= x < 4, 2 <= y < 4 (player deployment area)
+   // 3. Tile must be free of obstacles ($board.obstacles[x, y] == 0)
+   // 4. Must specifically correspond to a valid active green placement tile ($green[x, y])
+   %isValidTile = false;
+   if (%targetRuutu !$= "-1 -1" && %targetRuutu !$= "")
+   {
+      if (%targetX >= 0 && %targetX < 4 && %targetY >= 2 && %targetY < 4)
+      {
+         if ($board.obstacles[%targetX, %targetY] == 0 && isObject($green[%targetX, %targetY]))
+         {
+            %isValidTile = true;
+         }
+      }
+   }
+
+   if (!%isValidTile)
+   {
+      %this.cancelCharacterPlacement(%obj);
+      return false;
+   }
+
+   %creatureLvl = %obj.creatureLevel;
+   %iconIndex = %obj.index;
+
+   // Attempt placement on board
+   %placed = lisaaUusiNappulaLaudalle(%creatureLvl, %targetX, %targetY, 0);
+   if (!%placed)
+   {
+      %this.cancelCharacterPlacement(%obj);
+      return false;
+   }
+
+   %obj.dismount();
+   $mouseObj::isObjMounted = false;
+   $mouseObj::objMounted = "";
+
+   if (isObject($numb[%iconIndex]))
+      $numb[%iconIndex].delete();
+
+   updatePisteetGridsIcons();
+
+   if (isObject(%obj))
+      %obj.delete();
+
+   dismountobject();
+   %this.objectSelected = false;
+   %this.dragStarted = false;
+
+   for (%j = 0; %j < 4; %j++)
+   {
+      if (isObject($setupNappulaSprite[%j]))
+         $setupNappulaSprite[%j].setVisible(false);
+   }
+
+   %sankari.setValittuRuutu("-1 -1");
+   return true;
+}
+
+function sceneWindow2D::cancelCharacterPlacement(%this, %obj)
+{
+   if (!isObject(%obj))
+      %obj = $mouseObj::objMounted;
+
+   if (isObject(%obj))
+   {
+      %obj.dismount();
+      if (isObject($grid[%obj.index]))
+      {
+         %obj.setPosition($grid[%obj.index].getPosition());
+         $grid[%obj.index].mount(%obj, 0, 0, 0, true, true, true, true);
+         $icon[%obj.index].setLayer("6");
+         $grid[%obj.index].setLayer("5");
+      }
+   }
+
+   $mouseObj::isObjMounted = false;
+   $mouseObj::objMounted = "";
+   %this.selectedObj = "";
+   %this.objectSelected = false;
+   %this.dragStarted = false;
+
+   for (%j = 0; %j < 4; %j++)
+   {
+      if (isObject($setupNappulaSprite[%j]))
+         $setupNappulaSprite[%j].setVisible(false);
+   }
+
+   for (%ux = 0; %ux < 4; %ux++)
+   {
+      for (%uy = 2; %uy < 4; %uy++)
+      {
+         if ($board.obstacles[%ux, %uy] == 0 && isObject($green[%ux, %uy]))
+            $green[%ux, %uy].setFrame("0");
+      }
+   }
+
+   %sankari = HeroGroup.getObject(0);
+   if (isObject(%sankari))
+      %sankari.setValittuRuutu("-1 -1");
+}
+
 function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 {
         
@@ -274,44 +416,9 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
         {
                 if (getGameState() == $gamePreBattleState) 
                 {
-                  %obj = $mouseObj::objMounted;
-                
-                  if($debugMsg::mouse::selection)
-                        echo("unselecting");
-
-                  if($mouseObj::isObjMounted)
-                  {       
-                        if(isObject(%obj))
-                        {
-                                                            %sankari = HeroGroup.getObject(0);
-                           if(%sankari.getValittuRuutu != "-1 -1") 
-                           {
-                        
-                        
-                                if($debugMsg::mouse::selection)
-                                        echo("dismounting object");
-
-                                %obj.dismount();
-                                $mouseObj::isObjMounted = false;
-                                
-                                if (isObject($numb[%obj.index]))
-                                    $numb[%obj.index].delete();
-
-                                lisaaUusiNappulaLaudalle(%obj.creatureLevel, %sankari.getValittuRuutuX(), %sankari.getValittuRuutuY(), 0);
-                                updatePisteetGridsIcons();
-                                 
-                                if (isObject(%obj)) 
-                                    %obj.delete();
-                                
-                                dismountobject();
-                                %this.objectSelected = false;
-                           }
-                        
-                        
-                        }
-                  }
+                   %obj = $mouseObj::objMounted;
+                   %this.placeSelectedCharacter(%obj);
                 }
-                
         } 
         else
         {
@@ -350,6 +457,8 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                                 echo("You have selected:" SPC %obj SPC "with the name:" SPC %obj.objectName);
 
                         %this.objectSelected = true;
+                        %this.mouseDownPos = %worldPos;
+                        %this.dragStarted = false;
 
                            if($debugMsg::mouse::selection) 
                                   echo("echo attempting to mount:" SPC %obj SPC " to mouse obj:" 
@@ -387,7 +496,18 @@ function setNappiReleasedOff() {
 
 function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 {
-                                    %sankari = HeroGroup.getObject(game.getVuorossaOlevaPelaaja());
+         if ( getGameState() == $gamePreBattleState && %this.objectSelected && %this.dragStarted )
+         {
+            %this.placeSelectedCharacter($mouseObj::objMounted);
+         }
+
+         if ( getGameState() == $gameBattleState ) 
+         {
+            mouseOverMovementGrid(%mod, %worldPos);
+            mouseOverActionIcons(%mod, %worldPos);
+         }
+
+         %sankari = HeroGroup.getObject(game.getVuorossaOlevaPelaaja());
             %v1=%sankari.getValittuRuutu();
             %v2=$nappulaSprite[game.getNappulaSelected()].positionOnBoard;
            $hiiri.nappi = false;
@@ -435,7 +555,8 @@ function sceneWindow2D::onMouseLeave( %this, %mod, %worldPos, %mouseClicks )
 
 function initMouse()
 {
-        $mouseObj::object = new t2dSceneObject() { scenegraph = t2dScene; };
+        $mouseObj::object = new SceneObject() { scene = t2dScene; };
+        if (isObject(t2dScene)) t2dScene.add($mouseObj::object);
         $mouseObj::object.setSize("1 1");
         $mouseObj::object.setLayer(31);
         $mouseObj::follow = true;
@@ -448,6 +569,9 @@ function initMouse()
         $hiiri = new ScriptObject();
         $hiiri.nappi = false;
         $hiiri.nappireleased = false;
+        $hiiri.piilota = false;
+        Canvas.setCursor(DefaultCursor);
+        Canvas.showCursor();
         
         //$debugMsg::mouse::selection=true;
         //$debugMsg::mouse::callbacks=true;

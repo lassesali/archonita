@@ -8,7 +8,7 @@ initStateMachine();
 setGameState($gameIntroState);
 
    // play ambient music
-    $introMusic = alxPlay(ambient1Audio);
+    $introMusic = playArchonSound(ambient1Audio);
    startGame("Archon/data/levels/intro.t2d");
 
    schedule(2000,0, logofadeout);

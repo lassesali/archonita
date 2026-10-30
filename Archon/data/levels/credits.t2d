@@ -1,29 +1,33 @@
-%levelContent = new t2dSceneGraph() {
+%levelContent = new Scene() {
    canSaveDynamicFields = "1";
       cameraSize = "100 75";
       cameraPosition = "0 0";
 
-   new t2dStaticSprite(credits1) {
-      imageMap = "creditsImageMap";
-      position = "-9.54e-007 -0.14";
+   new Sprite(credits1) {
+      image = "Archon:creditsImageMap";
+      Image = "@asset=Archon:creditsImageMap";
+      position = "-9.54e-07 0.14";
       size = "80 60";
          mountID = "2";
    };
-   new t2dStaticSprite(credits2) {
-      imageMap = "blackImageMap";
-      position = "-0.312 -0.173";
+   new Sprite(credits2) {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "-0.312 0.173";
       size = "102 76.6";
+      SceneLayer = "31";
       Layer = "31";
          mountID = "3";
    };
 
-   new t2dParticleEffect(explosion) {
+   new ParticlePlayer(explosion) {
       effectFile = "Archon/data/particles/big_explosion.eff";
       useEffectCollisions = "1";
       effectMode = "CYCLE";
       effectTime = "3";
-      position = "-0.718 -12";
+      position = "-0.718 12";
       size = "40.5 15.3";
+      SceneLayer = "31";
       Layer = "31";
       WorldLimitMax = "0 3.95e-038";
       CollisionPhysicsSend = "0";

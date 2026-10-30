@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="paladinStoppedAnimation_n"
+    Image="@asset=Archon:paladinStoppedImageMap"
+    AnimationFrames="4"
+    AnimationTime="1"
+    AnimationCycle="1" />

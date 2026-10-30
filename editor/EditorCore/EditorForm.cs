@@ -1,0 +1,275 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2013 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+function EditorForm::onAdd(%this)
+{
+	ThemeManager.setProfile(%this, "emptyProfile");
+
+	%this.setCellSpacing("0 0");
+	%this.setCellModeX(Variable);
+	%this.setCellModeY(Variable);
+	%this.setMaxColCount(0);
+}
+
+function EditorForm::addFormItem(%this, %text, %size)
+{
+	%label = new GuiControl()
+	{
+		Extent = %size;
+		Text = %text;
+	};
+	ThemeManager.setProfile(%label, "labelProfile");
+	%this.add(%label);
+	return %label;
+}
+
+// Explains a row on hover. The tip goes on the caption as well as on the input,
+// because the caption is the bigger target and it is what someone is looking at
+// when the question comes up -- and the caption is the input's parent, so
+// without both, half the row says nothing.
+function EditorForm::setItemTip(%this, %label, %control, %tip)
+{
+	%label.Tooltip = %tip;
+	ThemeManager.setProfile(%label, "tipProfile", "TooltipProfile");
+
+	if(isObject(%control))
+	{
+		%control.Tooltip = %tip;
+		ThemeManager.setProfile(%control, "tipProfile", "TooltipProfile");
+	}
+}
+
+function EditorForm::createTextEditItem(%this, %label)
+{
+	%textEdit = new GuiTextEditCtrl()
+	{
+		Position = "10 16";
+		Extent = (getWord(%label.extent, 0) - 24) SPC 30;
+	};
+	%textEdit.Command = %this.getID() @ ".postEvent(\"KeyPressed\", " @ %textEdit.getID() @ ");";
+	%textEdit.ReturnCommand = %this.getID() @ ".postEvent(\"ReturnPressed\", " @ %textEdit.getID() @ ");";
+	ThemeManager.setProfile(%textEdit, "textEditProfile");
+	%label.add(%textEdit);
+	return %textEdit;
+}
+
+function EditorForm::createFileOpenItem(%this, %label, %filters, %dialogTitle)
+{
+	%textEdit = %this.createTextEditItem(%label);
+	%teWidth = getWord(%label.extent, 0) - 110;
+	%textEdit.setExtent(%teWidth, 30);
+
+	%button = new GuiButtonCtrl()
+	{
+		Position = (%teWidth + 20) SPC 16;
+		Extent = "76 30";
+		Text = "Find";
+		Command = %this.getID() @ ".getFilePath(\"" @ %filters @ "\", \"" @ %dialogTitle @ "\", " @ %textEdit.getID() @ ");";
+	};
+	ThemeManager.setProfile(%button, "buttonProfile");
+	%label.add(%button);
+
+	return %textEdit;
+}
+
+function EditorForm::getFilePath(%this, %filter, %title, %textEdit)
+{
+	%path = pathConcat(getMainDotCsDir(), ProjectManager.getProjectFolder());
+	%dialog = new OpenFileDialog()
+	{
+		Filters = %filter;
+		ChangePath = false;
+		MultipleFiles = false;
+		DefaultFile = "";
+		defaultPath = %path;
+		title = %title;
+	};
+	%result = %dialog.execute();
+
+	if ( %result )
+	{
+		%selectedFile = makeRelativePath(%dialog.fileName, getMainDotCsDir());
+		%textEdit.setText(%selectedFile);
+		%textEdit.setCursorPos(999999);//move it to the far right.
+	}
+	// Cleanup
+	%dialog.delete();
+
+	%this.postEvent("FileOpened", %textEdit);
+}
+
+function EditorForm::createFolderOpenItem(%this, %label, %dialogTitle)
+{
+	%textEdit = %this.createTextEditItem(%label);
+	%teWidth = getWord(%label.extent, 0) - 110;
+	%textEdit.setExtent(%teWidth, 30);
+
+	%button = new GuiButtonCtrl()
+	{
+		Position = (%teWidth + 20) SPC 16;
+		Extent = "76 30";
+		Text = "Select";
+		Command = %this.getID() @ ".getFolderPath(\"" @ %dialogTitle @ "\", " @ %textEdit.getID() @ ");";
+	};
+	ThemeManager.setProfile(%button, "buttonProfile");
+	%label.add(%button);
+
+	return %textEdit;
+}
+
+function EditorForm::getFolderPath(%this, %title, %textEdit)
+{
+	%path = pathConcat(getMainDotCsDir(), ProjectManager.getProjectFolder());
+	%dialog = new OpenFolderDialog()
+	{
+		Filters = "All Files|*.*";
+		ChangePath = false;
+		DefaultFile = "";
+		defaultPath = %path;
+		title = %title;
+	};
+	%result = %dialog.execute();
+
+	if ( %result )
+	{
+		%selectedFile = makeRelativePath(%dialog.fileName, getMainDotCsDir());
+		%textEdit.setText(%selectedFile);
+		%textEdit.setCursorPos(999999);//move it to the far right.
+	}
+	// Cleanup
+	%dialog.delete();
+
+	%this.postEvent("FolderOpened", %textEdit);
+}
+
+function EditorForm::createDropDownItem(%this, %label)
+{
+	%dropDown = new GuiDropDownCtrl()
+	{
+		class = "EditorFormDropDown";
+		Position = "10 17";
+		Extent = (getWord(%label.extent, 0) - 24) SPC 28;
+		ConstantThumbHeight=false;
+		ScrollBarThickness=12;
+		ShowArrowButtons=true;
+		Form = %this;
+	};
+	ThemeManager.setProfile(%dropDown, "dropDownProfile");
+	ThemeManager.setProfile(%dropDown, "dropDownItemProfile", "listBoxProfile");
+	ThemeManager.setProfile(%dropDown, "emptyProfile", "backgroundProfile");
+	ThemeManager.setProfile(%dropDown, "scrollingPanelProfile", "ScrollProfile");
+	ThemeManager.setProfile(%dropDown, "scrollingPanelThumbProfile", "ThumbProfile");
+	ThemeManager.setProfile(%dropDown, "scrollingPanelTrackProfile", "TrackProfile");
+	ThemeManager.setProfile(%dropDown, "scrollingPanelArrowProfile", "ArrowProfile");
+	%label.add(%dropDown);
+	return %dropDown;
+}
+
+// A color row matching the native inspector's ColorI editor (see
+// guiInspectorTypes.cc GuiInspectorTypeColor): a color-popup swatch plus four
+// numeric R/G/B/A edit boxes with labels, using the same color sub-profiles the
+// Profile Editor feeds its inspector. Returns the swatch; the four boxes are
+// hung on it as .redBox/.greenBox/.blueBox/.alphaBox. The caller wires the
+// swatch's Command and the boxes' AltCommand to its own apply logic and never
+// parses the color string itself (the swatch launders named<->numeric colors).
+//
+// %class is optional: pass a script class to give the popup extra behavior of
+// your own (the Profile Editor uses it to fill the popup's swatch row with the
+// selected theme's colors). Leave it out for a plain popup.
+function EditorForm::createColorItem(%this, %label, %class)
+{
+	// The row's name label (from addFormItem) sits along the top; the swatch and
+	// R/G/B/A boxes sit on the row below it.
+	%swatch = new GuiColorPopupCtrl()
+	{
+		class = %class;
+		Position = "10 24";
+		Extent = "30 30";
+	};
+	ThemeManager.setProfile(%swatch, "colorPickerProfile");
+	ThemeManager.setProfile(%swatch, "emptyProfile", "backgroundProfile");
+	ThemeManager.setProfile(%swatch, "colorPopupProfile", "popupProfile");
+	ThemeManager.setProfile(%swatch, "emptyProfile", "pickerProfile");
+	ThemeManager.setProfile(%swatch, "colorPickerSelectorProfile", "selectorProfile");
+	ThemeManager.setProfile(%swatch, "textEditProfile", "valueProfile");
+	ThemeManager.setProfile(%swatch, "tipProfile", "TooltipProfile");
+	%label.add(%swatch);
+
+	%swatch.redBox   = %this.addColorChannel(%label, 48, 24, 48, "R");
+	%swatch.greenBox = %this.addColorChannel(%label, 100, 24, 48, "G");
+	%swatch.blueBox  = %this.addColorChannel(%label, 152, 24, 48, "B");
+	%swatch.alphaBox = %this.addColorChannel(%label, 204, 24, 48, "A");
+
+	return %swatch;
+}
+
+// One R/G/B/A channel: a numeric edit box at (%x,%y) with a small label beneath.
+function EditorForm::addColorChannel(%this, %label, %x, %y, %width, %text)
+{
+	%box = new GuiTextEditCtrl()
+	{
+		Position = %x SPC %y;
+		Extent = %width SPC 28;
+		inputMode = "Number";
+		align = "center";
+	};
+	ThemeManager.setProfile(%box, "textEditProfile");
+	%label.add(%box);
+
+	%tag = new GuiControl()
+	{
+		Position = %x SPC (%y + 30);
+		Extent = %width SPC 16;
+		Text = %text;
+		align = "center";
+	};
+	ThemeManager.setProfile(%tag, "labelProfile");
+	%label.add(%tag);
+
+	return %box;
+}
+
+function EditorForm::createCheckboxItem(%this, %label)
+{
+	%box = new GuiCheckBoxCtrl()
+	{
+		Position = "10 16";
+		Extent = (getWord(%label.extent, 0) - 24) SPC 30;
+		Text = %label.text;
+	};
+	%box.textExtent = getWord(%box.Extent, 0) - getWord(%box.textOffset, 0);
+	ThemeManager.setProfile(%box, "checkboxProfile");
+	%label.add(%box);
+	%label.text = "";
+	return %box;
+}
+
+function EditorFormDropDown::onClose(%this)
+{
+	%this.form.postEvent("DropDownClosed", %this);
+}
+
+function EditorFormDropDown::onSelect(%this)
+{
+	%this.form.postEvent("DropDownSelect", %this);
+}
+

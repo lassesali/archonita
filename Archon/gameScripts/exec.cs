@@ -36,8 +36,8 @@ function InitNewGame() {
 
   game.setVuoro(0);
 
-  $Sprite = new t2dAnimatedSprite() { sceneGraph = t2dScene; };
-  $Kortti = new t2dAnimatedSprite() { sceneGraph = t2dScene; };
+  $Sprite = new Sprite() { scene = t2dScene; };
+  $Kortti = new Sprite() { scene = t2dScene; };
 
 //LUODAAN IHMISPELAAJAN SANKARI
 
@@ -116,10 +116,10 @@ function jaaKortit() {
         
         %i = $kortitnum;
         
-        $specialcard[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; class = Kortti; };
+        $specialcard[%i] = new Sprite() { scene = t2dScene; class = Kortti; };
         $specialcard[%i].setImageMap("cardsImageMap");
         %posx = -20-getRandom(50);
-        %posy = -80;
+        %posy = 80;
 
         
         $specialcard[%i].setPosition( %posx SPC %posy );
@@ -131,7 +131,7 @@ function jaaKortit() {
         $specialcard[%i].setLayer(10-%i);
         $specialcard[%i].setUseMouseEvents(0);
         $specialcard[%i].isSelectable = false;
-        $specialcard[%i].moveto("-40" SPC (0-(%i*0.5)), 50, true, true, true);
+        $specialcard[%i].moveto("-40" SPC (0+(%i*0.5)), 50, true, true, true);
          
             
 
@@ -140,9 +140,9 @@ function jaaKortit() {
 
 function selectedNappula(%nappulaid) {
 
-   $nappulaselectedgrid = new t2dStaticSprite() { sceneGraph = t2dScene; };
+   $nappulaselectedgrid = new Sprite() { scene = t2dScene; };
    $nappulaselectedgrid.setImageMap("boardgridgreenImageMap");
-   $nappulaselectedgrid.setPosition($nappulaSprite[%nappulaid].BoardX*8-16 SPC $nappulaSprite[%nappulaid].BoardY*8-16);
+   $nappulaselectedgrid.setPosition(boardToWorld($nappulaSprite[%nappulaid].BoardX, $nappulaSprite[%nappulaid].BoardY));
    $nappulaselectedgrid.setSize("8 8");
    $nappulaselectedgrid.setFrame("1");
    $nappulaselectedgrid.setVisible("True");
@@ -727,9 +727,9 @@ function piilotaGrids() {
 function luoAttackGrid(%bx,%by,%i)
 {
    
-      $movementgrid[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+      $movementgrid[%i] = new Sprite() { scene = t2dScene; };
       $movementgrid[%i].setImageMap("boardgridgreenImageMap");
-      $movementgrid[%i].setPosition(%bx*8-16 SPC %by*8-16);
+      $movementgrid[%i].setPosition(boardToWorld(%bx, %by));
       $movementgrid[%i].setSize("8 8");
       $movementgrid[%i].setFrame("2");
 
@@ -756,9 +756,9 @@ function luoAttackGrid(%bx,%by,%i)
 function luoLiikuGrid(%bx,%by,%i)
 {
   
-      $movementgrid[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+      $movementgrid[%i] = new Sprite() { scene = t2dScene; };
       $movementgrid[%i].setImageMap("boardgridgreenImageMap");
-      $movementgrid[%i].setPosition(%bx*8-16 SPC %by*8-16);
+      $movementgrid[%i].setPosition(boardToWorld(%bx, %by));
       $movementgrid[%i].setSize("8 8");
       $movementgrid[%i].setFrame("0");
       $movementgrid[%i].setVisible("True");
@@ -995,7 +995,7 @@ function createSetupNappulat()
    $nappulaNimi = "warrior archer cleric paladin skeletonwarrior skeletonarcher dreadzombie ancientghost";
    for (%i=0; %i<4; %i++)
    {
-         $setupNappulaSprite[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+         $setupNappulaSprite[%i] = new Sprite() { scene = t2dScene; };
          $setupNappulaSprite[%i].setImageMap(getWord($nappulanimi,%i) @ "StoppedImageMap");
          $setupNappulaSprite[%i].setPosition(0,0);
         $setupNappulaSprite[%i].setSize("8 8");
@@ -1013,11 +1013,20 @@ function deleteSetupNappulat()
 {
    for (%i=0; %i<4; %i++)
    {
-      
-      $setupNappulaSprite[%i].safeDelete();
+      if (isObject($setupNappulaSprite[%i]))
+         $setupNappulaSprite[%i].safeDelete();
    }
-   
-
+   for (%i=0; %i<12; %i++)
+   {
+      if (isObject($icon[%i]))
+         $icon[%i].safeDelete();
+      if (isObject($grid[%i]))
+         $grid[%i].safeDelete();
+      if (isObject($gridback[%i]))
+         $gridback[%i].safeDelete();
+      if (isObject($numb[%i]))
+         $numb[%i].safeDelete();
+   }
 }
 
 
@@ -1101,6 +1110,29 @@ function createAInappulat() {
 
 function lisaaUusiNappulaLaudalle(%nappulaLevel, %lx, %ly, %heroid)
 {
+   // Intercept coordinate assignment: verify target coordinates fall within board array bounds
+   if (%lx < 0 || %lx >= 4 || %ly < 0 || %ly >= 4)
+   {
+      echo("lisaaUusiNappulaLaudalle: rejected - coordinates out of bounds (" @ %lx SPC %ly @ ")");
+      return false;
+   }
+
+   // Verify tile is not occupied by an existing obstacle or piece
+   if ($board.obstacles[%lx, %ly] != 0)
+   {
+      echo("lisaaUusiNappulaLaudalle: rejected - tile occupied or obstacle (" @ %lx SPC %ly @ ")");
+      return false;
+   }
+
+   // For player (%heroid == 0), verify target tile corresponds to a valid active green placement tile (rows 2-3)
+   if (%heroid == 0)
+   {
+      if (%ly < 2 || %ly >= 4 || !isObject($green[%lx, %ly]))
+      {
+         echo("lisaaUusiNappulaLaudalle: rejected - not a valid green placement tile (" @ %lx SPC %ly @ ")");
+         return false;
+      }
+   }
    
    if (%heroid == 1) 
    {
@@ -1124,13 +1156,14 @@ function lisaaUusiNappulaLaudalle(%nappulaLevel, %lx, %ly, %heroid)
 debuggi();
 
 
-        $nappulaSprite[%j] = new t2dAnimatedSprite() { sceneGraph = t2dScene; class = Sprite; };
+        $nappulaSprite[%j] = new Sprite() { scene = t2dScene; class = Nappula; };
         $nappulaSprite[%j].state = $olentoStandState[%animindex];
 
         $nappulaSprite[%j].facing = %facing;
         $nappulaSprite[%j].animationName = $nappulaSprite[%j].state.anim @ $nappulaSprite[%j].facing;
+        $nappulaSprite[%j].playAnimation($nappulaSprite[%j].animationName);
         
-        $nappulaSprite[%j].setPosition(%lx*8-16 SPC %ly*8-18);
+        $nappulaSprite[%j].setPosition(boardToWorldUnit(%lx, %ly));
         $nappulaSprite[%j].setSize("8 8");
         $nappulaSprite[%j].setBlendAlpha("1");
         $nappulaSprite[%j].setVisible(true);
@@ -1176,10 +1209,8 @@ debuggi();
    
    //PÄIVITÄ SANKARIN OMISTAMIEN NAPPIEN LUKUMÄÄRÄ
    HeroGroup.getObject(%heroid).AddNappulatlkm(1);
-   
-  
 
-   
+   return true;
 }
 
 function updatePisteetGridsIcons()
@@ -1204,8 +1235,8 @@ function updatePisteetGridsIcons()
 
       
       schedule(500,0, jaaKortit);
-      heroicon.setPosition("-40 24");
-      heroicongrid.setPosition("-40 24");
+      heroicon.setPosition("-40 -24");
+      heroicongrid.setPosition("-40 -24");
 
       game.setPeliTimer(5);
       schedule(1000,0, sekuntiLaskuri);
@@ -1237,7 +1268,7 @@ function sekuntiLaskuri()
    } else {
       schedule(1000,0, sekuntiLaskuri);
       // play ambient sound
-      $secondSound = alxPlay(ambient4Audio);
+      $secondSound = playArchonSound(ambient4Audio);
    }
    
    
@@ -1256,12 +1287,12 @@ function createObstacle(%obstacletype, %ox, %oy)
    else 
    {
          
-        $obstacleSprite = new t2dStaticSprite() { sceneGraph = t2dScene; };
+        $obstacleSprite = new Sprite() { scene = t2dScene; };
         
         $obstacleSprite.setImageMap("obstaclesImageMap");
         %posX = $floor[%ox,%oy].getPositionX();
         %posY = $floor[%ox,%oy].getPositionY();
-        $obstacleSprite.setPosition(%posX,%posY-4);
+        $obstacleSprite.setPosition(%posX, %posY + 4);
         $obstacleSprite.setSize("8 16");
         $obstacleSprite.mountID = "180";
         $obstacleSprite.setFrame(%obstacletype - 2);
@@ -1286,10 +1317,10 @@ function createFloor()
       for (%cfy=0;%cfy<4;%cfy++)
       {
 
-         $floor[%cfx,%cfy] = new t2dStaticSprite() { sceneGraph = t2dScene;  };
+         $floor[%cfx,%cfy] = new Sprite() { scene = t2dScene;  };
          $floor[%cfx,%cfy].setImageMap("boardgridImageMap");
          $floor[%cfx,%cfy].setUseMouseEvents("1");
-         $floor[%cfx,%cfy].setPosition(%cfx*8-16 SPC %cfy*8-16);
+         $floor[%cfx,%cfy].setPosition(boardToWorld(%cfx, %cfy));
          $floor[%cfx,%cfy].setSize("8 8");
          $floor[%cfx,%cfy].setLayer("7");
          $floor[%cfx,%cfy].setCollisionActiveSend("1");
@@ -1316,10 +1347,10 @@ function updateGreenGrids()
         
             if ($board.obstacles[%ux,%uy]==0) {
            
-               $green[%ux,%uy] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+               $green[%ux,%uy] = new Sprite() { scene = t2dScene; };
         
                $green[%ux,%uy].setImageMap("boardgridgreenImageMap");
-               $green[%ux,%uy].setPosition(%ux*8-16 SPC %uy*8-16);
+               $green[%ux,%uy].setPosition(boardToWorld(%ux, %uy));
                $green[%ux,%uy].setSize("8 8");
                $green[%ux,%uy].setFrame("0");
                $green[%ux,%uy].setVisible("True");
@@ -1356,15 +1387,14 @@ function updateOlentoikonit()
 {
 
    for(%i=0; %i<12; %i++) {
-   
-      if ($icon[%i]) 
-         if (isObject($icon[%i]))
-            $icon[%i].safeDelete();
-         
-         if (isObject($gridback[%i]))
-            $gridback[%i].safeDelete();
-
-   
+      if (isObject($icon[%i]))
+         $icon[%i].safeDelete();
+      if (isObject($grid[%i]))
+         $grid[%i].safeDelete();
+      if (isObject($gridback[%i]))
+         $gridback[%i].safeDelete();
+      if (isObject($numb[%i]))
+         $numb[%i].safeDelete();
    }
 
    if (HeroGroup.getObject(0).getOlentopisteet() > 0) { 
@@ -1393,10 +1423,10 @@ function updateOlentoikonit()
                %lvl4--;
            }
    
-         $icon[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+         $icon[%i] = new Sprite() { scene = t2dScene; };
         
          $icon[%i].setImageMap("iconsImageMap");
-         $icon[%i].setPosition(%x SPC "28");
+         $icon[%i].setPosition(%x SPC "-28");
          $icon[%i].setSize("8 8");
          $icon[%i].mountID = "100" + %i;
          $icon[%i].setFrame(%frame);
@@ -1407,10 +1437,10 @@ function updateOlentoikonit()
          $icon[%i].creatureLevel = %frame + 1;
          $icon[%i].index = %i;
 
-         $grid[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+         $grid[%i] = new Sprite() { scene = t2dScene; };
         
          $grid[%i].setImageMap("gridsImageMap");
-         $grid[%i].setPosition(%x SPC "28");
+         $grid[%i].setPosition(%x SPC "-28");
          $grid[%i].setSize("8 8");
          $grid[%i].mountID = "120" + %i;
          $grid[%i].setFrame("0");
@@ -1420,10 +1450,10 @@ function updateOlentoikonit()
          $grid[%i].isSelectable = false;
          $grid[%i].mount($icon[%i], 0, 0, 0, True, True, True, True);
         
-         $gridback[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+         $gridback[%i] = new Sprite() { scene = t2dScene; };
         
          $gridback[%i].setImageMap("gridsImageMap");
-         $gridback[%i].setPosition(%x SPC "28");
+         $gridback[%i].setPosition(%x SPC "-28");
          $gridback[%i].setSize("8 8");
          $gridback[%i].mountID = "140" + %i;
          $gridback[%i].setFrame("1");
@@ -1432,10 +1462,10 @@ function updateOlentoikonit()
          $gridback[%i].setUseMouseEvents(0);
          $gridback[%i].isSelectable = false;
         
-         $numb[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+         $numb[%i] = new Sprite() { scene = t2dScene; };
         
          $numb[%i].setImageMap("numbersImageMap");
-         $numb[%i].setPosition(%x + 2 SPC "30");
+         $numb[%i].setPosition(%x + 2 SPC "-30");
          $numb[%i].setSize("4 4");
          $numb[%i].mountID = "160" + %i;
          $numb[%i].setFrame(%frame + 1);
@@ -1446,7 +1476,7 @@ function updateOlentoikonit()
          if (%frame == 2) {
                $numb[%i].setBlending("True", "ZERO");
          }
-         $numb[%i].mount($gridback[%i], 0.5, 0.4, 0, True, True, True, True);
+         $numb[%i].mount($gridback[%i], 0.5, -0.4, 0, True, True, True, True);
          $numb[%i].index = %i;
            
 
@@ -1557,11 +1587,11 @@ function doAttack(%vihollinen,%vuoro)
          {  
             echo("vahingoitaNappula(" @ %vihollinen @ ")");
             vahingoitaNappula(%vihollinen);
-            $fxbeen2 = alxPlay(fxBeenHit);
+            $fxbeen2 = playArchonSound(fxBeenHit);
             //$fxsoita = alxPlay(fxSword);
                 blood.setPosition(%vihollinen.getPosition());
             schedule(300,0,piilotaveri);
-         } else {$fxsoita = alxPlay(fxSword);}
+         } else {$fxsoita = playArchonSound(fxSword);}
          
          
       } else {
@@ -1573,11 +1603,11 @@ function doAttack(%vihollinen,%vuoro)
          {  
                         echo("vahingoitaNappula(" @ %vihollinen @ ")");
             vahingoitaNappula(%vihollinen);
-                $fx2 = alxPlay(fxBeenHit);
+                $fx2 = playArchonSound(fxBeenHit);
                 blood.setPosition(%vihollinen.getPosition());
             schedule(300,0,piilotaveri);
          
-         } else {$fxsoita = alxPlay(fxSword);}
+         } else {$fxsoita = playArchonSound(fxSword);}
          
       }
    }
@@ -1611,12 +1641,12 @@ function rollDicesRedAttacks(%attacker, %defender) {
    {
    
          
-        $noppa[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+        $noppa[%i] = new Sprite() { scene = t2dScene; };
         $noppa[%i].setImageMap("diceredImageMap");
         $noppa[%i].setPosition( %i * 10 - 24 SPC "30" );
         $noppa[%i].setSize("8 8");
         $noppa[%i].setRotation(getRandom(360));
-        $noppa[%i].setAutoRotation(2);
+        $noppa[%i].setAngularVelocity(2 * 36);
         %noppa=getRandom(3);
         $noppa[%i].setFrame(%noppa);
         $noppa[%i].setVisible(true);
@@ -1632,12 +1662,12 @@ function rollDicesRedAttacks(%attacker, %defender) {
    {
    
    
-        $noppadef[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+        $noppadef[%i] = new Sprite() { scene = t2dScene; };
         $noppadef[%i].setImageMap("diceblueImageMap");
         $noppadef[%i].setPosition( %i * 10 - 24 SPC "-30" );
         $noppadef[%i].setSize("8 8");
         $noppadef[%i].setRotation(getRandom(360));
-        $noppadef[%i].setAutoRotation(2);
+        $noppadef[%i].setAngularVelocity(2 * 36);
         %noppa=getRandom(3);
         $noppadef[%i].setFrame(%noppa);
         $noppadef[%i].setVisible(true);
@@ -1685,12 +1715,12 @@ function rollDicesRedDefends(%defender, %attacker) {
    {
    
    
-        $noppadef[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+        $noppadef[%i] = new Sprite() { scene = t2dScene; };
         $noppadef[%i].setImageMap("diceredImageMap");
         $noppadef[%i].setPosition( %i * 10 - 24 SPC "30" );
         $noppadef[%i].setSize("8 8");
         $noppadef[%i].setRotation(getRandom(360));
-        $noppadef[%i].setAutoRotation(2);
+        $noppadef[%i].setAngularVelocity(2 * 36);
                 %noppa=getRandom(3);
         $noppadef[%i].setFrame(%noppa);
         $noppadef[%i].setVisible(true);
@@ -1704,12 +1734,12 @@ if (%noppa == 1) %def++;
    {
    
    
-        $noppa[%i] = new t2dStaticSprite() { sceneGraph = t2dScene; };
+        $noppa[%i] = new Sprite() { scene = t2dScene; };
         $noppa[%i].setImageMap("diceblueImageMap");
         $noppa[%i].setPosition( %i * 10 - 24 SPC "-30" );
         $noppa[%i].setSize("8 8");
         $noppa[%i].setRotation(getRandom(360));
-        $noppa[%i].setAutoRotation(2);
+        $noppa[%i].setAngularVelocity(2 * 36);
                 %noppa=getRandom(3);
         $noppa[%i].setFrame(%noppa);
         $noppa[%i].setVisible(true);
@@ -1799,7 +1829,7 @@ if ($board.obstacles[%x,%y] == 0) {
    if ( $nappulaSprite[game.getNappulaSelected()].hasMoved == 0) 
    {
 
-      moveNappula(%sankari.getValittuRuutuX()*8-16 SPC %sankari.getValittuRuutuY()*8-18,
+      moveNappula(boardToWorldUnit(%sankari.getValittuRuutuX(), %sankari.getValittuRuutuY()),
       %sankari.getValittuRuutuX() SPC %sankari.getValittuRuutuY());
       
     
@@ -1851,7 +1881,7 @@ function moveNappula(%pos, %boardpos)
    %nappula.moveto(%pos,10, true, true, true);
    
    setNappulaState( %nappula, $olentoWalkState[ %nappula.creatureID ] );
-    $fxfoot = alxPlay(fxFootStep);
+    $fxfoot = playArchonSound(fxFootStep);
 }
 
 function facing(%pos1, %pos2) {
@@ -1956,7 +1986,7 @@ function vahingoitaNappula(%nappula) {
 echo("setNappulaState(" @ %nappula @ "," @ $olentoDieState[ %nappula.creatureID ] @ ")");
                schedule(500,0,piilotaveri);
                blood.setPosition(%nappula.getPosition());
-               $soitadie = alxPlay(fxDie);
+               $soitadie = playArchonSound(fxDie);
 
                $nappulaSprite[game.getNappulaSelected()].hasMoved = 1;
                $nappulaSprite[game.getNappulaSelected()].hasDoneAction = 1;

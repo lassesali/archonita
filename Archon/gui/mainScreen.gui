@@ -1,7 +1,7 @@
 //--- OBJECT WRITE BEGIN ---
-new GuiChunkedBitmapCtrl(mainScreenGui) {
+new GuiControl(mainScreenGui) {
    canSaveDynamicFields = "0";
-   Profile = "GuiContentProfile";
+   Profile = "GuiDefaultProfile";
    HorizSizing = "width";
    VertSizing = "height";
    Position = "0 0";
@@ -9,13 +9,11 @@ new GuiChunkedBitmapCtrl(mainScreenGui) {
    MinExtent = "8 8";
    canSave = "1";
    Visible = "1";
-   bitmap = "";
-   useVariable = "0";
-   tile = "0";
+   cursor = "DefaultCursor";
 
-   new t2dSceneWindow(sceneWindow2D) {
+   new SceneWindow(sceneWindow2D) {
       canSaveDynamicFields = "0";
-      Profile = "GuiContentProfile";
+      Profile = "GuiDefaultProfile";
       HorizSizing = "width";
       VertSizing = "height";
       Position = "0 0";

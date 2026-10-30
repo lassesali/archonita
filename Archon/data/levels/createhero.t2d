@@ -1,26 +1,31 @@
-%levelContent = new t2dSceneGraph(t2dScene) {
+%levelContent = new Scene(t2dScene) {
    canSaveDynamicFields = "1";
       cameraPosition = "0 0";
       cameraSize = "100 75";
 
-   new t2dStaticSprite() {
-      imageMap = "blackImageMap";
-      position = "-0.526 0.553";
+   new Sprite() {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "-0.526 -0.553";
       size = "104 78.9";
+      SceneLayer = "31";
       Layer = "31";
          mountID = "2";
    };
-   new t2dScroller(scrolleri) {
-      imageMap = "jee2ImageMap";
+   new Scroller(scrolleri) {
+      image = "Archon:jee2ImageMap";
+      Image = "@asset=Archon:jee2ImageMap";
       scrollX = "-1";
       scrollPositionX = "-0.186985";
       scrollPositionY = "2.38221e-044";
       size = "100 76";
+      SceneLayer = "31";
       Layer = "31";
          mountID = "3";
    };
-   new t2dStaticSprite(card_0) {
-      imageMap = "cardsImageMap";
+   new Sprite(card_0) {
+      image = "Archon:cardsImageMap";
+      Image = "@asset=Archon:cardsImageMap";
       frame = "1";
       UseMouseEvents = "1";
       position = "-24 0";
@@ -28,8 +33,9 @@
          isSelectable = "1";
          mountID = "4";
    };
-   new t2dStaticSprite(card_1) {
-      imageMap = "cardsImageMap";
+   new Sprite(card_1) {
+      image = "Archon:cardsImageMap";
+      Image = "@asset=Archon:cardsImageMap";
       frame = "2";
       UseMouseEvents = "1";
       position = "25.6 0";
@@ -37,19 +43,21 @@
          isSelectable = "1";
          mountID = "5";
    };
-   new t2dStaticSprite(teksti) {
-      imageMap = "textsImageMap";
-      position = "-9.54e-007 -33.7";
+   new Sprite(teksti) {
+      image = "Archon:textsImageMap";
+      Image = "@asset=Archon:textsImageMap";
+      position = "-9.54e-07 33.7";
       size = "64 8";
+      SceneLayer = "2";
       Layer = "2";
          mountID = "6";
    };
-   new t2dParticleEffect(mouseTrail) {
+   new ParticlePlayer(mouseTrail) {
       effectFile = "Archon/data/particles/magic_trail.eff";
       useEffectCollisions = "1";
       effectMode = "INFINITE";
       effectTime = "0";
-      position = "19.6 -45.4";
+      position = "19.6 45.4";
       size = "16 16";
       WorldLimitMin = "3.25e-038 0";
       WorldLimitMax = "0 2.24e-044";

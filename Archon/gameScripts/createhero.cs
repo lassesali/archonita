@@ -10,18 +10,26 @@ function cardscreenfadeout() {
 function SelectHeroScreen() {
         setGameState($gameCardSelectState);
         $hiiri.piilota = false;
+        Canvas.setCursor(DefaultCursor);
+        Canvas.showCursor();
         startGame("Archon/data/levels/createhero.t2d");
 }
 
 function tarkastavalittukortti() {
 
    if (card_0.valittu) {
-      $hiiri.piilota = true;
+      $hiiri.piilota = false;
+        Canvas.setCursor(DefaultCursor);
+        Canvas.showCursor();
+      Canvas.showCursor();
       $sankarivalittu=1;
       cardscreenfadeout();
       schedule(1000,0,  BoardScreen);
    } else if (card_1.valittu) {
-      $hiiri.piilota = true;
+      $hiiri.piilota = false;
+        Canvas.setCursor(DefaultCursor);
+        Canvas.showCursor();
+      Canvas.showCursor();
       $sankarivalittu=2;
       cardscreenfadeout();
       schedule(1000,0, BoardScreen);

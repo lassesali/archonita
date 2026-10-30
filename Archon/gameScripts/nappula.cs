@@ -1,17 +1,54 @@
-function Sprite::onPositionTarget(%this, %mod, %worldPos) {
-   setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+//---------------------------------------------------------------------------------------------
+// Archonita - Unit & Piece Callbacks (Torque2D 4.0)
+// Binds piece movement & animation completion callbacks to state transitions
+//---------------------------------------------------------------------------------------------
+
+function Sprite::onPositionTarget(%this, %mod, %worldPos)
+{
+   if (%this.creatureID !$= "")
+      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
 }
 
-function Sprite::onAnimationEnd(%this, %mod, %worldPos) {
-   
-   //echo("animationname " @ %this.animationname @ "has ended.");
+function SceneObject::onPositionTarget(%this, %mod, %worldPos)
+{
+   if (%this.creatureID !$= "")
+      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+}
 
-   //echo("state " @ %this.state.name);
-   
+function Nappula::onPositionTarget(%this, %mod, %worldPos)
+{
+   if (%this.creatureID !$= "")
+      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+}
+
+function Sprite::onMoveToComplete(%this)
+{
+   %this.onPositionTarget();
+}
+
+function SceneObject::onMoveToComplete(%this)
+{
+   %this.onPositionTarget();
+}
+
+function Nappula::onMoveToComplete(%this)
+{
+   %this.onPositionTarget();
+}
+
+function Kortti::onMoveToComplete(%this)
+{
+   %this.onPositionTarget();
+}
+
+function Sprite::onAnimationEnd(%this, %animationAssetID)
+{
+   if (%this.creatureID $= "")
+      return;
+
    if (%this.state == $olentoDieState[%this.creatureID]) 
    {
       %this.setVisible(false);
-      //echo(%this @ "'s visibility is set to false.");
    } 
    else if (%this.state == $olentoWalkState[%this.creatureID]) 
    {
@@ -25,10 +62,19 @@ function Sprite::onAnimationEnd(%this, %mod, %worldPos) {
    {
       setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
    }
-   
 }
 
+function SceneObject::onAnimationEnd(%this, %animationAssetID)
+{
+   Sprite::onAnimationEnd(%this, %animationAssetID);
+}
 
-function Kortti::onPositionTarget(%this, %mod, %worldPos) {
+function Nappula::onAnimationEnd(%this, %animationAssetID)
+{
+   Sprite::onAnimationEnd(%this, %animationAssetID);
+}
+
+function Kortti::onPositionTarget(%this, %mod, %worldPos)
+{
    %this.setFrame("0");
 }

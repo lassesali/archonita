@@ -1,0 +1,7 @@
+<ParticleAsset
+    AssetName="testi1">
+    <ParticleAssetEmitter
+        EmitterName="DefaultEmitter"
+        Image="@asset=ToyAssets:Particles5"
+        Frame="0" />
+</ParticleAsset>

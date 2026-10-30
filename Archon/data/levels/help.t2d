@@ -1,30 +1,35 @@
-%levelContent = new t2dSceneGraph() {
+%levelContent = new Scene() {
    canSaveDynamicFields = "1";
       cameraPosition = "0 0";
       cameraSize = "100 75";
 
-   new t2dStaticSprite() {
-      imageMap = "cardlollipopImageMap";
-      position = "16 -16";
+   new Sprite() {
+      image = "Archon:cardlollipopImageMap";
+      Image = "@asset=Archon:cardlollipopImageMap";
+      position = "16 16";
       size = "32 32";
          mountID = "2";
    };
-   new t2dStaticSprite() {
-      imageMap = "cardmagichatImageMap";
-      position = "-32 -16";
+   new Sprite() {
+      image = "Archon:cardmagichatImageMap";
+      Image = "@asset=Archon:cardmagichatImageMap";
+      position = "-32 16";
       size = "32 32";
          mountID = "3";
    };
-   new t2dStaticSprite() {
-      imageMap = "cardsausageImageMap";
-      position = "-8 -16";
+   new Sprite() {
+      image = "Archon:cardsausageImageMap";
+      Image = "@asset=Archon:cardsausageImageMap";
+      position = "-8 16";
       size = "32 32";
          mountID = "4";
    };
-   new t2dStaticSprite() {
-      imageMap = "blackImageMap";
-      position = "0.0367 0.107";
+   new Sprite() {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "0.0367 -0.107";
       size = "100 75.5";
+      SceneLayer = "31";
       Layer = "31";
          mountID = "5";
    };

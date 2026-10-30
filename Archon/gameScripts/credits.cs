@@ -8,7 +8,9 @@ function creditsfadeout() {
 function creditsScreen() {
       // play ambient audio
    mouseTrail.stopEffect(true, false);
-   $hiiri.piilota = true;
+   $hiiri.piilota = false;
+   Canvas.setCursor(DefaultCursor);
+   Canvas.showCursor();
    testActionMap.pop();
    startGame("Archon/data/levels/credits.t2d"); 
    schedule(5000,0,shutdown);

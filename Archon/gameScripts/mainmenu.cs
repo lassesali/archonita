@@ -20,7 +20,9 @@ function mainmenuScreen() {
 
     setGameState($gameMainMenuState);
 
-    $hiiri.piilota = true;
+    $hiiri.piilota = false;
+    Canvas.setCursor(DefaultCursor);
+    Canvas.showCursor();
     startGame("Archon/data/levels/mainmenu.t2d");  
     schedule(1000,0, lopetasaippuakuplat); 
    

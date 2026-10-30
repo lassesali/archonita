@@ -1,0 +1,34 @@
+# Compiled TorqueScript
+*.dso
+*.edso
+
+# Logs and runtime dumps
+*.log
+console.log
+test_out.txt
+
+# Editor / IDE / OS artifacts
+Thumbs.db
+*.jbf
+*.torsion
+skills-lock.json
+preferences.cs
+
+# Screenshots and visual comparison artifacts
+old*.png
+new*.png
+ohno*.png
+crop_*.png
+logo_*.png
+shots/
+
+# Temporary and backup files
+*.bak
+_test_*.cs
+
+# Python migration and helper scripts
+*.py
+
+# Migration prompts and notes
+archonita_torque2d_4_0_migration_prompt.txt
+Archonita_Architecture_Analysis.txt
