@@ -196,6 +196,11 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
             mouseTrail.setPosition(%worldPos);
          }
 
+         if (isObject($mouseObj::object)) {
+            $mouseObj::object.setPosition(%worldPos);
+            $mouseObj::object.updateMountedChildren();
+         }
+
          if (getGameState() == $gamePreBattleState) 
          {
             mouseOverGreenGrid(%mod, %worldPos);
@@ -236,6 +241,11 @@ function sceneWindow2D::onMouseDragged( %this, %mod, %worldPos, %mouseClicks )
 
          if (isObject(mouseTrail)) {
             mouseTrail.setPosition(%worldPos);
+         }
+
+         if (isObject($mouseObj::object)) {
+            $mouseObj::object.setPosition(%worldPos);
+            $mouseObj::object.updateMountedChildren();
          }
 
          if (getGameState() == $gamePreBattleState) 
@@ -360,13 +370,27 @@ function sceneWindow2D::cancelCharacterPlacement(%this, %obj)
    if (isObject(%obj))
    {
       %obj.dismount();
-      if (isObject($grid[%obj.index]))
+      %trayPos = "";
+      if (isObject($gridback[%obj.index]))
+         %trayPos = $gridback[%obj.index].getPosition();
+      else if (isObject($grid[%obj.index]))
+         %trayPos = $grid[%obj.index].getPosition();
+
+      if (%trayPos !$= "")
       {
-         %obj.setPosition($grid[%obj.index].getPosition());
-         $grid[%obj.index].mount(%obj, 0, 0, 0, true, true, true, true);
-         $icon[%obj.index].setLayer("6");
-         $grid[%obj.index].setLayer("5");
+         %obj.setPosition(%trayPos);
+         if (isObject($grid[%obj.index]))
+         {
+            $grid[%obj.index].dismount();
+            $grid[%obj.index].setPosition(%trayPos);
+            $grid[%obj.index].mount(%obj, 0, 0, 0, true, true, true, true);
+         }
       }
+
+      if (isObject($icon[%obj.index]))
+         $icon[%obj.index].setLayer("6");
+      if (isObject($grid[%obj.index]))
+         $grid[%obj.index].setLayer("5");
    }
 
    $mouseObj::isObjMounted = false;
@@ -460,17 +484,20 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                         %this.mouseDownPos = %worldPos;
                         %this.dragStarted = false;
 
-                           if($debugMsg::mouse::selection) 
-                                  echo("echo attempting to mount:" SPC %obj SPC " to mouse obj:" 
-                                            SPC $mouseObj::object);
-                                
-                           %obj.mount($mouseObj::object, $mouseObj::mount::offset, 
-                                                $mouseObj::mount::force, $mouseObj::mount::trackRotation);
-                                                
-                           if (getGameState() == $gamePrebattleState) 
-                           {
-                              iconSendToFront(%obj.index);
-                           }
+                        if (isObject($mouseObj::object))
+                           $mouseObj::object.setPosition(%worldPos);
+
+                        if($debugMsg::mouse::selection) 
+                               echo("echo attempting to mount:" SPC %obj SPC " to mouse obj:" 
+                                         SPC $mouseObj::object);
+                             
+                        %obj.mount($mouseObj::object, $mouseObj::mount::offset, 
+                                             $mouseObj::mount::force, $mouseObj::mount::trackRotation);
+                                             
+                        if (getGameState() == $gamePreBattleState || getGameState() == $gamePrebattleState) 
+                        {
+                           iconSendToFront(%obj.index);
+                        }
                                                 
                            $mouseObj::isObjMounted = true;
                            $mouseObj::objMounted = %obj;
@@ -563,7 +590,7 @@ function initMouse()
         $mouseObj::speed::max = 250;
         $mouseObj::speed::default = 250;
         $mouseObj::mount::force = 0;
-        $mouseObj::mount::offset = "7 7";
+        $mouseObj::mount::offset = "3.5 -3.5";
         $mouseObj::mount::trackRotation = true;
         
         $hiiri = new ScriptObject();

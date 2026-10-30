@@ -91,11 +91,33 @@ function SceneObject::getLayer(%this)
 function SceneObject::safeDelete(%this)
 {
    if (isObject(%this))
+   {
+      if (isObject(%this.mountedChildren))
+         %this.mountedChildren.delete();
+      %this.dismount();
       %this.delete();
+   }
+}
+
+function SceneObject::addMountedChild(%this, %obj)
+{
+   if (!isObject(%this.mountedChildren))
+      %this.mountedChildren = new SimSet();
+   if (!%this.mountedChildren.isMember(%obj))
+      %this.mountedChildren.add(%obj);
+}
+
+function SceneObject::removeMountedChild(%this, %obj)
+{
+   if (isObject(%this.mountedChildren))
+      %this.mountedChildren.remove(%obj);
 }
 
 function SceneObject::mount(%this, %target, %a, %b, %c, %d, %e, %f)
 {
+   if (isObject(%this.mountedTarget) && %this.mountedTarget != %target)
+      %this.dismount();
+
    %this.mountedTarget = %target;
    if (getWordCount(%a) >= 2)
    {
@@ -109,28 +131,55 @@ function SceneObject::mount(%this, %target, %a, %b, %c, %d, %e, %f)
    }
    if (isObject(%target))
    {
-      %pos = %target.getPosition();
-      %size = %target.getSize();
-      %hw = getWord(%size, 0) * 0.5;
-      %hh = getWord(%size, 1) * 0.5;
-
-      if (mAbs(%this.mountOffsetX) <= 1.0 && mAbs(%this.mountOffsetY) <= 1.0 && %hw > 1)
-      {
-         %wx = getWord(%pos, 0) + (%this.mountOffsetX * %hw);
-         %wy = getWord(%pos, 1) + (%this.mountOffsetY * %hh);
-      }
-      else
-      {
-         %wx = getWord(%pos, 0) + %this.mountOffsetX;
-         %wy = getWord(%pos, 1) + %this.mountOffsetY;
-      }
-      %this.setPosition(%wx SPC %wy);
+      %target.addMountedChild(%this);
+      %this.updateMountPosition();
    }
 }
 
 function SceneObject::dismount(%this)
 {
+   if (isObject(%this.mountedTarget))
+      %this.mountedTarget.removeMountedChild(%this);
    %this.mountedTarget = "";
+}
+
+function SceneObject::updateMountPosition(%this)
+{
+   if (!isObject(%this.mountedTarget))
+      return;
+
+   %pos = %this.mountedTarget.getPosition();
+   %size = %this.mountedTarget.getSize();
+   %hw = getWord(%size, 0) * 0.5;
+   %hh = getWord(%size, 1) * 0.5;
+
+   if (mAbs(%this.mountOffsetX) <= 1.0 && mAbs(%this.mountOffsetY) <= 1.0 && %hw > 1)
+   {
+      %wx = getWord(%pos, 0) + (%this.mountOffsetX * %hw);
+      %wy = getWord(%pos, 1) + (%this.mountOffsetY * %hh);
+   }
+   else
+   {
+      %wx = getWord(%pos, 0) + %this.mountOffsetX;
+      %wy = getWord(%pos, 1) + %this.mountOffsetY;
+   }
+   %this.setPosition(%wx SPC %wy);
+
+   %this.updateMountedChildren();
+}
+
+function SceneObject::updateMountedChildren(%this)
+{
+   if (isObject(%this.mountedChildren))
+   {
+      %count = %this.mountedChildren.getCount();
+      for (%i = 0; %i < %count; %i++)
+      {
+         %child = %this.mountedChildren.getObject(%i);
+         if (isObject(%child))
+            %child.updateMountPosition();
+      }
+   }
 }
 
 // ParticlePlayer compatibility

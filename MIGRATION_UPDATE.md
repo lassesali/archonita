@@ -41,7 +41,7 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 ### 4. TorqueScript 2.0 Compatibility Layer (`t2d_compat.cs`)
 - Implemented a specialized, high-performance compatibility bridge to preserve the original 2006 gameplay logic while translating obsolete API calls to modern Torque2D classes:
   - `Sprite` and `Scroller` abstraction wrapping legacy `t2dStaticSprite`, `t2dAnimatedSprite`, and `t2dScroller`.
-  - Transform and kinematics mapping: `moveto`, `setAngularVelocity`, `mount`, `unmount`.
+  - Transform and kinematics mapping: `moveto`, `setAngularVelocity`, hierarchical `mount` / `dismount` with recursive transform propagation (`updateMountPosition`, `updateMountedChildren`) to support multi-object attachments like unit icons with decorative golden frames.
   - Vector math parity helpers: `t2dVectorDistance`, `t2dVectorCompare`.
   - Smooth animation controller hooks (`playAnimation`, `setFrame`, `setImageMap`).
   - Timed visual fade controllers (`startFadeIn`, `startFadeOut`).
@@ -81,6 +81,11 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Added occupancy and obstacle collision guards preventing unit stacking.
 - **Snap-Back Rejection Fallback:**
   - Invalid drops or placement on non-green tiles instantly reject transform updates and safely snap the creature back to its originating tray slot.
+- **Unit Selection Golden Frame & Mouse Alignment:**
+  - Restored the golden border frame (`$grid[%i]`, `gridsImageMap` frame 0) around the dragged creature icon by propagating transform updates down the mount hierarchy to front layer 0.
+  - Adjusted `$mouseObj::mount::offset` from `"7 7"` to `"3.5 -3.5"`, correcting for Torque2D 4.0's Box2D Y-up coordinate system and ensuring the dragged creature icon is closely aligned with the mouse cursor coordinates.
+  - Synchronized `$mouseObj::object` position and updated mounted children in real-time across `onMouseMove` and `onMouseDragged` events.
+  - Enhanced `cancelCharacterPlacement` fallback to snap both the dragged unit icon and its golden frame cleanly back to the origin tray slot (`$gridback[%obj.index]`) at layers 6 and 5.
 - **Unit Tray Lifecycle Management:**
   - Re-anchored the lower creature tray to coordinate bounds (`Y = -28 / -30`), eliminating the regression where placement icons drifted to the screen top.
   - Added automatic safe deletion of all 12 tray slots upon transitioning from preparation into active combat (`InitGameForBattle`).
