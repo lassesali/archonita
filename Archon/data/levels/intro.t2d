@@ -19,7 +19,8 @@
       scrollPositionY = "0.116249";
       position = "1.81 0.792";
       size = "29.7 43.3";
-      SrcBlendFactor = "ONE_MINUS_DST_COLOR";
+      SrcBlendFactor = "DST_COLOR";
+      DstBlendFactor = "ZERO";
          mountID = "3";
    };
    new Sprite() {

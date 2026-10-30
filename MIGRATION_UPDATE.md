@@ -52,11 +52,11 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Updated audio playback across all gameplay scripts to route through fully qualified module asset IDs (`"Archon:<AssetName>"`), resolving silent failures in legacy `alxPlay()` calls.
   - Restored combat impact sounds (`fxBeenHit`), attack swings (`fxSword`), creature movement footsteps (`fxFootStep`), death sequences (`fxDie`), countdown ticks (`ambient4Audio`), and looping background music (`ambient1Audio`).
 
-### 6. Multi-Pass Framebuffer Alpha Blending Restoration
-- **Inverted Multiplicative Blending:** Faithfully restored the 2006 intro screen's dynamic gold-scrolling logo:
-  - **Pass 1:** Renders the authentic inverted monochrome logo mask (`gamelonlogo.png`) on `SceneLayer 1`.
-  - **Pass 2:** Overlays the animated gold texture scroller (`jee1.png`) on `SceneLayer 0` configured with `BlendMode="1"`, `SrcBlendFactor="ONE_MINUS_DST_COLOR"`, and `DstBlendFactor="ZERO"`.
-  - Produces crisp, transparent masking where the wavy gold texture shines exclusively through the map icon and typography against a void-black background.
+### 6. Framebuffer Multiply Blending for Intro Logo
+- **Multiplicative Blending:** Configured the intro screen's dynamic gold-scrolling logo to use standard multiplicative blending:
+  - **Pass 1:** Renders the logo (`gamelonlogo.png`) on `SceneLayer 1`.
+  - **Pass 2:** Overlays the animated gold texture scroller (`jee1.png`) on `SceneLayer 0` configured with `BlendMode="1"`, `SrcBlendFactor="DST_COLOR"`, and `DstBlendFactor="ZERO"` (Multiply mode).
+  - Produces crisp masking where the wavy gold texture modulates exclusively through the logo shape and typography against a void-black background.
 
 ---
 

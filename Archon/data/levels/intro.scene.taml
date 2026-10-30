@@ -19,6 +19,6 @@
         ScrollX="10"
         ScrollY="10"
         BlendMode="1"
-        SrcBlendFactor="ONE_MINUS_DST_COLOR"
+        SrcBlendFactor="DST_COLOR"
         DstBlendFactor="ZERO" />
 </Scene>
