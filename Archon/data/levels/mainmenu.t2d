@@ -1,0 +1,97 @@
+%levelContent = new Scene(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraSize = "100.000000 75.000000";
+      cameraPosition = "0.000000 0.000000";
+
+   new Sprite(kuva) {
+      image = "Archon:startpicImageMap";
+      Image = "@asset=Archon:startpicImageMap";
+      UseMouseEvents = "1";
+      size = "100 57.8";
+      SceneLayer = "4";
+      Layer = "4";
+         mountID = "2";
+   };
+   new ParticlePlayer(mouseTrail) {
+      effectFile = "Archon/data/particles/magic_trail.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      UseMouseEvents = "1";
+      position = "3.06 48";
+      size = "16 16";
+      SceneLayer = "3";
+      Layer = "3";
+      WorldLimitMin = "3.25e-038 0";
+      WorldLimitMax = "0 2.24e-044";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "3";
+   };
+   new Sprite(archonita) {
+      image = "Archon:textsImageMap";
+      Image = "@asset=Archon:textsImageMap";
+      frame = "1";
+      position = "-0.686 33.5";
+      size = "64 8";
+      SceneLayer = "3";
+      Layer = "3";
+      BlendColor = "1 1 1 0.705882";
+         mountID = "4";
+   };
+   new Sprite(akka) {
+      image = "Archon:warriorImageMap";
+      Image = "@asset=Archon:warriorImageMap";
+      position = "-29.2 -6.99";
+      size = "32 64";
+      FlipX = "1";
+         mountID = "5";
+   };
+   new Sprite(blowjob) {
+      image = "Archon:blowjobImageMap";
+      Image = "@asset=Archon:blowjobImageMap";
+      position = "-33 16.8";
+      size = "4 4";
+      FlipX = "1";
+         mountID = "6";
+   };
+   new Sprite() {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "-0.279 -0.139";
+      size = "101 76.7";
+      SceneLayer = "31";
+      Layer = "31";
+         mountID = "7";
+   };
+   new ParticlePlayer(saippuakuplat) {
+      effectFile = "Archon/data/particles/bubbles.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      position = "-33.1 17.1";
+      size = "2.23 2.16";
+      FlipX = "1";
+      FlipY = "1";
+      WorldLimitMin = "7.46e-041 3.59e-043";
+      WorldLimitMax = "3.23e-041 6.74e-041";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "8";
+   };
+};
+

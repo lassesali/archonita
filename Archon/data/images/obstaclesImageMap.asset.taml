@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="obstaclesImageMap"
+    ImageFile="obstacles.png"
+    CellCountX="2"
+    CellCountY="1"
+    CellWidth="64"
+    CellHeight="128" />

@@ -1,0 +1,226 @@
+//-------------------------- 10/30/2026 -- 17:23:07 -----
+Console trace is off.
+--------------------------------------------------------------------------------
+Video initialization:
+   Accelerated OpenGL display device detected.
+
+Activating the OpenGL display device...
+Activating the OpenGL display device...
+Setting screen mode to 1024x768x32 (w)...
+Creating a new window...
+Acquiring a new device context...
+Pixel format set:
+  32 color bits, 24 depth bits, 8 stencil bits
+Creating a new rendering context...
+Making the new rendering context current...
+OpenGL driver information:
+  Vendor: ATI Technologies Inc.
+  Renderer: AMD Radeon RX 7700 XT
+  Version: 4.6.0 Compatibility Profile Context 26.8.1.260810
+OpenGL Init: Enabled Extensions
+  ARB_multitexture (Max Texture Units: 8)
+  EXT_blend_color
+  EXT_blend_minmax
+  EXT_compiled_vertex_array
+  EXT_texture_env_combine
+  EXT_packed_pixels
+  EXT_fog_coord
+  ARB_texture_compression
+  EXT_texture_compression_s3tc
+  (ARB|EXT)_texture_env_add
+  EXT_texture_filter_anisotropic (Max anisotropy: 16)
+  WGL_EXT_swap_control
+OpenGL Init: Disabled Extensions
+  EXT_paletted_texture
+  NV_vertex_array_range
+  3DFX_texture_compression_FXT1
+
+Max Texture Size reported as: 16384
+2048 1152 32
+--------------------------------------------------------------------------------
+Audio initialization:
+   OpenAL driver initialized successfully. Let's make some noise!
+
+M:/Archonita/games/dist/Archon/gameScripts/exec.cs (911): string always evaluates to 0.
+M:/Archonita/games/dist/Archon/gameScripts/exec.cs (915): string always evaluates to 0.
+ParticlePlayer::play() - Cannot play; no emitters!
+board.nappulat
+   
+   
+   
+   
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+countof:1
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 1 0
+countof:2
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 1 0
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+2 0 1 0
+countof:3
+board.nappulat
+0 0 0 0
+0 0 0 0
+0 0 0 0
+2 0 1 0
+board.nappulat
+0 0 3 0
+0 0 0 0
+0 0 0 0
+2 0 1 0
+countof:4
+board.nappulat
+0 0 3 0
+0 0 0 0
+0 0 0 0
+2 0 1 0
+board.nappulat
+0 0 3 0
+0 4 0 0
+0 0 0 0
+2 0 1 0
+countof:5
+board.nappulat
+0 0 3 0
+0 4 0 0
+0 0 0 0
+2 0 1 0
+board.nappulat
+0 0 3 0
+5 4 0 0
+0 0 0 0
+2 0 1 0
+jaaNappuloidenVuorot()
+!!! nappulaid: 1 vuorotvector: 1 3 2 4 5
+
+param: %nappula, %state=1449, 1315(walking)
+setnappulastate, nappulaindex=1
+playanim, nappulaindex=paladinWalkingAnimation_n
+
+
+param: %nappula, %state=1449, 1314(stopped)
+setnappulastate, nappulaindex=1
+playanim, nappulaindex=paladinStoppedAnimation_n
+
+!!! nappulaid: 3 vuorotvector: 3 2 4 5
+!!! nappulaid: 2 vuorotvector: 2 4 5
+
+param: %nappula, %state=1476, 1305(walking)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerWalkingAnimation_n
+
+
+param: %nappula, %state=1476, 1304(stopped)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerStoppedAnimation_n
+
+%sankari=1195
+%sankari.getValittuRuutuX()=0
+%sankari.getValittuRuutuY()=1
+$board.nappulat[%sankari.getValittuRuutuX(),%sankari.getValittuRuutuY()]=5
+%vihollinen=1491
+function doAttack(1491,0)
+setNappulaState(1476,1307)
+
+param: %nappula, %state=1476, 1307(attack)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerAttackAnimation_n
+
+setNappulaState(1491,1321)
+Archon/gameScripts/exec.cs (1648): Unknown command setRotation.
+  Object (1514) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1648): Unknown command setRotation.
+  Object (1515) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1669): Unknown command setRotation.
+  Object (1516) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1669): Unknown command setRotation.
+  Object (1517) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1669): Unknown command setRotation.
+  Object (1518) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+
+param: %nappula, %state=1491, 1321(beenhit)
+setnappulastate, nappulaindex=5
+playanim, nappulaindex=skeletonwarriorBeenHitAnimation_s
+
+!!! nappulaid: 4 vuorotvector: 4 5
+
+param: %nappula, %state=1476, 1304(stopped)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerStoppedAnimation_n
+
+
+param: %nappula, %state=1491, 1319(stopped)
+setnappulastate, nappulaindex=5
+playanim, nappulaindex=skeletonwarriorStoppedAnimation_s
+
+!!! nappulaid: 5 vuorotvector: 5
+board.nappulat
+0 0 3 0
+5 4 0 0
+2 0 1 0
+0 0 0 0
+getWord(%foundai, 0)=0
+getWord(%foundai, 1)=2
+%vihollinen=1476
+$board.nappulat[getWord(%foundai, 0),getWord(%foundai, 1)]=2
+%foundai=0 2
+doAttack(1476,0)
+function doAttack(1476,0)
+setNappulaState(1491,1322)
+
+param: %nappula, %state=1491, 1322(attack)
+setnappulastate, nappulaindex=5
+playanim, nappulaindex=skeletonwarriorAttackAnimation_s
+
+setNappulaState(1476,1306)
+Archon/gameScripts/exec.cs (1722): Unknown command setRotation.
+  Object (1531) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1722): Unknown command setRotation.
+  Object (1532) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1741): Unknown command setRotation.
+  Object (1533) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+Archon/gameScripts/exec.cs (1741): Unknown command setRotation.
+  Object (1534) Sprite -> SpriteBase -> SceneObject -> BehaviorComponent -> DynamicConsoleMethodComponent -> SimComponent -> SimObject
+vahingoitaNappula(1476)
+vahingoitaNappula: 1476
+setNappulaState(1476,1308)
+
+param: %nappula, %state=1476, 1306(beenhit)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerBeenHitAnimation_n
+
+
+param: %nappula, %state=1476, 1308(die)
+setnappulastate, nappulaindex=2
+playanim, nappulaindex=archerTippingOverAnimation_n
+
+jaaNappuloidenVuorot()
+!!! nappulaid: 1 vuorotvector: 1 3 4 5
+
+param: %nappula, %state=1491, 1319(stopped)
+setnappulastate, nappulaindex=5
+playanim, nappulaindex=skeletonwarriorStoppedAnimation_s
+
+Shutting down the OpenGL display device...
+Making the GL rendering context not current...
+Deleting the GL rendering context...
+Releasing the device context...
