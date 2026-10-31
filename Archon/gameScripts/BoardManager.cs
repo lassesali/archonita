@@ -41,6 +41,7 @@ function BoardManager::onRemove(%this)
 function BoardManager::showBoardScreen(%this)
 {
    setGameState($gamePreBattleState);
+   startBackgroundMusic();
    dismountobject();
    startGame("Archon/data/levels/board.t2d");  
    

@@ -45,8 +45,8 @@ setLogMode(2);
 setScriptExecEcho(false);
 trace(false);
 
-// Ignore compiled DSOs to prevent stale bytecode execution
-$Scripts::ignoreDSOs = true;
+// Enable execution of compiled DSO bytecode in release build
+$Scripts::ignoreDSOs = false;
 
 // Identity
 setCompanyAndProduct("Torque Game Engines", "Archonita");
@@ -92,7 +92,7 @@ Write-Host "Creating Windows launcher..."
 $launcherContent = @'
 @echo off
 cd /d "%~dp0"
-start "" Archonita.exe
+start "" Archonita.exe main.dso
 '@
 Set-Content -Path "$DestinationDir\Play Archonita.bat" -Value $launcherContent -Encoding ASCII
 
@@ -211,7 +211,92 @@ if (Test-Path $stockCursors) {
     }
 }
 
-# 11. Create Release README.txt
+
+# 11. Copy Version Configuration
+Write-Host "Copying version configuration..."
+if (Test-Path "$SourceRoot\version.json") {
+    Copy-Item "$SourceRoot\version.json" "$DestinationDir\version.json" -Force
+}
+if (Test-Path "$SourceRoot\version.env") {
+    Copy-Item "$SourceRoot\version.env" "$DestinationDir\version.env" -Force
+}
+if (Test-Path "$SourceRoot\Archon\version.json") {
+    Copy-Item "$SourceRoot\Archon\version.json" "$DestinationDir\Archon\version.json" -Force
+}
+if (Test-Path "$SourceRoot\Archon\version.env") {
+    Copy-Item "$SourceRoot\Archon\version.env" "$DestinationDir\Archon\version.env" -Force
+}
+
+# 12. Compile all TorqueScript files to .dso bytecode and purge raw .cs source files
+Write-Host "Compiling TorqueScript files to DSO bytecode..."
+$compileScriptContent = @'
+$pref::saveDSO = true;
+
+%count = 0;
+%file = findFirstFile("*.cs");
+while (%file !$= "")
+{
+    compile(%file);
+    %count++;
+    %file = findNextFile("*.cs");
+}
+quit();
+'@
+$compileScriptPath = Join-Path $DestinationDir "compile_release_dso.cs"
+Set-Content -Path $compileScriptPath -Value $compileScriptContent -Encoding ASCII
+
+# Launch Torque2D executable to run the temporary script and quit upon completion
+Write-Host "Launching Torque2D executable to compile scripts..."
+$compileProc = Start-Process -FilePath "$DestinationDir\Torque2D.exe" -ArgumentList "compile_release_dso.cs" -WorkingDirectory $DestinationDir -PassThru -Wait
+if ($compileProc.ExitCode -ne 0) {
+    Write-Warning "DSO compiler finished with exit code $($compileProc.ExitCode)"
+}
+
+# Remove temporary compilation script and its dso
+Remove-Item -Path $compileScriptPath -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$compileScriptPath.dso" -Force -ErrorAction SilentlyContinue
+
+# Create root main.dso bootstrapper for direct execution without raw .cs
+$bootDsoContent = @'
+//-----------------------------------------------------------------------------
+// Archonita - 2D Turn-Based Tactical Board Game
+// Torque2D 4.0 Release Bootstrapper
+//-----------------------------------------------------------------------------
+setRandomSeed();
+setLogMode(2);
+setScriptExecEcho(false);
+trace(false);
+
+$Scripts::ignoreDSOs = false;
+setCompanyAndProduct("Torque Game Engines", "Archonita");
+
+ModuleDatabase.EchoInfo = false;
+AssetDatabase.EchoInfo = false;
+AssetDatabase.IgnoreAutoUnload = true;
+
+ModuleDatabase.scanModules("./library");
+ModuleDatabase.scanModules("./Archon");
+ModuleDatabase.loadExplicit("AppCore");
+
+function onExit()
+{
+    if (isObject(AppCore))
+    {
+        ModuleDatabase.unloadExplicit("AppCore");
+    }
+}
+'@
+Set-Content -Path "$DestinationDir\main.dso" -Value $bootDsoContent -Encoding ASCII
+
+# Explicitly delete all raw .cs files before the distribution archive is built, leaving only the .dso files
+Write-Host "Purging all raw .cs source files from release package..."
+Get-ChildItem -Path $DestinationDir -Filter "*.cs" -Recurse | Remove-Item -Force
+
+$remainingCs = (Get-ChildItem -Path $DestinationDir -Filter "*.cs" -Recurse).Count
+$remainingDso = (Get-ChildItem -Path $DestinationDir -Filter "*.dso" -Recurse).Count
+Write-Host "DSO protection complete: $remainingDso .dso bytecode files present, $remainingCs raw .cs files remaining."
+
+# 13. Create Release README.txt
 Write-Host "Creating release README.txt..."
 $readmeContent = @'
 ================================================================================
@@ -234,7 +319,7 @@ OpenAL audio, and widescreen/high-resolution display support.
 
 HOW TO PLAY
 -----------
-1. Double-click "Archonita.exe" or run "Play Archonita.bat".
+1. Run "Play Archonita.bat" or launch "Archonita.exe main.dso".
 2. Select your Hero (Warrior or Wizard).
 3. Purchase and recruit your fantasy units using Creature Points.
 4. Deploy units to legal green tiles on your starting rows.

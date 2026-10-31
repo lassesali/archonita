@@ -199,6 +199,38 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - **[`BoardManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/BoardManager.cs)**: Added explicit angular velocity initialization in `BoardManager::showBoardScreen()` to guarantee active rotation upon entering the board.
   - **[`t2d_compat.cs`](file:///M:/Archonita/games/Archon/gameScripts/t2d_compat.cs)**: Added `setAutoRotation(%val)` compatibility mapping on `SceneObject` and `Sprite` translating legacy TGB degrees-per-second auto-rotation into modern Torque2D angular velocity (`setAngularVelocity(-%val)`).
 
+### 4. Ornate 3D Title Logo & Fullscreen Main Menu Background
+- **Title Logo Replacement**: Replaced legacy flat blue "ARCHONITA" text at the top of the title screen with the ornate, metallic 3D "ARCHONITA" logo:
+  - Added [`archonita_title_new.png`](file:///M:/Archonita/games/Archon/data/images/archonita_title_new.png) and registered [`archonita_title_newImageMap.asset.taml`](file:///M:/Archonita/games/Archon/data/images/archonita_title_newImageMap.asset.taml).
+  - Cleared Cell 1 from [`texts.png`](file:///M:/Archonita/games/Archon/data/images/texts.png) to eliminate redundant legacy text rasterization.
+  - Positioned and scaled the 3D logo in [`mainmenu.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/mainmenu.scene.taml) and [`mainmenu.t2d`](file:///M:/Archonita/games/Archon/data/levels/mainmenu.t2d) (`Position="0 25.5"`, `Size="75 18.75"`), blending shadows naturally into the dark forest canopy.
+- **Fullscreen Background Expansion**:
+  - Reconfigured [`startpic.png`](file:///M:/Archonita/games/Archon/data/images/startpic.png) sprite (`kuva`) in [`mainmenu.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/mainmenu.scene.taml) and [`mainmenu.t2d`](file:///M:/Archonita/games/Archon/data/levels/mainmenu.t2d) from `100 57.8` to `Size="100 75"`.
+  - Background now completely fills the 4:3 screen viewport without letterboxing or black bars at the top and bottom.
+
+### 5. Seamless Background Music & Indefinite Looping
+- Fixed background music cutting out when transitioning from the intro logo screen into the main menu and board game screen:
+  - Created [`AudioManager`](file:///M:/Archonita/games/Archon/gameScripts/AudioManager.cs) `ScriptObject` with managed lifecycle in [`Archon/main.cs`](file:///M:/Archonita/games/Archon/main.cs).
+  - Implemented `startBackgroundMusic()`, `isMusicPlaying()`, and watchdog looping schedule `checkBackgroundMusicLoop()`.
+  - Removed premature `alxStop` calls in [`intro.cs`](file:///M:/Archonita/games/Archon/gameScripts/intro.cs) and [`mainmenu.cs`](file:///M:/Archonita/games/Archon/gameScripts/mainmenu.cs), maintaining uninterrupted playback through intro, main menu, hero selection, and board gameplay.
+  - Linked `stopBackgroundMusic()` to clean game shutdown in `endGame()`.
+
+### 6. Main Menu Version Watermark UI
+- Added dynamic version watermark anchored to the viewport bottom-right corner:
+  - Created external configuration files [`version.json`](file:///M:/Archonita/games/version.json) and [`version.env`](file:///M:/Archonita/games/version.env) storing channel (`Early Access`), build number (`101`), and version string (`2.0.1-ea4`).
+  - Implemented [`VersionConfig`](file:///M:/Archonita/games/Archon/gameScripts/versionConfig.cs) `ScriptObject` to read and parse external configuration via `FileObject` into `$App::Channel`, `$App::Build`, and `$App::Version`.
+  - Configured `MainMenuWatermark` container with `HorizSizing="left"` and `VertSizing="top"` on `mainScreenGui`.
+  - Implemented crisp pure white typography (`fontColor="255 255 255 255"`, `fontType="Arial"`) with paired 1px drop shadows for contrast against artwork.
+  - Corrected GUI z-ordering with `mainScreenGui.pushToBack(MainMenuWatermark)` so text renders on top of `sceneWindow2D`.
+
+### 7. TorqueScript Source Code Bytecode Protection & Release Automation
+- Enhanced [`make_dist.ps1`](file:///M:/Archonita/games/make_dist.ps1) distribution automation to protect proprietary source code:
+  - Generates a temporary compilation script setting `$pref::saveDSO = true;` with a recursive `findFirstFile("*.cs")` loop invoking `compile(%file)` for all scripts.
+  - Executes `Torque2D.exe` in the target directory to compile all project scripts into `.dso` bytecode files.
+  - Creates release bootstrapper `main.dso` and updates [`Play Archonita.bat`](file:///M:/Archonita/games/dist/Play%20Archonita.bat) to launch `Archonita.exe main.dso`.
+  - Configures release runtime with `$Scripts::ignoreDSOs = false;` to execute compiled DSO bytecode.
+  - Explicitly purges all raw `.cs` files across the distribution folder (`Get-ChildItem -Path $DestinationDir -Filter *.cs -Recurse | Remove-Item -Force`), leaving 0 raw `.cs` files in release.
+
 ---
 
 > [!NOTE]

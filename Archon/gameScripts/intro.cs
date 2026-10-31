@@ -26,13 +26,8 @@ function gamelonIntro() {
       $introMenuSchedule = "";
    }
 
-   // Play ambient music
-   if ($introMusic != 0)
-   {
-      alxStop($introMusic);
-      $introMusic = 0;
-   }
-   $introMusic = playArchonSound(ambient1Audio);
+   // Play ambient music seamlessly
+   startBackgroundMusic();
 
    startGame("Archon/data/levels/intro.t2d");
 
@@ -65,11 +60,8 @@ function skipIntro() {
       cancel($introMenuSchedule);
       $introMenuSchedule = "";
    }
-   if ($introMusic != 0)
-   {
-      alxStop($introMusic);
-      $introMusic = 0;
-   }
+   // Keep ambient music playing seamlessly
+   startBackgroundMusic();
 
    mainmenuScreen();
 }

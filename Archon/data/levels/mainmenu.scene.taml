@@ -2,7 +2,8 @@
     <Sprite
         Name="kuva"
         Image="@asset=Archon:startpicImageMap"
-        Size="100 57.8"
+        Position="0 0"
+        Size="100 75"
         SceneLayer="4" />
     <ParticlePlayer
         Name="mouseTrail"
@@ -12,10 +13,9 @@
         SceneLayer="1" />
     <Sprite
         Name="archonita"
-        Image="@asset=Archon:textsImageMap"
-        Frame="1"
-        Position="-0.686 33.5"
-        Size="64 8"
+        Image="@asset=Archon:archonita_title_newImageMap"
+        Position="0 25.5"
+        Size="75 18.75"
         SceneLayer="3" />
     <Sprite
         Name="akka"

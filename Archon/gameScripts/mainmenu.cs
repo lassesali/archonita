@@ -17,6 +17,7 @@ function mainMenuFadeOut() {
       archonita.startFadeOut(0.2);
    if (isObject(mouseTrail))
       mouseTrail.stopEffect(true, false);
+   showVersionWatermark(false);
 }
 
 function mainmenuScreen() {
@@ -30,11 +31,8 @@ function mainmenuScreen() {
       cancel($introMenuSchedule);
       $introMenuSchedule = "";
    }
-   if ($introMusic != 0)
-   {
-      alxStop($introMusic);
-      $introMusic = 0;
-   }
+   // Ensure background music continues seamlessly across scene transitions
+   startBackgroundMusic();
 
    $mainMenuTransitioning = false;
 
@@ -53,6 +51,7 @@ function mainmenuScreen() {
    Canvas.setCursor(DefaultCursor);
    Canvas.showCursor();
    startGame("Archon/data/levels/mainmenu.t2d");  
+   showVersionWatermark(true);  
 
    if ($bubbleSchedule !$= "")
       cancel($bubbleSchedule);

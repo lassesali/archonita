@@ -23,6 +23,7 @@ function selectHeroScreen() {
    $cardSelectTransitioning = false;
 
    setGameState($gameCardSelectState);
+   startBackgroundMusic();
    $hiiri.piilota = false;
    Canvas.setCursor(DefaultCursor);
    Canvas.showCursor();

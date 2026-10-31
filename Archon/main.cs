@@ -55,6 +55,12 @@ function initializeProject()
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
    exec("./gameScripts/gameObject.cs");
+   exec("./gameScripts/AudioManager.cs");
+   if (!isObject($AudioManager))
+      $AudioManager = new ScriptObject() { class = "AudioManager"; };
+   exec("./gameScripts/versionConfig.cs");
+   if (!isObject($VersionConfig))
+      $VersionConfig = new ScriptObject() { class = "VersionConfig"; };
    exec("./gameScripts/AssetResolutionManager.cs");
    if (!isObject($AssetResolutionManager))
       $AssetResolutionManager = new ScriptObject() { class = "AssetResolutionManager"; };
@@ -74,6 +80,10 @@ function initializeProject()
 //---------------------------------------------------------------------------------------------
 function shutdownProject()
 {
+   if (isObject($VersionConfig))
+      $VersionConfig.delete();
+   if (isObject($AudioManager))
+      $AudioManager.delete();
    if (isObject($AssetResolutionManager))
       $AssetResolutionManager.delete();
    endGame();

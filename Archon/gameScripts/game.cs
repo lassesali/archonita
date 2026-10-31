@@ -75,6 +75,7 @@ function startGame(%level)
 //---------------------------------------------------------------------------------------------
 function endGame()
 {
+   stopBackgroundMusic();
    alxStopAll();
    if (isObject(testActionMap))
       testActionMap.pop();

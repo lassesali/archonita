@@ -7,3 +7,6 @@ exec("./BoardManager.cs");
 exec("./TurnManager.cs");
 exec("./CombatEngine.cs");
 exec("./TacticalAI.cs");
+
+exec("./AudioManager.cs");
+exec("./versionConfig.cs");

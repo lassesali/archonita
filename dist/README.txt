@@ -18,7 +18,7 @@ OpenAL audio, and widescreen/high-resolution display support.
 
 HOW TO PLAY
 -----------
-1. Double-click "Archonita.exe" or run "Play Archonita.bat".
+1. Run "Play Archonita.bat" or launch "Archonita.exe main.dso".
 2. Select your Hero (Warrior or Wizard).
 3. Purchase and recruit your fantasy units using Creature Points.
 4. Deploy units to legal green tiles on your starting rows.
