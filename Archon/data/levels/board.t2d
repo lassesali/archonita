@@ -1,0 +1,288 @@
+%levelContent = new Scene(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new Sprite(diceBlue) {
+      image = "Archon:diceblueImageMap";
+      Image = "@asset=Archon:diceblueImageMap";
+      position = "37.5 28.1";
+      size = "8.38 8.85";
+      Angle = "340";
+      Rotation = "340";
+      AngularVelocity = "10";
+      AutoRotation = "-10";
+      SceneLayer = "30";
+      Layer = "30";
+      BlendColor = "1 1 1 0.862745";
+         mountID = "2";
+   };
+   new Sprite(diceRed) {
+      image = "Archon:diceredImageMap";
+      Image = "@asset=Archon:diceredImageMap";
+      position = "27.4 20.9";
+      size = "11.4 11.4";
+      AngularVelocity = "-10";
+      AutoRotation = "10";
+      SceneLayer = "30";
+      Layer = "30";
+      BlendColor = "1 1 1 0.901961";
+         isSelectable = "False";
+         mountID = "3";
+   };
+   new Sprite(heroicongrid) {
+      image = "Archon:grid_2ImageMap";
+      Image = "@asset=Archon:grid_2ImageMap";
+      position = "-40 -16";
+      size = "16 16";
+      SceneLayer = "30";
+      Layer = "30";
+         mountID = "4";
+   };
+   new ParticlePlayer() {
+      effectFile = "Archon/data/particles/magic_trail.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      position = "-30.5 7.68";
+      size = "10.2 10.9";
+      WorldLimitMin = "3.25e-038 0";
+      WorldLimitMax = "0 2.24e-044";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      BlendingEnabled = "0";
+      SrcBlendFactor = "ZERO";
+      DstBlendFactor = "ZERO";
+      BlendColor = "0 0.101961 0.996078 1";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "5";
+   };
+   new Sprite(background) {
+      image = "Archon:background1ImageMap";
+      Image = "@asset=Archon:background1ImageMap";
+      size = "102 76";
+      SceneLayer = "31";
+      Layer = "31";
+         isIconAttack = "0";
+         isSelectable = "False";
+         isIconMagic = "0";
+         mountID = "6";
+         isIconDefence = "0";
+   };
+   new Sprite(iconDefence1) {
+      image = "Archon:icon_shieldImageMap";
+      Image = "@asset=Archon:icon_shieldImageMap";
+      position = "28.2 -8.73";
+      size = "16 16";
+      SceneLayer = "29";
+      Layer = "29";
+         isIconAttack = "0";
+         isSelectable = "False";
+         isIconMagic = "0";
+         mountID = "7";
+         isIconDefence = "0";
+   };
+   new Sprite(iconDefence2) {
+      image = "Archon:grid_6_hexImageMap";
+      Image = "@asset=Archon:grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "28.3 -8.1";
+      size = "16 16";
+      SceneLayer = "31";
+      Layer = "31";
+         isSelectable = "False";
+         mountID = "8";
+         Alpha = "0.7";
+         isIconDefence = "1";
+   };
+   new Sprite(iconMagic3) {
+      image = "Archon:grid_6_hexImageMap";
+      Image = "@asset=Archon:grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "40 -15.1";
+      size = "16 16";
+      SceneLayer = "31";
+      Layer = "31";
+         isSelectable = "False";
+         isIconMagic = "1";
+         mountID = "9";
+         Alpha = "0.7";
+   };
+   new Sprite(iconAttack2) {
+      image = "Archon:grid_6_hexImageMap";
+      Image = "@asset=Archon:grid_6_hexImageMap";
+      UseMouseEvents = "1";
+      position = "40 -1.35";
+      size = "16 16";
+      SceneLayer = "31";
+      Layer = "31";
+         isIconAttack = "1";
+         isSelectable = "False";
+         mountID = "10";
+         Alpha = "0.7";
+   };
+   new Sprite(iconAttack1) {
+      image = "Archon:icon_attackImageMap";
+      Image = "@asset=Archon:icon_attackImageMap";
+      position = "39.9 -1.38";
+      size = "16 16";
+      SceneLayer = "29";
+      Layer = "29";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "11";
+         isIconDefence = "0";
+   };
+   new Sprite(iconMagic2) {
+      image = "Archon:MoonbaseImageMap";
+      Image = "@asset=Archon:MoonbaseImageMap";
+      position = "39.9 -15.4";
+      size = "10.8 10.3";
+      SceneLayer = "29";
+      Layer = "29";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "12";
+         isIconDefence = "0";
+   };
+   new Sprite(heroicon) {
+      image = "Archon:heroiconsImageMap";
+      Image = "@asset=Archon:heroiconsImageMap";
+      position = "-40 -16";
+      size = "16 16";
+      SceneLayer = "31";
+      Layer = "31";
+         mountID = "13";
+   };
+   new Sprite(sijoitaText) {
+      image = "Archon:textsImageMap";
+      Image = "@asset=Archon:textsImageMap";
+      frame = "2";
+      position = "-1.91e-06 32.8";
+      size = "64 8";
+      SceneLayer = "30";
+      Layer = "30";
+         mountID = "14";
+   };
+   new Sprite(manapisteet) {
+      image = "Archon:numbersImageMap";
+      Image = "@asset=Archon:numbersImageMap";
+      Visible = "0";
+      position = "-34 24.5";
+      size = "4 4";
+         mountID = "15";
+   };
+   new ParticlePlayer(mouseTrail) {
+      effectFile = "Archon/data/particles/magic_trail.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "0";
+      UseMouseEvents = "1";
+      position = "8 40";
+      size = "16 16";
+      WorldLimitMin = "3.25e-038 0";
+      WorldLimitMax = "0 2.24e-044";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "16";
+   };
+   new Sprite() {
+      image = "Archon:icon_manaImageMap";
+      Image = "@asset=Archon:icon_manaImageMap";
+      Visible = "0";
+      position = "-41 24.3";
+      size = "8 8";
+         mountID = "17";
+   };
+   new Sprite(olentopisteetcounter) {
+      image = "Archon:numbersImageMap";
+      Image = "@asset=Archon:numbersImageMap";
+      position = "-36 -20";
+      size = "8 8";
+      SceneLayer = "29";
+      Layer = "29";
+         mountID = "18";
+   };
+   new Sprite(iconMagic1) {
+      image = "Archon:icon_manaImageMap";
+      Image = "@asset=Archon:icon_manaImageMap";
+      position = "39.5 -15.6";
+      size = "8 8";
+      SceneLayer = "28";
+      Layer = "28";
+         isIconAttack = "0";
+         isIconMagic = "0";
+         mountID = "19";
+         isIconDefence = "0";
+   };
+   new Sprite(secondText) {
+      image = "Archon:textImageMap";
+      Image = "@asset=Archon:textImageMap";
+      Visible = "0";
+      position = "0.607 32";
+      size = "102 7.47";
+         mountID = "20";
+   };
+   new Sprite(secondCounter) {
+      image = "Archon:numbersImageMap";
+      Image = "@asset=Archon:numbersImageMap";
+      Visible = "0";
+      position = "-13.5 32";
+      size = "4.97 8";
+         mountID = "21";
+   };
+   new Sprite(hero2icon) {
+      image = "Archon:heroiconsImageMap";
+      Image = "@asset=Archon:heroiconsImageMap";
+      frame = "2";
+      position = "-40 24";
+      size = "16 16";
+      SceneLayer = "29";
+      Layer = "29";
+         mountID = "22";
+   };
+   new Sprite(hero2icongrid) {
+      image = "Archon:grid_2ImageMap";
+      Image = "@asset=Archon:grid_2ImageMap";
+      position = "-40 24";
+      size = "16 16";
+      SceneLayer = "28";
+      Layer = "28";
+         mountID = "23";
+   };
+   new ParticlePlayer(blood) {
+      effectFile = "Archon/data/particles/blood.eff";
+      useEffectCollisions = "1";
+      effectMode = "INFINITE";
+      effectTime = "1";
+      position = "23.7 46.7";
+      size = "11.3 10.8";
+      WorldLimitMin = "7.46e-041 3.59e-043";
+      WorldLimitMax = "3.23e-041 6.74e-041";
+      CollisionPhysicsSend = "0";
+      CollisionPhysicsReceive = "0";
+      CollisionGroups = "0";
+      CollisionLayers = "0";
+      CollisionResponseMode = "RIGID";
+      Restitution = "0.2";
+      MaxLinearVelocity = "2500";
+      MinAngularVelocity = "2.69349e-038";
+      MaxAngularVelocity = "1e+010";
+         mountID = "24";
+   };
+
+};
+

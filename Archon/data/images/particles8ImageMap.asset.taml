@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="particles8ImageMap"
+    ImageFile="particles8.png"
+    CellCountX="2"
+    CellCountY="2"
+    CellWidth="64"
+    CellHeight="64" />

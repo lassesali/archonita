@@ -1,0 +1,24 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Image="@asset=Archon:blackImageMap"
+        Position="-9.54e-07 0"
+        Size="102 76.8"
+        SceneLayer="31" />
+    <Sprite
+        Name="logo1"
+        Image="@asset=Archon:gamelonlogoImageMap"
+        Position="1.8 1.15"
+        Size="29.3 42.3"
+        SceneLayer="1" />
+    <Scroller
+        Name="logo1tex"
+        Image="@asset=Archon:jee1ImageMap"
+        Position="1.81 0.792"
+        Size="29.7 43.3"
+        SceneLayer="0"
+        ScrollX="10"
+        ScrollY="10"
+        BlendMode="1"
+        SrcBlendFactor="DST_COLOR"
+        DstBlendFactor="ZERO" />
+</Scene>

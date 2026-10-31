@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="iconsImageMap"
+    ImageFile="icons.png"
+    CellCountX="4"
+    CellCountY="1"
+    CellWidth="64"
+    CellHeight="64" />

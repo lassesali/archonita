@@ -1,0 +1,151 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Name="diceBlue"
+        Image="@asset=Archon:diceblueImageMap"
+        Position="37.5 28.1"
+        Size="8.38 8.85"
+        Angle="340"
+        AngularVelocity="10"
+        BlendAlpha="0.862745"
+        SceneLayer="30" />
+    <Sprite
+        Name="diceRed"
+        Image="@asset=Archon:diceredImageMap"
+        Position="27.4 20.9"
+        Size="11.4 11.4"
+        AngularVelocity="-10"
+        BlendAlpha="0.901961"
+        SceneLayer="30" />
+    <Sprite
+        Name="heroicongrid"
+        Image="@asset=Archon:grid_2ImageMap"
+        Position="-40 -16"
+        Size="16 16"
+        SceneLayer="30" />
+    <ParticlePlayer
+        Position="-30.5 7.68"
+        Size="10.2 10.9" />
+    <Sprite
+        Name="background"
+        Image="@asset=Archon:background1ImageMap"
+        Size="102 76"
+        SceneLayer="31" />
+    <Sprite
+        Name="iconDefence1"
+        Image="@asset=Archon:icon_shieldImageMap"
+        Position="28.2 -8.73"
+        Size="16 16"
+        SceneLayer="29" />
+    <Sprite
+        Name="iconDefence2"
+        Image="@asset=Archon:grid_6_hexImageMap"
+        Position="28.3 -8.1"
+        Size="16 16"
+        SceneLayer="31"
+        isSelectable="0"
+        isIconDefence="1"
+        BlendAlpha="0.7" />
+    <Sprite
+        Name="iconMagic3"
+        Image="@asset=Archon:grid_6_hexImageMap"
+        Position="40 -15.1"
+        Size="16 16"
+        SceneLayer="31"
+        isSelectable="0"
+        isIconMagic="1"
+        BlendAlpha="0.7" />
+    <Sprite
+        Name="iconAttack2"
+        Image="@asset=Archon:grid_6_hexImageMap"
+        Position="40 -1.35"
+        Size="16 16"
+        SceneLayer="31"
+        isSelectable="0"
+        isIconAttack="1"
+        BlendAlpha="0.7" />
+    <Sprite
+        Name="iconAttack1"
+        Image="@asset=Archon:icon_attackImageMap"
+        Position="39.9 -1.38"
+        Size="16 16"
+        SceneLayer="29" />
+    <Sprite
+        Name="iconMagic2"
+        Image="@asset=Archon:MoonbaseImageMap"
+        Position="39.9 -15.4"
+        Size="10.8 10.3"
+        SceneLayer="29" />
+    <Sprite
+        Name="heroicon"
+        Image="@asset=Archon:heroiconsImageMap"
+        Position="-40 -16"
+        Size="16 16"
+        SceneLayer="31" />
+    <Sprite
+        Name="sijoitaText"
+        Image="@asset=Archon:textsImageMap"
+        Frame="2"
+        Position="-1.91e-06 32.8"
+        Size="64 8"
+        SceneLayer="30" />
+    <Sprite
+        Name="manapisteet"
+        Image="@asset=Archon:numbersImageMap"
+        Position="-34 24.5"
+        Size="4 4"
+        Visible="false" />
+    <ParticlePlayer
+        Name="mouseTrail"
+        Particle="@asset=Archon:magic_trail"
+        Position="8 40"
+        Size="16 16"
+        SceneLayer="1" />
+    <Sprite
+        Image="@asset=Archon:icon_manaImageMap"
+        Position="-41 24.3"
+        Size="8 8"
+        Visible="false" />
+    <Sprite
+        Name="olentopisteetcounter"
+        Image="@asset=Archon:numbersImageMap"
+        Position="-36 -20"
+        Size="8 8"
+        SceneLayer="29" />
+    <Sprite
+        Name="iconMagic1"
+        Image="@asset=Archon:icon_manaImageMap"
+        Position="39.5 -15.6"
+        Size="8 8"
+        SceneLayer="28" />
+    <Sprite
+        Name="secondText"
+        Image="@asset=Archon:textImageMap"
+        Position="0.607 32"
+        Size="102 7.47"
+        Visible="false" />
+    <Sprite
+        Name="secondCounter"
+        Image="@asset=Archon:numbersImageMap"
+        Position="-13.5 32"
+        Size="4.97 8"
+        Visible="false" />
+    <Sprite
+        Name="hero2icon"
+        Image="@asset=Archon:heroiconsImageMap"
+        Frame="2"
+        Position="-40 24"
+        Size="16 16"
+        SceneLayer="29" />
+    <Sprite
+        Name="hero2icongrid"
+        Image="@asset=Archon:grid_2ImageMap"
+        Position="-40 24"
+        Size="16 16"
+        SceneLayer="28" />
+    <ParticlePlayer
+        Name="blood"
+        Particle="@asset=Archon:blood"
+        Position="23.7 46.7"
+        Size="11.3 10.8"
+        SceneLayer="1" />
+</Scene>

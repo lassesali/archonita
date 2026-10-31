@@ -1,0 +1,5 @@
+<AudioAsset
+    AssetName="ambient1Audio"
+    AssetAutoUnload="0"
+    AudioFile="music.ogg"
+    Looping="true" />
