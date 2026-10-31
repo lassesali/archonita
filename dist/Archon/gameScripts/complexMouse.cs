@@ -55,9 +55,9 @@ function mouseOverActionIcons( %mod, %worldPos )
 
 function mouseOverMovementGrid( %mod, %worldPos )
 {
-      %sankari = HeroGroup.getObject(game.getVuorossaOlevaPelaaja());
+      %hero = HeroGroup.getObject(game.getActivePlayer());
 
-                                %sankari.setValittuRuutu("-1 -1");
+                                %hero.setSelectedTile("-1 -1");
    
 
                                 for (%j=0;%j<4;%j++)
@@ -85,7 +85,7 @@ function mouseOverMovementGrid( %mod, %worldPos )
                         //if we find an object in the list that "isSelectable = true"
                      
                         
-                        if(%obj.isValintakehys)
+                        if(%obj.isSelectionFrame || %obj.isValintakehys)
                         {
                 
 
@@ -102,7 +102,7 @@ function mouseOverMovementGrid( %mod, %worldPos )
                 if(%selected)
                 {
                         %obj.setFrame("1");
-                        %sankari.setValittuRuutu(%obj.positionOnBoard);
+                        %hero.setSelectedTile(%obj.positionOnBoard);
 
                      
                 }
@@ -112,12 +112,16 @@ function mouseOverMovementGrid( %mod, %worldPos )
 
 function mouseOverGreenGrid( %mod, %worldPos )
 {
-   %sankari = HeroGroup.getObject(0);
-   %sankari.setValittuRuutu("-1 -1");
+   %hero = HeroGroup.getObject(0);
+   %hero.setSelectedTile("-1 -1");
 
-   for (%ux = 0; %ux < 4; %ux++) 
+   %width = (isObject(BoardConfig) && BoardConfig.width !$= "") ? BoardConfig.width : 4;
+   %minY = (isObject(BoardConfig) && BoardConfig.playerPlacementMinY !$= "") ? BoardConfig.playerPlacementMinY : 2;
+   %maxY = (isObject(BoardConfig) && BoardConfig.playerPlacementMaxY !$= "") ? BoardConfig.playerPlacementMaxY : 3;
+
+   for (%ux = 0; %ux < %width; %ux++) 
    {
-      for (%uy = 2; %uy < 4; %uy++) 
+      for (%uy = %minY; %uy <= %maxY; %uy++) 
       {
          if ($board.obstacles[%ux, %uy] == 0) 
          {
@@ -143,7 +147,7 @@ function mouseOverGreenGrid( %mod, %worldPos )
    for (%i = 0; %i < %objCount; %i++)
    {
       %obj = getWord(%objList, %i);
-      if (%obj.isValintakehys)
+      if (%obj.isSelectionFrame || %obj.isValintakehys)
       {
          %selected = true;
          %selectedObj = %obj;
@@ -154,7 +158,7 @@ function mouseOverGreenGrid( %mod, %worldPos )
    if (%selected)
    {
       %selectedObj.setFrame("1");
-      %sankari.setValittuRuutu(%selectedObj.positionOnBoard);
+      %hero.setSelectedTile(%selectedObj.positionOnBoard);
 
       if ($mouseObj::isObjMounted) 
       {
@@ -164,7 +168,7 @@ function mouseOverGreenGrid( %mod, %worldPos )
             %lvlIndex = %objMounted.creatureLevel - 1;
             if (isObject($setupNappulaSprite[%lvlIndex]))
             {
-               $setupNappulaSprite[%lvlIndex].setPosition(boardToWorldUnit(%sankari.getValittuRuutuX(), %sankari.getValittuRuutuY()));
+               $setupNappulaSprite[%lvlIndex].setPosition(boardToWorldUnit(%hero.getSelectedTileX(), %hero.getSelectedTileY()));
                $setupNappulaSprite[%lvlIndex].setVisible(true);
             }
          }
@@ -297,10 +301,10 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
       return false;
    }
 
-   %sankari = HeroGroup.getObject(0);
+   %hero = HeroGroup.getObject(0);
    %targetRuutu = %sankari.getValittuRuutu();
-   %targetX = %sankari.getValittuRuutuX();
-   %targetY = %sankari.getValittuRuutuY();
+   %targetX = %hero.getSelectedTileX();
+   %targetY = %hero.getSelectedTileY();
 
    // Strict validation of target tile:
    // 1. Must not be unselected (-1 -1 or empty)
@@ -329,7 +333,7 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
    %iconIndex = %obj.index;
 
    // Attempt placement on board
-   %placed = lisaaUusiNappulaLaudalle(%creatureLvl, %targetX, %targetY, 0);
+   %placed = spawnPieceOnBoard(%creatureLvl, %targetX, %targetY, 0);
    if (!%placed)
    {
       %this.cancelCharacterPlacement(%obj);
@@ -343,7 +347,7 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
    if (isObject($numb[%iconIndex]))
       $numb[%iconIndex].delete();
 
-   updatePisteetGridsIcons();
+   updatePlacementHUD();
 
    if (isObject(%obj))
       %obj.delete();
@@ -358,7 +362,7 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
          $setupNappulaSprite[%j].setVisible(false);
    }
 
-   %sankari.setValittuRuutu("-1 -1");
+   %hero.setSelectedTile("-1 -1");
    return true;
 }
 
@@ -414,17 +418,30 @@ function sceneWindow2D::cancelCharacterPlacement(%this, %obj)
       }
    }
 
-   %sankari = HeroGroup.getObject(0);
-   if (isObject(%sankari))
-      %sankari.setValittuRuutu("-1 -1");
+   if (isObject(HeroGroup))
+   {
+      %hero = HeroGroup.getObject(0);
+      if (isObject(%hero))
+         %hero.setSelectedTile("-1 -1");
+   }
 }
 
 function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 {
-        
+        if (getGameState() == $gameIntroState) 
+        {
+            skipIntro();
+            return;
+        }
+
         if (getGameState() == $gameMainMenuState) 
         {
+            if ($introSkipTime !$= "" && (getSimTime() - $introSkipTime) < 350)
+            {
+               return;
+            }
             gotoSelectHeroScreen();
+            return;
         }
         
         
@@ -507,7 +524,7 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                               card_0.valittu = false;
                               card_1.valittu = false;
                               %obj.valittu = true;
-                              tarkastavalittukortti();
+                              checkSelectedCard();
 
                            }
 
@@ -523,43 +540,57 @@ function setNappiReleasedOff() {
 
 function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 {
+         if ( getGameState() == $gameIntroState )
+         {
+            return;
+         }
+
          if ( getGameState() == $gamePreBattleState && %this.objectSelected && %this.dragStarted )
          {
             %this.placeSelectedCharacter($mouseObj::objMounted);
+         }
+
+         $hiiri.nappi = false;
+         $hiiri.nappireleased = true;
+         schedule(100,0,setNappiReleasedOff);
+
+         if($debugMsg::mouse::callBacks) 
+         {
+                 echo("Mouse Up"); 
          }
 
          if ( getGameState() == $gameBattleState ) 
          {
             mouseOverMovementGrid(%mod, %worldPos);
             mouseOverActionIcons(%mod, %worldPos);
-         }
 
-         %sankari = HeroGroup.getObject(game.getVuorossaOlevaPelaaja());
-            %v1=%sankari.getValittuRuutu();
-            %v2=$nappulaSprite[game.getNappulaSelected()].positionOnBoard;
-           $hiiri.nappi = false;
-           $hiiri.nappireleased = true;
-           schedule(100,0,setNappiReleasedOff);
+            if (isObject(HeroGroup) && isObject(game))
+            {
+               %hero = HeroGroup.getObject(game.getActivePlayer());
+               if (isObject(%hero))
+               {
+                  %v1 = %hero.getSelectedTile();
+                  %selectedNappula = game.getNappulaSelected();
+                  if (%selectedNappula !$= "" && isObject($nappulaSprite[%selectedNappula]))
+                     %v2 = $nappulaSprite[%selectedNappula].positionOnBoard;
+                  else
+                     %v2 = "";
 
-        if($debugMsg::mouse::callBacks) 
-        {
-                echo("Mouse Up"); 
-        }
-      
-                           if ( getGameState() == $gameBattleState && game.getHighlightedActionIcon() > 0 ) 
-                           {
-                              doAction();
-                           }
-                           
-         if ( getGameState() == $gameBattleState && %sankari.getValittuRuutuX() >= 0) { 
-                              
-           if ( t2dVectorCompare(%v1, %v2) == 0 )
-           {                                       
-                           doMovement( %sankari.getValittuRuutuX(), %sankari.getValittuRuutuY() );
-           }
+                  if (game.getHighlightedActionIcon() > 0) 
+                  {
+                     doAction();
+                  }
+
+                  if (%hero.getSelectedTileX() >= 0) 
+                  { 
+                     if (%v1 !$= "" && %v2 !$= "" && t2dVectorCompare(%v1, %v2) == 0)
+                     {                                       
+                        doMovement( %hero.getSelectedTileX(), %hero.getSelectedTileY() );
+                     }
+                  }
+               }
+            }
          }
-        
-        
 }
 
 function sceneWindow2D::onMouseEnter( %this, %mod, %worldPos, %mouseClicks )
@@ -593,7 +624,13 @@ function initMouse()
         $mouseObj::mount::offset = "3.5 -3.5";
         $mouseObj::mount::trackRotation = true;
         
-        $hiiri = new ScriptObject();
+        sceneWindow2D.objectSelected = false;
+        sceneWindow2D.dragStarted = false;
+        $mouseObj::isObjMounted = false;
+        $mouseObj::objMounted = "";
+
+        if (!isObject($hiiri))
+           $hiiri = new ScriptObject();
         $hiiri.nappi = false;
         $hiiri.nappireleased = false;
         $hiiri.piilota = false;

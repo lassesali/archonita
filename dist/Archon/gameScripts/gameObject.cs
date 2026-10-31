@@ -1,101 +1,161 @@
+//---------------------------------------------------------------------------------------------
+// Archonita - Game Session State Object
+// Central session tracker for turns, active player, initiative queues, timers, and pieces.
+//---------------------------------------------------------------------------------------------
+
 new ScriptObject(game) 
 { 
+   highlightedIcon = 0;
+   selectedPiece = 0;
+   activePlayer = 0;
+   activeOpponent = 1;
+   turn = 0;
+   gameTimer = 0;
+   turnQueue = "";
+   state = "";
+   pieceCount = 0;
 };
-   
-   
+
+//---------------------------------------------------------------------------------------------
+// Action Icon Highlighting
+//---------------------------------------------------------------------------------------------
 function game::setHighlightedActionIcon(%this, %icon)
 {
+   %this.highlightedIcon = %icon;
    %this.highlightedicon = %icon;
 }
 
 function game::getHighlightedActionIcon(%this)
 {
-   return %this.highlightedicon;
+   return %this.highlightedIcon;
 }
 
-
-function game::setNappulaSelected(%this, %nappulaid)
+//---------------------------------------------------------------------------------------------
+// Selected Piece ID
+//---------------------------------------------------------------------------------------------
+function game::setSelectedPiece(%this, %pieceId)
 {
-   %this.nappulaSelected = %nappulaid;
+   %this.selectedPiece = %pieceId;
+   %this.nappulaSelected = %pieceId;
 }
 
-function game::getNappulaSelected(%this)
+function game::getSelectedPiece(%this)
 {
-   return %this.nappulaSelected;
+   if (%this.selectedPiece $= "")
+      %this.selectedPiece = (%this.nappulaSelected !$= "") ? %this.nappulaSelected : 0;
+   return %this.selectedPiece;
 }
 
+function game::setNappulaSelected(%this, %id) { %this.setSelectedPiece(%id); }
+function game::getNappulaSelected(%this)     { return %this.getSelectedPiece(); }
 
-function game::setVuorossaOlevaPelaaja(%this, %a)
+//---------------------------------------------------------------------------------------------
+// Active Player (0 = Human, 1 = AI)
+//---------------------------------------------------------------------------------------------
+function game::setActivePlayer(%this, %playerId)
 {
-   %this.vuorossaOlevaPelaaja = %a;
+   %this.activePlayer = %playerId;
+   %this.vuorossaOlevaPelaaja = %playerId;
 }
 
-function game::getVuorossaOlevaPelaaja(%this)
+function game::getActivePlayer(%this)
 {
-   return %this.vuorossaOlevaPelaaja;
+   return %this.activePlayer;
 }
 
-function game::setVuorossaOlevanPelaajanVastustaja(%this, %a)
+function game::setVuorossaOlevaPelaaja(%this, %p) { %this.setActivePlayer(%p); }
+function game::getVuorossaOlevaPelaaja(%this)     { return %this.getActivePlayer(); }
+
+//---------------------------------------------------------------------------------------------
+// Active Opponent (1 - Active Player)
+//---------------------------------------------------------------------------------------------
+function game::setActiveOpponent(%this, %opponentId)
 {
-   %this.vuorossaOlevanPelaajanVastustaja = %a;
+   %this.activeOpponent = %opponentId;
+   %this.vuorossaOlevanPelaajanVastustaja = %opponentId;
 }
 
-function game::getVuorossaOlevanPelaajanVastustaja(%this)
+function game::getActiveOpponent(%this)
 {
-   return %this.vuorossaOlevanPelaajanVastustaja;
+   return %this.activeOpponent;
 }
 
-function game::addVuoro(%this, %add)
+function game::setVuorossaOlevanPelaajanVastustaja(%this, %o) { %this.setActiveOpponent(%o); }
+function game::getVuorossaOlevanPelaajanVastustaja(%this)     { return %this.getActiveOpponent(); }
+
+//---------------------------------------------------------------------------------------------
+// Turn Counter
+//---------------------------------------------------------------------------------------------
+function game::setTurn(%this, %turn)
 {
-   %this.vuoro = %this.vuoro + %a;
+   %this.turn = %turn;
+   %this.vuoro = %turn;
 }
 
-function game::addPeliTimer(%this, %add)
+function game::getTurn(%this)
 {
-   %this.timer = %this.timer + %add;
+   return %this.turn;
 }
 
-function game::setPeliTimer(%this, %a)
+function game::addTurn(%this, %add)
 {
-   %this.timer = %a;
+   if (%add $= "") %add = 1;
+   %this.setTurn(%this.getTurn() + %add);
 }
 
-function game::getPeliTimer(%this)
+function game::setVuoro(%this, %v) { %this.setTurn(%v); }
+function game::getVuoro(%this)     { return %this.getTurn(); }
+function game::addVuoro(%this, %a) { %this.addTurn(%a); }
+
+//---------------------------------------------------------------------------------------------
+// Turn Queue / Initiative Vector
+//---------------------------------------------------------------------------------------------
+function game::setTurnQueue(%this, %queue)
 {
-   return %this.timer;
+   %this.turnQueue = %queue;
+   %this.vuorotVector = %queue;
 }
 
-
-function game::subPeliTimer(%this, %sub)
+function game::getTurnQueue(%this)
 {
-   %this.timer = %this.timer - %sub;
-}
-      
-         
-function game::setVuoro(%this, %a)
-{
-   %this.vuoro = %a;
+   return %this.turnQueue;
 }
 
-function game::getVuoro(%this)
-{
+function game::setVuorotVector(%this, %v) { %this.setTurnQueue(%v); }
+function game::getVuorotVector(%this)     { return %this.getTurnQueue(); }
 
-   return %this.vuoro;
-   
+//---------------------------------------------------------------------------------------------
+// Countdown Timer (Pre-battle placement)
+//---------------------------------------------------------------------------------------------
+function game::setGameTimer(%this, %time)
+{
+   %this.gameTimer = %time;
+   %this.timer = %time;
 }
 
-function game::setVuorotVector(%this, %a)
+function game::getGameTimer(%this)
 {
-   %this.vuorotVector = %a;
+   return %this.gameTimer;
 }
 
-function game::getVuorotVector(%this)
+function game::addGameTimer(%this, %add)
 {
-   
-   return %this.vuorotVector;
-   
+   %this.setGameTimer(%this.getGameTimer() + %add);
 }
-         
+
+function game::subGameTimer(%this, %sub)
+{
+   %this.setGameTimer(%this.getGameTimer() - %sub);
+}
+
+function game::setPeliTimer(%this, %t) { %this.setGameTimer(%t); }
+function game::getPeliTimer(%this)     { return %this.getGameTimer(); }
+function game::addPeliTimer(%this, %a) { %this.addGameTimer(%a); }
+function game::subPeliTimer(%this, %s) { %this.subGameTimer(%s); }
+
+//---------------------------------------------------------------------------------------------
+// Game State
+//---------------------------------------------------------------------------------------------
 function game::setState(%this, %state)
 {
    %this.state = %state;
@@ -103,29 +163,29 @@ function game::setState(%this, %state)
 
 function game::getState(%this)
 {
-
    return %this.state;
-   
 }
 
-
-function game::setCountOfNappula(%this, %a)
+//---------------------------------------------------------------------------------------------
+// Piece Count Tracker
+//---------------------------------------------------------------------------------------------
+function game::setPieceCount(%this, %count)
 {
-   
-   %this.countOfNappula = %a;
-
+   %this.pieceCount = %count;
+   %this.countOfNappula = %count;
 }
 
-function game::getCountOfNappula(%this)
+function game::getPieceCount(%this)
 {
-
-   return %this.countOfNappula;
-   
+   return %this.pieceCount;
 }
 
-function game::addCountOfNappula(%this, %add)
+function game::addPieceCount(%this, %add)
 {
-
-   %this.countOfNappula = %this.countOfNappula + %add;
-   
+   if (%add $= "") %add = 1;
+   %this.setPieceCount(%this.getPieceCount() + %add);
 }
+
+function game::setCountOfNappula(%this, %c) { %this.setPieceCount(%c); }
+function game::getCountOfNappula(%this)     { return %this.getPieceCount(); }
+function game::addCountOfNappula(%this, %a) { %this.addPieceCount(%a); }

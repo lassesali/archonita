@@ -43,7 +43,10 @@ function initializeProject()
    exec("./gameScripts/createhero.cs");
    exec("./gameScripts/mainmenu.cs");
    exec("./gameScripts/credits.cs");
-   exec("./gameScripts/exec.cs");
+   exec("./gameScripts/BoardManager.cs");
+   exec("./gameScripts/TurnManager.cs");
+   exec("./gameScripts/CombatEngine.cs");
+   exec("./gameScripts/TacticalAI.cs");
    exec("./gameScripts/game.cs");
    exec("./gameScripts/audiodatablocks.cs");
    exec("./gameScripts/fading.cs");
@@ -52,6 +55,9 @@ function initializeProject()
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
    exec("./gameScripts/gameObject.cs");
+   exec("./gameScripts/AssetResolutionManager.cs");
+   if (!isObject($AssetResolutionManager))
+      $AssetResolutionManager = new ScriptObject() { class = "AssetResolutionManager"; };
       
    SetRandomSeed(getRealTime());
    if (!$Archon::skipSplash)
@@ -68,6 +74,8 @@ function initializeProject()
 //---------------------------------------------------------------------------------------------
 function shutdownProject()
 {
+   if (isObject($AssetResolutionManager))
+      $AssetResolutionManager.delete();
    endGame();
 }
 

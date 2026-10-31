@@ -1,3 +1,5 @@
+# Archonita (2006 - 2026) — 20th Anniversary Edition
+
 ## 📜 Origins & Legacy
 
 **Archonita** was originally conceived, developed, and published by **Gamelon Productions** for the renowned **Suomipelit.com Pikkukesäkilpailu 2006** game jam in June 2006. Built within the creative constraints of a short game jam, the game pioneered a hybrid gameplay formula: tactical turn-based grid positioning reminiscent of classic board games like *Archon*, merged with dynamic real-time dice rolls, spellcasting, unit recruitment, and card-based strategy.
@@ -37,7 +39,7 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 ### 4. TorqueScript 2.0 Compatibility Layer (`t2d_compat.cs`)
 - Implemented a specialized, high-performance compatibility bridge to preserve the original 2006 gameplay logic while translating obsolete API calls to modern Torque2D classes:
   - `Sprite` and `Scroller` abstraction wrapping legacy `t2dStaticSprite`, `t2dAnimatedSprite`, and `t2dScroller`.
-  - Transform and kinematics mapping: `moveto`, `setAngularVelocity`, `mount`, `unmount`.
+  - Transform and kinematics mapping: `moveto`, `setAngularVelocity`, `mount`, `dismount`.
   - Vector math parity helpers: `t2dVectorDistance`, `t2dVectorCompare`.
   - Smooth animation controller hooks (`playAnimation`, `setFrame`, `setImageMap`).
   - Timed visual fade controllers (`startFadeIn`, `startFadeOut`).
@@ -48,11 +50,11 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Updated audio playback across all gameplay scripts to route through fully qualified module asset IDs (`"Archon:<AssetName>"`), resolving silent failures in legacy `alxPlay()` calls.
   - Restored combat impact sounds (`fxBeenHit`), attack swings (`fxSword`), creature movement footsteps (`fxFootStep`), death sequences (`fxDie`), countdown ticks (`ambient4Audio`), and looping background music (`ambient1Audio`).
 
-### 6. Multi-Pass Framebuffer Alpha Blending Restoration
-- **Inverted Multiplicative Blending:** Faithfully restored the 2006 intro screen's dynamic gold-scrolling logo:
-  - **Pass 1:** Renders the authentic inverted monochrome logo mask (`gamelonlogo.png`) on `SceneLayer 1`.
-  - **Pass 2:** Overlays the animated gold texture scroller (`jee1.png`) on `SceneLayer 0` configured with `BlendMode="1"`, `SrcBlendFactor="ONE_MINUS_DST_COLOR"`, and `DstBlendFactor="ZERO"`.
-  - Produces crisp, transparent masking where the wavy gold texture shines exclusively through the map icon and typography against a void-black background.
+### 6. Framebuffer Multiply Blending for Intro Logo
+- **Multiplicative Blending:** Configured the intro screen's dynamic gold-scrolling logo to use standard multiplicative blending:
+  - **Pass 1:** Renders the logo (`gamelonlogo.png`) on `SceneLayer 1`.
+  - **Pass 2:** Overlays the animated gold texture scroller (`jee1.png`) on `SceneLayer 0` configured with `BlendMode="1"`, `SrcBlendFactor="DST_COLOR"`, and `DstBlendFactor="ZERO"` (Multiply mode).
+  - Produces crisp masking where the wavy gold texture modulates exclusively through the logo shape and typography against a void-black background.
 
 ---
 
@@ -108,3 +110,46 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 - Instantaneous one-shot sound buffer reuse for high-frequency combat audio effects.
 
 ---
+
+## 🛠️ Subsystem Architecture & Modular Refactoring
+
+### 1. Monolithic Script Decomposition (`exec.cs`)
+- Decomposed the legacy 2,000+ line monolithic `exec.cs` god-script into four dedicated, single-responsibility `ScriptObject` subsystems adhering to [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md):
+  - **`BoardManager.cs`**: Handles board geometry calculations, obstacle generation, coordinate translations (`boardToWorld`, `boardToWorldUnit`), legal placement validation, and creature tray lifecycle management.
+  - **`TurnManager.cs`**: Manages the core game state machine (`$gameIntroState`, `$gameMainMenuState`, `$gamePreBattleState`, `$gameBattleState`, `$gameCardSelectState`), turn progression, round countdown timers, and phase transitions.
+  - **`CombatEngine.cs`**: Encapsulates dynamic combat dice rolls, hero damage calculations, spell/ability dispatch, creature hit reactions, and death sequence resolution.
+  - **`TacticalAI.cs`**: Implements AI opponent decision trees, strategic evaluation of board tiles, candidate movement sorting, offensive attacks, and defensive reaction mechanics.
+- `exec.cs` has been repurposed as a clean, lightweight module loader orchestrating subsystem execution.
+
+---
+
+## 🎨 Dynamic High-Resolution Asset Scaling
+
+### 1. Automated 512px High-Resolution Adaptation
+- Implemented **`AssetResolutionManager.cs`** to provide dynamic, backwards-compatible support for high-resolution 512px assets (`heroicons.png`, `icons.png`, `credits.png`):
+  - Automatically queries image dimensions at runtime via `AssetDatabase`.
+  - Dynamically recalculates cell geometry (`CellWidth`, `CellHeight`, `CellCountX`, `CellCountY`) for upscaled asset sheets (e.g. adapting `heroiconsImageMap` from 128x128 to 512x512).
+  - Preserves gameplay coordinate transformations and mount offsets while rendering razor-sharp icons on high-DPI and modern 1080p/4K displays.
+
+---
+
+## 🛡️ Input Lifecycle & Crash-To-Desktop (CTD) Prevention
+
+### 1. Elimination of Case-Insensitive Infinite Self-Recursion
+- Resolved critical crash-to-desktop (`0xC0000005` Access Violation / `0xC00000FD` Stack Overflow) caused by case-insensitive function lookup in TorqueScript:
+  - Removed self-recursive alias definitions where lowercase wrappers overwrote PascalCase functions (`mainmenufadeout` calling `mainMenuFadeOut`, `cardscreenfadeout` calling `cardScreenFadeOut`, `SelectHeroScreen` calling `selectHeroScreen`, `creditsfadeout` calling `creditsFadeOut`).
+  - Corrected circular fade forwarding in `t2d_compat.cs` and added `isObject()` guards across all fade operations in `fading.cs`.
+
+### 2. Robust Intro Skipping & Mouse Release Safety
+- Added `skipIntro()` lifecycle handler to [`Archon/gameScripts/intro.cs`](file:///M:/Archonita/games/Archon/gameScripts/intro.cs):
+  - Cancels pending fade timers (`$introFadeSchedule`) and menu transition timers (`$introMenuSchedule`).
+  - Immediately halts ambient audio (`$introMusic`) and transitions smoothly to `mainmenuScreen()`.
+- Added a 350 ms debounce guard in `sceneWindow2D::onMouseDown` to prevent rapid double-clicks on the intro screen from prematurely triggering main menu options.
+- Guarded `sceneWindow2D::onMouseUp` in [`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs):
+  - Prevented execution of uninstantiated hero/tile queries (`HeroGroup.getObject()`, `%sankari.getValittuRuutu()`) during intro and non-battle states.
+  - Protected all screen transitions against re-entrant click spam (`$mainMenuTransitioning`, `$cardSelectTransitioning`).
+
+---
+
+> [!NOTE]
+> All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md).

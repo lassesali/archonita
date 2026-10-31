@@ -1,110 +1,187 @@
-   new ScriptObject(Hero) 
-   { 
-   };
+//---------------------------------------------------------------------------------------------
+// Archonita - Hero Data Structure
+// Defines player and AI hero stats, selected board coordinates, mana, and creature points.
+//---------------------------------------------------------------------------------------------
 
-new SimGroup(HeroGroup) {
-      
+new ScriptObject(Hero) 
+{ 
+};
 
-
+new SimGroup(HeroGroup) 
+{
    new ScriptObject(Player) 
    { 
       class = Hero;
-      olentoPisteet = "5";
-      valittuRuutuX = "-1";
-      valittuRuutuY = "-1";
+      creaturePoints = 5;
+      olentoPisteet = 5;
+
+      selectedTile = "-1 -1";
+      selectedTileX = -1;
+      selectedTileY = -1;
       valittuRuutu  = "-1 -1";
-      mana = "0";
-      manaMAX = "0";
-      ammatti = "0";     
+      valittuRuutuX = -1;
+      valittuRuutuY = -1;
+
+      mana = 0;
+      manaMAX = 0;
+      heroClass = 0;
+      ammatti = 0;
+      pieceCount = 0;
+      nappulatLkm = 0;
    };
 
    new ScriptObject(AI) 
    { 
       class = Hero;
-      olentoPisteet = "5";
-      valittuRuutuX = "-1";
-      valittuRuutuY = "-1";
+      creaturePoints = 5;
+      olentoPisteet = 5;
+
+      selectedTile = "-1 -1";
+      selectedTileX = -1;
+      selectedTileY = -1;
       valittuRuutu  = "-1 -1";
-      mana = "0";
-      manaMAX = "0";
-      ammatti = "0";
+      valittuRuutuX = -1;
+      valittuRuutuY = -1;
+
+      mana = 0;
+      manaMAX = 0;
+      heroClass = 0;
+      ammatti = 0;
+      pieceCount = 0;
+      nappulatLkm = 0;
    };
-
-
-
 };
 
-
-
-function Hero::addOlentopisteet(%this, %add)
+//---------------------------------------------------------------------------------------------
+// Creature Points (Recruitment Budget)
+//---------------------------------------------------------------------------------------------
+function Hero::addCreaturePoints(%this, %add)
 {
-   %this.olentoPisteet = %this.olentoPisteet + %add;
+   %this.creaturePoints = %this.creaturePoints + %add;
+   %this.olentoPisteet = %this.creaturePoints;
 }
 
+function Hero::subCreaturePoints(%this, %sub)
+{
+   %this.creaturePoints = %this.creaturePoints - %sub;
+   %this.olentoPisteet = %this.creaturePoints;
+}
+
+function Hero::getCreaturePoints(%this)
+{
+   if (%this.creaturePoints $= "")
+      %this.creaturePoints = (%this.olentoPisteet !$= "") ? %this.olentoPisteet : 0;
+   return %this.creaturePoints;
+}
+
+// Backward-compatible aliases for Creature Points
+function Hero::addOlentopisteet(%this, %add) { %this.addCreaturePoints(%add); }
+function Hero::subOlentopisteet(%this, %sub) { %this.subCreaturePoints(%sub); }
+function Hero::getOlentopisteet(%this)       { return %this.getCreaturePoints(); }
+
+//---------------------------------------------------------------------------------------------
+// Mana
+//---------------------------------------------------------------------------------------------
 function Hero::addMana(%this, %add)
 {
    %this.mana = %this.mana + %add;
    %this.manaMAX = %this.manaMAX + %add;
 }
 
-function Hero::subOlentopisteet(%this, %sub)
+function Hero::getMana(%this)
 {
-   %this.olentoPisteet = %this.olentoPisteet - %sub;
+   return %this.mana;
 }
 
-
-function Hero::addNappulatLkm(%this, %add)
+//---------------------------------------------------------------------------------------------
+// Piece Count
+//---------------------------------------------------------------------------------------------
+function Hero::addPieceCount(%this, %add)
 {
-   %this.nappulatLkm = %this.nappulatLkm + %add;
+   %this.pieceCount = %this.pieceCount + %add;
+   %this.nappulatLkm = %this.pieceCount;
 }
 
-function Hero::setValittuRuutu(%this, %xy)
+function Hero::subPieceCount(%this, %sub)
 {
+   %this.pieceCount = %this.pieceCount - %sub;
+   %this.nappulatLkm = %this.pieceCount;
+}
+
+function Hero::getPieceCount(%this)
+{
+   if (%this.pieceCount $= "")
+      %this.pieceCount = (%this.nappulatLkm !$= "") ? %this.nappulatLkm : 0;
+   return %this.pieceCount;
+}
+
+// Backward-compatible aliases for Piece Count
+function Hero::addNappulatLkm(%this, %add) { %this.addPieceCount(%add); }
+function Hero::subNappulatLkm(%this, %sub) { %this.subPieceCount(%sub); }
+function Hero::getNappulatLkm(%this)       { return %this.getPieceCount(); }
+
+//---------------------------------------------------------------------------------------------
+// Selected Board Coordinates
+//---------------------------------------------------------------------------------------------
+function Hero::setSelectedTile(%this, %xy)
+{
+   %this.selectedTile = %xy;
    %this.valittuRuutu = %xy;
-   %this.setValittuRuutuX( getWord(%xy, 0) );
-   %this.setValittuRuutuY( getWord(%xy, 1) );
+   %this.setSelectedTileX(getWord(%xy, 0));
+   %this.setSelectedTileY(getWord(%xy, 1));
 }
 
-function Hero::getValittuRuutu(%this)
+function Hero::getSelectedTile(%this)
 {
-   return %this.valittuRuutu;
+   return %this.selectedTile;
 }
 
-
-function Hero::setValittuRuutuY(%this, %y)
+function Hero::setSelectedTileX(%this, %x)
 {
-   %this.valittuRuutuY = %y;
-}
-
-function Hero::getValittuRuutuY(%this)
-{
-   return %this.valittuRuutuY;
-}
-
-
-function Hero::setValittuRuutuX(%this, %x)
-{
+   %this.selectedTileX = %x;
    %this.valittuRuutuX = %x;
 }
 
-function Hero::getValittuRuutuX(%this)
+function Hero::getSelectedTileX(%this)
 {
-   return %this.valittuRuutuX;
+   return %this.selectedTileX;
 }
 
-
-function Hero::setAmmatti(%this, %a)
+function Hero::setSelectedTileY(%this, %y)
 {
-   %this.ammatti = %a;
+   %this.selectedTileY = %y;
+   %this.valittuRuutuY = %y;
 }
 
-
-function Hero::getOlentopisteet(%this)
+function Hero::getSelectedTileY(%this)
 {
-   return %this.olentoPisteet;
+   return %this.selectedTileY;
 }
 
-function Hero::getAmmatti(%this)
+// Backward-compatible aliases for Selected Board Coordinates
+function Hero::setValittuRuutu(%this, %xy) { %this.setSelectedTile(%xy); }
+function Hero::getValittuRuutu(%this)      { return %this.getSelectedTile(); }
+function Hero::setValittuRuutuX(%this, %x) { %this.setSelectedTileX(%x); }
+function Hero::getValittuRuutuX(%this)     { return %this.getSelectedTileX(); }
+function Hero::setValittuRuutuY(%this, %y) { %this.setSelectedTileY(%y); }
+function Hero::getValittuRuutuY(%this)     { return %this.getSelectedTileY(); }
+
+//---------------------------------------------------------------------------------------------
+// Hero Profession / Class (0 = Warrior, 1 = Mage)
+//---------------------------------------------------------------------------------------------
+function Hero::setHeroClass(%this, %classId)
 {
-   return %this.ammatti;
+   %this.heroClass = %classId;
+   %this.ammatti = %classId;
 }
+
+function Hero::getHeroClass(%this)
+{
+   if (%this.heroClass $= "")
+      %this.heroClass = (%this.ammatti !$= "") ? %this.ammatti : 0;
+   return %this.heroClass;
+}
+
+// Backward-compatible aliases for Hero Class
+function Hero::setAmmatti(%this, %a) { %this.setHeroClass(%a); }
+function Hero::getAmmatti(%this)     { return %this.getHeroClass(); }

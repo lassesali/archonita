@@ -3,18 +3,31 @@
 // Bridges legacy TGB APIs to modern MIT Torque2D 4.0 EA4
 //---------------------------------------------------------------------------------------------
 
-// Coordinate mapping helper for 4x4 board (inverts Y for Box2D Y-up)
+// Dynamic coordinate mapping helper for grid boards (inverts Y for Box2D Y-up)
 function boardToWorld(%bx, %by)
 {
-   %wx = %bx * 8 - 16;
-   %wy = -(%by * 8 - 16);
+   %tileSize = (isObject(BoardConfig) && BoardConfig.tileSize !$= "") ? BoardConfig.tileSize : 8;
+   %width = (isObject(BoardConfig) && BoardConfig.width !$= "") ? BoardConfig.width : 4;
+   %height = (isObject(BoardConfig) && BoardConfig.height !$= "") ? BoardConfig.height : 4;
+   %halfWidth = (%width * %tileSize) * 0.5;
+   %halfHeight = (%height * %tileSize) * 0.5;
+
+   %wx = (%bx * %tileSize) - %halfWidth;
+   %wy = -((%by * %tileSize) - %halfHeight);
    return %wx SPC %wy;
 }
 
 function boardToWorldUnit(%bx, %by)
 {
-   %wx = %bx * 8 - 16;
-   %wy = -(%by * 8 - 18);
+   %tileSize = (isObject(BoardConfig) && BoardConfig.tileSize !$= "") ? BoardConfig.tileSize : 8;
+   %width = (isObject(BoardConfig) && BoardConfig.width !$= "") ? BoardConfig.width : 4;
+   %height = (isObject(BoardConfig) && BoardConfig.height !$= "") ? BoardConfig.height : 4;
+   %unitOffsetY = (isObject(BoardConfig) && BoardConfig.unitOffsetY !$= "") ? BoardConfig.unitOffsetY : 2;
+   %halfWidth = (%width * %tileSize) * 0.5;
+   %halfHeight = (%height * %tileSize) * 0.5;
+
+   %wx = (%bx * %tileSize) - %halfWidth;
+   %wy = -((%by * %tileSize) - (%halfHeight + %unitOffsetY));
    return %wx SPC %wy;
 }
 
@@ -76,6 +89,11 @@ function SceneObject::setFrameChangeCallback(%this, %val)
 
 function SceneObject::setBlending(%this, %a, %b)
 {
+}
+
+function SceneObject::setRotation(%this, %angle)
+{
+   %this.setAngle(%angle);
 }
 
 function SceneObject::setLayer(%this, %layer)
@@ -189,27 +207,6 @@ function ParticlePlayer::stopEffect(%this, %a, %b)
    {
       %this.stop(%a, %b);
    }
-}
-
-// SceneObject fading bindings
-function SceneObject::startFadeOut(%this, %speed, %blend)
-{
-   t2dSceneObject::startFadeOut(%this, %speed, %blend);
-}
-
-function SceneObject::startFadeIn(%this, %speed, %blend)
-{
-   t2dSceneObject::startFadeIn(%this, %speed, %blend);
-}
-
-function SceneObject::stopFadeOut(%this)
-{
-   t2dSceneObject::stopFadeOut(%this);
-}
-
-function SceneObject::stopFadeIn(%this)
-{
-   t2dSceneObject::stopFadeIn(%this);
 }
 
 // Touch to Mouse event forwarding for SceneWindow

@@ -118,5 +118,45 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ---
 
+## 🛠️ Subsystem Architecture & Modular Refactoring
+
+### 1. Monolithic Script Decomposition (`exec.cs`)
+- Decomposed the legacy 2,000+ line monolithic `exec.cs` god-script into four dedicated, single-responsibility `ScriptObject` subsystems adhering to [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md):
+  - **`BoardManager.cs`**: Handles board geometry calculations, obstacle generation, coordinate translations (`boardToWorld`, `boardToWorldUnit`), legal placement validation, and creature tray lifecycle management.
+  - **`TurnManager.cs`**: Manages the core game state machine (`$gameIntroState`, `$gameMainMenuState`, `$gamePreBattleState`, `$gameBattleState`, `$gameCardSelectState`), turn progression, round countdown timers, and phase transitions.
+  - **`CombatEngine.cs`**: Encapsulates dynamic combat dice rolls, hero damage calculations, spell/ability dispatch, creature hit reactions, and death sequence resolution.
+  - **`TacticalAI.cs`**: Implements AI opponent decision trees, strategic evaluation of board tiles, candidate movement sorting, offensive attacks, and defensive reaction mechanics.
+- `exec.cs` has been repurposed as a clean, lightweight module loader orchestrating subsystem execution.
+
+---
+
+## 🎨 Dynamic High-Resolution Asset Scaling
+
+### 1. Automated 512px High-Resolution Adaptation
+- Implemented **`AssetResolutionManager.cs`** to provide dynamic, backwards-compatible support for high-resolution 512px assets (`heroicons.png`, `icons.png`, `credits.png`):
+  - Automatically queries image dimensions at runtime via `AssetDatabase`.
+  - Dynamically recalculates cell geometry (`CellWidth`, `CellHeight`, `CellCountX`, `CellCountY`) for upscaled asset sheets (e.g. adapting `heroiconsImageMap` from 128x128 to 512x512).
+  - Preserves gameplay coordinate transformations and mount offsets while rendering razor-sharp icons on high-DPI and modern 1080p/4K displays.
+
+---
+
+## 🛡️ Input Lifecycle & Crash-To-Desktop (CTD) Prevention
+
+### 1. Elimination of Case-Insensitive Infinite Self-Recursion
+- Resolved critical crash-to-desktop (`0xC0000005` Access Violation / `0xC00000FD` Stack Overflow) caused by case-insensitive function lookup in TorqueScript:
+  - Removed self-recursive alias definitions where lowercase wrappers overwrote PascalCase functions (`mainmenufadeout` calling `mainMenuFadeOut`, `cardscreenfadeout` calling `cardScreenFadeOut`, `SelectHeroScreen` calling `selectHeroScreen`, `creditsfadeout` calling `creditsFadeOut`).
+  - Corrected circular fade forwarding in `t2d_compat.cs` and added `isObject()` guards across all fade operations in `fading.cs`.
+
+### 2. Robust Intro Skipping & Mouse Release Safety
+- Added `skipIntro()` lifecycle handler to [`Archon/gameScripts/intro.cs`](file:///M:/Archonita/games/Archon/gameScripts/intro.cs):
+  - Cancels pending fade timers (`$introFadeSchedule`) and menu transition timers (`$introMenuSchedule`).
+  - Immediately halts ambient audio (`$introMusic`) and transitions smoothly to `mainmenuScreen()`.
+- Added a 350 ms debounce guard in `sceneWindow2D::onMouseDown` to prevent rapid double-clicks on the intro screen from prematurely triggering main menu options.
+- Guarded `sceneWindow2D::onMouseUp` in [`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs):
+  - Prevented execution of uninstantiated hero/tile queries (`HeroGroup.getObject()`, `%sankari.getValittuRuutu()`) during intro and non-battle states.
+  - Protected all screen transitions against re-entrant click spam (`$mainMenuTransitioning`, `$cardSelectTransitioning`).
+
+---
+
 > [!NOTE]
 > All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md).

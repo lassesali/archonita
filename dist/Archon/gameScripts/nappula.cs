@@ -6,19 +6,19 @@
 function Sprite::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
 }
 
 function SceneObject::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
 }
 
 function Nappula::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
 }
 
 function Sprite::onMoveToComplete(%this)
@@ -52,15 +52,15 @@ function Sprite::onAnimationEnd(%this, %animationAssetID)
    } 
    else if (%this.state == $olentoWalkState[%this.creatureID]) 
    {
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
    } 
    else if (%this.state == $olentoBeenHitState[%this.creatureID]) 
    {
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
    } 
    else if (%this.state == $olentoAttackState[%this.creatureID]) 
    {
-      setNappulaState( %this, $olentoStandState[ %this.creatureID ] );
+      setPieceState(%this, $olentoStandState[%this.creatureID]);
    }
 }
 
