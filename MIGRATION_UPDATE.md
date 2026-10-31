@@ -167,5 +167,32 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ---
 
+## 🌐 Nomenclature Modernization & Bilingual Standardization
+
+### 1. Pure English Canonical API & Backward-Compatible Wrappers
+- Standardized core gameplay functions and class methods to pure English adhering to standard C# / TorqueScript naming conventions (camelCase functions/methods, PascalCase classes):
+  - **`BoardManager.cs`**:
+    - Added canonical pure English stubs: `addNewPieceToBoard()`, `selectedPiece()`, `updatePointsGridsIcons()`, `printDebug()`.
+    - Maintained backward-compatible aliases: `createSetupNappulat()`, `deleteSetupNappulat()`, `updateOlentoikonit()`, `updateOlentopisteet()`, `updatePisteetGridsIcons()`, `lisaaUusiNappulaLaudalle()`, `selectedNappula()`, `luoAttackGrid()`, `luoLiikuGrid()`, `piilotaGrids()`, `debuggi()`.
+  - **`complexMouse.cs`**:
+    - Replaced `setNappiReleasedOff()` with `setButtonReleasedOff()` while keeping backward-compatible wrapper.
+    - Updated active piece selection query from `game.getNappulaSelected()` to `game.getSelectedPiece()`.
+  - **`createhero.cs`**:
+    - Standardized `checkSelectedCard()` as canonical method with `tarkastavalittukortti()` wrapper.
+  - **`mainmenu.cs`**:
+    - Standardized `stopBubbleEffect()` as canonical method with `lopetasaippuakuplat()` wrapper.
+  - **`gameObject.cs`**:
+    - Verified canonical English state methods: `setSelectedPiece()`, `getSelectedPiece()`, `setActivePlayer()`, `getActivePlayer()`, `setActiveOpponent()`, `getActiveOpponent()`, `setTurn()`, `getTurn()`, `addTurn()`, `setTurnQueue()`, `getTurnQueue()`, `setGameTimer()`, `getGameTimer()`, `addGameTimer()`, `subGameTimer()`, `setPieceCount()`, `getPieceCount()`, `addPieceCount()`.
+  - **`hero.cs`**:
+    - Verified canonical English hero methods: `addCreaturePoints()`, `subCreaturePoints()`, `getCreaturePoints()`, `addPieceCount()`, `subPieceCount()`, `getPieceCount()`, `setSelectedTile()`, `getSelectedTile()`, `setSelectedTileX()`, `getSelectedTileX()`, `setSelectedTileY()`, `getSelectedTileY()`, `setHeroClass()`, `getHeroClass()`.
+
+### 2. Class Method Bindings Modernization (`Piece` & `Card`)
+- Migrated legacy `Nappula` and `Kortti` class bindings in [`Archon/gameScripts/nappula.cs`](file:///M:/Archonita/games/Archon/gameScripts/nappula.cs) to modern `Piece` and `Card` classes:
+  - Canonical methods: `Piece::onPositionTarget`, `Piece::onMoveToComplete`, `Piece::onAnimationEnd`.
+  - Canonical methods: `Card::onMoveToComplete`, `Card::onPositionTarget`.
+  - Configured spawned sprites in `BoardManager.cs` and `TurnManager.cs` to instantiate `class = Piece; superclass = Nappula;` and `class = Card; superclass = Kortti;`, ensuring zero regressions for legacy event dispatchers.
+
+---
+
 > [!NOTE]
 > All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md).

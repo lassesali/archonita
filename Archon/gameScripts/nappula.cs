@@ -15,66 +15,43 @@ function SceneObject::onPositionTarget(%this, %mod, %worldPos)
       setPieceState(%this, $olentoStandState[%this.creatureID]);
 }
 
-function Nappula::onPositionTarget(%this, %mod, %worldPos)
+//---------------------------------------------------------------------------------------------
+// Piece Class Callbacks (formerly Nappula)
+//---------------------------------------------------------------------------------------------
+function Piece::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
       setPieceState(%this, $olentoStandState[%this.creatureID]);
 }
 
-function Sprite::onMoveToComplete(%this)
+function Piece::onMoveToComplete(%this)
 {
    %this.onPositionTarget();
 }
 
-function SceneObject::onMoveToComplete(%this)
-{
-   %this.onPositionTarget();
-}
-
-function Nappula::onMoveToComplete(%this)
-{
-   %this.onPositionTarget();
-}
-
-function Kortti::onMoveToComplete(%this)
-{
-   %this.onPositionTarget();
-}
-
-function Sprite::onAnimationEnd(%this, %animationAssetID)
-{
-   if (%this.creatureID $= "")
-      return;
-
-   if (%this.state == $olentoDieState[%this.creatureID]) 
-   {
-      %this.setVisible(false);
-   } 
-   else if (%this.state == $olentoWalkState[%this.creatureID]) 
-   {
-      setPieceState(%this, $olentoStandState[%this.creatureID]);
-   } 
-   else if (%this.state == $olentoBeenHitState[%this.creatureID]) 
-   {
-      setPieceState(%this, $olentoStandState[%this.creatureID]);
-   } 
-   else if (%this.state == $olentoAttackState[%this.creatureID]) 
-   {
-      setPieceState(%this, $olentoStandState[%this.creatureID]);
-   }
-}
-
-function SceneObject::onAnimationEnd(%this, %animationAssetID)
+function Piece::onAnimationEnd(%this, %animationAssetID)
 {
    Sprite::onAnimationEnd(%this, %animationAssetID);
 }
 
-function Nappula::onAnimationEnd(%this, %animationAssetID)
+// Backward-compatible Nappula class delegation
+function Nappula::onPositionTarget(%this, %mod, %worldPos) { Piece::onPositionTarget(%this, %mod, %worldPos); }
+function Nappula::onMoveToComplete(%this)                  { Piece::onMoveToComplete(%this); }
+function Nappula::onAnimationEnd(%this, %animId)           { Piece::onAnimationEnd(%this, %animId); }
+
+//---------------------------------------------------------------------------------------------
+// Card Class Callbacks (formerly Kortti)
+//---------------------------------------------------------------------------------------------
+function Card::onMoveToComplete(%this)
 {
-   Sprite::onAnimationEnd(%this, %animationAssetID);
+   %this.onPositionTarget();
 }
 
-function Kortti::onPositionTarget(%this, %mod, %worldPos)
+function Card::onPositionTarget(%this, %mod, %worldPos)
 {
    %this.setFrame("0");
 }
+
+// Backward-compatible Kortti class delegation
+function Kortti::onMoveToComplete(%this)                   { Card::onMoveToComplete(%this); }
+function Kortti::onPositionTarget(%this, %mod, %worldPos) { Card::onPositionTarget(%this, %mod, %worldPos); }

@@ -375,7 +375,7 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    $board.pieces[%lx, %ly] = %j;
    %this.dumpBoardDebug();
 
-   $nappulaSprite[%j] = new Sprite() { scene = t2dScene; class = Nappula; };
+   $nappulaSprite[%j] = new Sprite() { scene = t2dScene; class = Piece; superclass = Nappula; };
    $nappulaSprite[%j].state = $olentoStandState[%animindex];
 
    $nappulaSprite[%j].facing = %facing;
@@ -528,6 +528,8 @@ function BoardManager::dumpBoardDebug(%this)
 //---------------------------------------------------------------------------------------------
 // Global Delegation Wrapper Stubs (Backward Compatibility)
 //---------------------------------------------------------------------------------------------
+// Global Delegation Wrapper Stubs (Pure English API)
+//---------------------------------------------------------------------------------------------
 function showBoardScreen()                         { BoardManager.showBoardScreen(); }
 function BoardScreen()                             { BoardManager.showBoardScreen(); }
 function initBoard()                               { BoardManager.initBoard(); }
@@ -536,29 +538,37 @@ function createObstacle(%type, %x, %y)             { BoardManager.createObstacle
 function updatePlacementGrids()                    { BoardManager.updatePlacementGrids(); }
 function updateGreenGrids()                        { BoardManager.updatePlacementGrids(); }
 function createSetupPieces()                       { BoardManager.createSetupPieces(); }
-function createSetupNappulat()                     { BoardManager.createSetupPieces(); }
 function deleteSetupPieces()                       { BoardManager.deleteSetupPieces(); }
-function deleteSetupNappulat()                     { BoardManager.deleteSetupPieces(); }
 function updateCreatureIcons()                     { BoardManager.updateCreatureIcons(); }
-function updateOlentoikonit()                      { BoardManager.updateCreatureIcons(); }
 function iconSendToFront(%idx)                     { BoardManager.iconSendToFront(%idx); }
 function updateCreaturePoints()                    { BoardManager.updateCreaturePoints(); }
-function updateOlentopisteet()                     { BoardManager.updateCreaturePoints(); }
 function updatePlacementHUD()                      { BoardManager.updatePlacementHUD(); }
-function updatePisteetGridsIcons()                 { BoardManager.updatePlacementHUD(); }
+function updatePointsGridsIcons()                  { BoardManager.updatePlacementHUD(); }
 function spawnPieceOnBoard(%lvl, %x, %y, %hero)    { return BoardManager.spawnPieceOnBoard(%lvl, %x, %y, %hero); }
-function lisaaUusiNappulaLaudalle(%l, %x, %y, %h)  { return BoardManager.spawnPieceOnBoard(%l, %x, %y, %h); }
+function addNewPieceToBoard(%lvl, %x, %y, %hero)   { return BoardManager.spawnPieceOnBoard(%lvl, %x, %y, %hero); }
 function selectPiece(%id)                          { BoardManager.selectPiece(%id); }
-function selectedNappula(%id)                      { BoardManager.selectPiece(%id); }
+function selectedPiece(%id)                        { BoardManager.selectPiece(%id); }
 function deleteGrids(%i)                           { BoardManager.deleteGrids(%i); }
 function createAttackGrid(%x, %y, %i)              { BoardManager.createAttackGrid(%x, %y, %i); }
-function luoAttackGrid(%x, %y, %i)                 { BoardManager.createAttackGrid(%x, %y, %i); }
 function createMovementGrid(%x, %y, %i)            { BoardManager.createMovementGrid(%x, %y, %i); }
-function luoLiikuGrid(%x, %y, %i)                  { BoardManager.createMovementGrid(%x, %y, %i); }
 function hideGrids()                               { BoardManager.hideGrids(); }
-function piilotaGrids()                            { BoardManager.hideGrids(); }
 function dumpBoardDebug()                          { BoardManager.dumpBoardDebug(); }
-function debuggi()                                 { BoardManager.dumpBoardDebug(); }
+function printDebug()                              { BoardManager.dumpBoardDebug(); }
+
+//---------------------------------------------------------------------------------------------
+// Backward-Compatible Finnish / Legacy Alias Wrappers
+//---------------------------------------------------------------------------------------------
+function createSetupNappulat()                     { createSetupPieces(); }
+function deleteSetupNappulat()                     { deleteSetupPieces(); }
+function updateOlentoikonit()                      { updateCreatureIcons(); }
+function updateOlentopisteet()                     { updateCreaturePoints(); }
+function updatePisteetGridsIcons()                 { updatePointsGridsIcons(); }
+function lisaaUusiNappulaLaudalle(%l, %x, %y, %h)  { return addNewPieceToBoard(%l, %x, %y, %h); }
+function selectedNappula(%id)                      { selectedPiece(%id); }
+function luoAttackGrid(%x, %y, %i)                 { createAttackGrid(%x, %y, %i); }
+function luoLiikuGrid(%x, %y, %i)                  { createMovementGrid(%x, %y, %i); }
+function piilotaGrids()                            { hideGrids(); }
+function debuggi()                                 { printDebug(); }
 
 // Initialize Singleton
 if (!isObject(BoardManager))

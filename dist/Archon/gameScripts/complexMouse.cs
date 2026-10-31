@@ -555,8 +555,12 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 
 
 }
-function setNappiReleasedOff() {
+function setButtonReleasedOff() {
    $hiiri.nappireleased = false;
+}
+
+function setNappiReleasedOff() {
+   setButtonReleasedOff();
 }
 
 function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
@@ -574,7 +578,7 @@ function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 
          $hiiri.nappi = false;
          $hiiri.nappireleased = true;
-         schedule(100,0,setNappiReleasedOff);
+         schedule(100, 0, setButtonReleasedOff);
 
          if($debugMsg::mouse::callBacks) 
          {
@@ -592,7 +596,7 @@ function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
                if (isObject(%hero))
                {
                   %v1 = %hero.getSelectedTile();
-                  %selectedNappula = game.getNappulaSelected();
+                  %selectedNappula = game.getSelectedPiece();
                   if (%selectedNappula !$= "" && isObject($nappulaSprite[%selectedNappula]))
                      %v2 = $nappulaSprite[%selectedNappula].positionOnBoard;
                   else

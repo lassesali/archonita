@@ -128,7 +128,7 @@ function TurnManager::dealCards(%this)
    
    %i = $cardCount;
    
-   $specialcard[%i] = new Sprite() { scene = t2dScene; class = Kortti; };
+   $specialcard[%i] = new Sprite() { scene = t2dScene; class = Card; superclass = Kortti; };
    $specialcard[%i].setImageMap("cardsImageMap");
    %posx = -20 - getRandom(50);
    %posy = 80;

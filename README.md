@@ -146,8 +146,44 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Immediately halts ambient audio (`$introMusic`) and transitions smoothly to `mainmenuScreen()`.
 - Added a 350 ms debounce guard in `sceneWindow2D::onMouseDown` to prevent rapid double-clicks on the intro screen from prematurely triggering main menu options.
 - Guarded `sceneWindow2D::onMouseUp` in [`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs):
-  - Prevented execution of uninstantiated hero/tile queries (`HeroGroup.getObject()`, `%sankari.getValittuRuutu()`) during intro and non-battle states.
+  - Prevented execution of uninstantiated hero/tile queries during intro and non-battle states.
   - Protected all screen transitions against re-entrant click spam (`$mainMenuTransitioning`, `$cardSelectTransitioning`).
+
+### 3. Pre-Battle Unit Placement & Input Synchronization
+- **Unassigned Variable Resolution in Placement Logic:**
+  - Resolved bug in `sceneWindow2D::placeSelectedCharacter` ([`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs)) where `%targetRuutu` attempted to call `getValittuRuutu()` on an unassigned `%sankari` variable rather than `%hero` (`HeroGroup.getObject(0)`), causing target tile validation to fail unconditionally and snapping selected units back into the recruitment tray.
+- **Dynamic Board Geometry Bounds Checking:**
+  - Replaced hardcoded dimensions (`0 <= x < 4`, `2 <= y < 4`) in `placeSelectedCharacter` and `cancelCharacterPlacement` with dynamic parameters from `BoardConfig` (`width`, `playerPlacementMinY`, `playerPlacementMaxY`).
+- **Input Pipeline Synchronization:**
+  - Ensured `mouseOverGreenGrid(%mod, %worldPos)` is evaluated immediately upon mouse release (`onMouseUp`) and secondary click (`onMouseDown`) before invoking `placeSelectedCharacter`, allowing seamless unit placement via both drag-and-drop and click-to-pick workflows.
+  - Verified full placement lifecycle: creature points deduction, recruitment tray reflow, obstacle map reservation (`$board.obstacles[x, y] = 255`), piece map registration (`$board.pieces[x, y]`), and unit sprite instantiation with correct layer and directional animation (`warriorStoppedAnimation_n`).
+
+---
+
+## 🌐 Nomenclature Modernization & Bilingual Standardization
+
+### 1. Pure English Canonical API & Backward-Compatible Wrappers
+- Standardized core gameplay functions and class methods to pure English adhering to standard C# / TorqueScript naming conventions (camelCase functions/methods, PascalCase classes):
+  - **`BoardManager.cs`**:
+    - Added canonical pure English stubs: `addNewPieceToBoard()`, `selectedPiece()`, `updatePointsGridsIcons()`, `printDebug()`.
+    - Maintained backward-compatible aliases: `createSetupNappulat()`, `deleteSetupNappulat()`, `updateOlentoikonit()`, `updateOlentopisteet()`, `updatePisteetGridsIcons()`, `lisaaUusiNappulaLaudalle()`, `selectedNappula()`, `luoAttackGrid()`, `luoLiikuGrid()`, `piilotaGrids()`, `debuggi()`.
+  - **`complexMouse.cs`**:
+    - Replaced `setNappiReleasedOff()` with `setButtonReleasedOff()` while keeping backward-compatible wrapper.
+    - Updated active piece selection query from `game.getNappulaSelected()` to `game.getSelectedPiece()`.
+  - **`createhero.cs`**:
+    - Standardized `checkSelectedCard()` as canonical method with `tarkastavalittukortti()` wrapper.
+  - **`mainmenu.cs`**:
+    - Standardized `stopBubbleEffect()` as canonical method with `lopetasaippuakuplat()` wrapper.
+  - **`gameObject.cs`**:
+    - Verified canonical English state methods: `setSelectedPiece()`, `getSelectedPiece()`, `setActivePlayer()`, `getActivePlayer()`, `setActiveOpponent()`, `getActiveOpponent()`, `setTurn()`, `getTurn()`, `addTurn()`, `setTurnQueue()`, `getTurnQueue()`, `setGameTimer()`, `getGameTimer()`, `addGameTimer()`, `subGameTimer()`, `setPieceCount()`, `getPieceCount()`, `addPieceCount()`.
+  - **`hero.cs`**:
+    - Verified canonical English hero methods: `addCreaturePoints()`, `subCreaturePoints()`, `getCreaturePoints()`, `addPieceCount()`, `subPieceCount()`, `getPieceCount()`, `setSelectedTile()`, `getSelectedTile()`, `setSelectedTileX()`, `getSelectedTileX()`, `setSelectedTileY()`, `getSelectedTileY()`, `setHeroClass()`, `getHeroClass()`.
+
+### 2. Class Method Bindings Modernization (`Piece` & `Card`)
+- Migrated legacy `Nappula` and `Kortti` class bindings in [`Archon/gameScripts/nappula.cs`](file:///M:/Archonita/games/Archon/gameScripts/nappula.cs) to modern `Piece` and `Card` classes:
+  - Canonical methods: `Piece::onPositionTarget`, `Piece::onMoveToComplete`, `Piece::onAnimationEnd`.
+  - Canonical methods: `Card::onMoveToComplete`, `Card::onPositionTarget`.
+  - Configured spawned sprites in `BoardManager.cs` and `TurnManager.cs` to instantiate `class = Piece; superclass = Nappula;` and `class = Card; superclass = Kortti;`, ensuring zero regressions for legacy event dispatchers.
 
 ---
 
