@@ -96,7 +96,7 @@
       size = "16 16";
       SceneLayer = "31";
       Layer = "31";
-         isSelectable = "True";
+         isSelectable = "False";
          mountID = "8";
          Alpha = "0.7";
          isIconDefence = "1";
@@ -109,7 +109,7 @@
       size = "16 16";
       SceneLayer = "31";
       Layer = "31";
-         isSelectable = "True";
+         isSelectable = "False";
          isIconMagic = "1";
          mountID = "9";
          Alpha = "0.7";
@@ -123,7 +123,7 @@
       SceneLayer = "31";
       Layer = "31";
          isIconAttack = "1";
-         isSelectable = "True";
+         isSelectable = "False";
          mountID = "10";
          Alpha = "0.7";
    };

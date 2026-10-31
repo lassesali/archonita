@@ -6,6 +6,7 @@
 new ScriptObject(game) 
 { 
    highlightedIcon = 0;
+   selectedAction = 0;
    selectedPiece = 0;
    activePlayer = 0;
    activeOpponent = 1;
@@ -17,7 +18,7 @@ new ScriptObject(game)
 };
 
 //---------------------------------------------------------------------------------------------
-// Action Icon Highlighting
+// Action Icon Highlighting & Selection
 //---------------------------------------------------------------------------------------------
 function game::setHighlightedActionIcon(%this, %icon)
 {
@@ -28,6 +29,18 @@ function game::setHighlightedActionIcon(%this, %icon)
 function game::getHighlightedActionIcon(%this)
 {
    return %this.highlightedIcon;
+}
+
+function game::setSelectedAction(%this, %action)
+{
+   %this.selectedAction = %action;
+}
+
+function game::getSelectedAction(%this)
+{
+   if (%this.selectedAction $= "")
+      return 0;
+   return %this.selectedAction;
 }
 
 //---------------------------------------------------------------------------------------------

@@ -47,6 +47,9 @@ function BoardManager::showBoardScreen(%this)
    
    InitNewGame();
 
+   resetActionIconsAnchor();
+   updateActionIconsVisualState();
+
    // Decorative dice idle rotation: red die clockwise (-10), blue die anti-clockwise (+10)
    if (isObject(diceBlue))
       diceBlue.setAngularVelocity(10);

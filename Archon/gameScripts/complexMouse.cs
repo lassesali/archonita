@@ -1,54 +1,214 @@
+//---------------------------------------------------------------------------------------------
+// Action Icons - Type Detection, Anchor Enforcement, & Visual State
+//---------------------------------------------------------------------------------------------
+function isActionIcon(%obj)
+{
+   if (!isObject(%obj))
+      return false;
+
+   if (%obj.isIconDefence || %obj.isIconMagic || %obj.isIconAttack)
+      return true;
+
+   %name = %obj.getName();
+   if (%name $= "iconDefence2" || %name $= "iconMagic3" || %name $= "iconAttack2" ||
+       %name $= "iconShield1"  || %name $= "iconDefence1" || %name $= "iconAttack1" ||
+       %name $= "iconMagic1"   || %name $= "iconMagic2")
+      return true;
+
+   return false;
+}
+
+function getActionIconType(%obj)
+{
+   if (!isObject(%obj))
+      return 0;
+
+   if (%obj.isIconDefence || %obj.getName() $= "iconDefence2" || %obj.getName() $= "iconShield1" || %obj.getName() $= "iconDefence1")
+      return 1; // Defence (Shield)
+
+   if (%obj.isIconMagic || %obj.getName() $= "iconMagic3" || %obj.getName() $= "iconMagic1" || %obj.getName() $= "iconMagic2")
+      return 2; // Magic (Star)
+
+   if (%obj.isIconAttack || %obj.getName() $= "iconAttack2" || %obj.getName() $= "iconAttack1")
+      return 3; // Attack (Swords)
+
+   return 0;
+}
+
+function resetActionIconsAnchor()
+{
+   if (isObject(iconDefence2))
+   {
+      iconDefence2.dismount();
+      iconDefence2.setPosition("28.3 -8.1");
+   }
+   if (isObject(iconShield1))
+   {
+      iconShield1.dismount();
+      iconShield1.setPosition("28.2 -8.73");
+   }
+   if (isObject(iconDefence1))
+   {
+      iconDefence1.dismount();
+      iconDefence1.setPosition("28.2 -8.73");
+   }
+
+   if (isObject(iconMagic3))
+   {
+      iconMagic3.dismount();
+      iconMagic3.setPosition("40 -15.1");
+   }
+   if (isObject(iconMagic2))
+   {
+      iconMagic2.dismount();
+      iconMagic2.setPosition("39.9 -15.4");
+   }
+   if (isObject(iconMagic1))
+   {
+      iconMagic1.dismount();
+      iconMagic1.setPosition("39.5 -15.6");
+   }
+
+   if (isObject(iconAttack2))
+   {
+      iconAttack2.dismount();
+      iconAttack2.setPosition("40 -1.35");
+   }
+   if (isObject(iconAttack1))
+   {
+      iconAttack1.dismount();
+      iconAttack1.setPosition("39.9 -1.38");
+   }
+}
+
+function updateActionIconsVisualState()
+{
+   resetActionIconsAnchor();
+
+   %activeAction = (isObject(game)) ? game.getSelectedAction() : 0;
+   if (%activeAction == 0 && isObject(game))
+      %activeAction = game.getHighlightedActionIcon();
+
+   // Defence (Shield)
+   if (isObject(iconDefence2))
+   {
+      if (%activeAction == 1)
+      {
+         iconDefence2.setSize("18 18");
+         iconDefence2.setBlendAlpha("1.0");
+         iconDefence2.setLayer("30");
+      }
+      else
+      {
+         iconDefence2.setSize("16 16");
+         iconDefence2.setBlendAlpha("0.7");
+         iconDefence2.setLayer("31");
+      }
+   }
+
+   // Magic (Star)
+   if (isObject(iconMagic3))
+   {
+      if (%activeAction == 2)
+      {
+         iconMagic3.setSize("18 18");
+         iconMagic3.setBlendAlpha("1.0");
+         iconMagic3.setLayer("30");
+      }
+      else
+      {
+         iconMagic3.setSize("16 16");
+         iconMagic3.setBlendAlpha("0.7");
+         iconMagic3.setLayer("31");
+      }
+   }
+
+   // Attack (Swords)
+   if (isObject(iconAttack2))
+   {
+      if (%activeAction == 3)
+      {
+         iconAttack2.setSize("18 18");
+         iconAttack2.setBlendAlpha("1.0");
+         iconAttack2.setLayer("30");
+      }
+      else
+      {
+         iconAttack2.setSize("16 16");
+         iconAttack2.setBlendAlpha("0.7");
+         iconAttack2.setLayer("31");
+      }
+   }
+}
+
 function mouseOverActionIcons( %mod, %worldPos ) 
 {
+   resetActionIconsAnchor();
 
-                                 iconDefence2.setLayer("31");
-                                 iconAttack2.setLayer("31");
-                                 iconMagic3.setLayer("31");
-                                 iconDefence2.setSize("16 16");
-                                 iconAttack2.setSize("16 16");
-                                 iconMagic3.setSize("16 16"); 
-                                 iconDefence2.setBlendAlpha("0.7");
-                                 iconAttack2.setBlendAlpha("0.7");
-                                 iconMagic3.setBlendAlpha("0.7");
-                                 game.setHighlightedActionIcon(0);
+   %hoveredAction = 0;
+   if (isObject(t2dScene))
+   {
+      %objList = t2dScene.pickPoint(%worldPos);
+      %objCount = getWordCount(%objList);
+      for (%i = 0; %i < %objCount; %i++)
+      {
+         %obj = getWord(%objList, %i);
+         %actionType = getActionIconType(%obj);
+         if (%actionType > 0)
+         {
+            %hoveredAction = %actionType;
+            break;
+         }
+      }
+   }
 
+   if (isObject(game))
+   {
+      if (%hoveredAction > 0)
+         game.setHighlightedActionIcon(%hoveredAction);
+      else
+         game.setHighlightedActionIcon(game.getSelectedAction());
+   }
 
-                //lets get a list of all the objects at the clicked point in the t2dScene
-                %objList = t2dScene.pickPoint(%worldPos);
-                //lets get a count of how many objects in the list
-                %objCount = getWordCount(%objList);
-                
-                
-        
-                //we will start looping through the list
-                for(%i=0;%i<%objCount;%i++)
-                {
-                        //grabing the entry corresponding to the loop
-                        %obj = getWord(%objList, %i);
-                
-                        //if we find an object in the list that "isSelectable = true"
-                     
-                        
-                        if(%obj.isIconDefence == true || %obj.isIconMagic == true || %obj.isIconAttack == true )
-                        {
+   updateActionIconsVisualState();
+}
 
-                                 game.setHighlightedActionIcon(%obj.isIconDefence + %obj.isIconMagic*2 + %obj.isIconAttack*3);
-                                 %selected = true;
+function onActionIconClick(%actionIcon)
+{
+   if (!isObject(%actionIcon) || !isObject(game))
+      return;
 
-                                //we toggle a value so we know we found an object that "isSelectable"
-                                %obj.setLayer("30");
-                                %obj.setBlendAlpha("1");
-                                %obj.setSize("18 18");
-                                //we kick out of the loop
+   %action = getActionIconType(%actionIcon);
+   if (%action == 0)
+      return;
 
-                                %i = %objCount;
-                                 
-                        }                         
-                }
-        
+   // Play UI feedback sound
+   if (isObject(buttonAudio))
+      playArchonSound(buttonAudio);
+   else if (isObject(fxSword))
+      playArchonSound(fxSword);
 
+   // Toggle selection: if already selected, deselect; otherwise select
+   if (game.getSelectedAction() == %action)
+   {
+      game.setSelectedAction(0);
+      game.setHighlightedActionIcon(0);
+   }
+   else
+   {
+      game.setSelectedAction(%action);
+      game.setHighlightedActionIcon(%action);
 
+      // In Battle State, Defence action triggers immediately
+      if (getGameState() == $gameBattleState && %action == 1)
+      {
+         doAction();
+         game.setSelectedAction(0);
+         game.setHighlightedActionIcon(0);
+      }
+   }
 
+   updateActionIconsVisualState();
 }
 
 
@@ -208,6 +368,7 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
          if (getGameState() == $gamePreBattleState) 
          {
             mouseOverGreenGrid(%mod, %worldPos);
+            mouseOverActionIcons(%mod, %worldPos);
             if (%this.objectSelected)
             {
                if (%this.mouseDownPos $= "" || distBetween(%this.mouseDownPos, %worldPos) > 2.0)
@@ -255,6 +416,7 @@ function sceneWindow2D::onMouseDragged( %this, %mod, %worldPos, %mouseClicks )
          if (getGameState() == $gamePreBattleState) 
          {
             mouseOverGreenGrid(%mod, %worldPos);
+            mouseOverActionIcons(%mod, %worldPos);
             if (%this.objectSelected)
             {
                if (%this.mouseDownPos $= "" || distBetween(%this.mouseDownPos, %worldPos) > 2.0)
@@ -471,6 +633,41 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
         if($debugMsg::mouse::callBacks)
                 echo("Mouse Down");
 
+        // Check if an action icon (Swords, Shield, Star) was clicked
+        %objList = t2dScene.pickPoint(%worldPos);
+        %objCount = getWordCount(%objList);
+        %clickedActionIcon = "";
+
+        for (%i = 0; %i < %objCount; %i++)
+        {
+           %pickedObj = getWord(%objList, %i);
+           if (isActionIcon(%pickedObj))
+           {
+              %clickedActionIcon = %pickedObj;
+              break;
+           }
+        }
+
+        if (%clickedActionIcon !$= "")
+        {
+           // Cancel any in-progress character drag if active
+           if (%this.objectSelected && isObject($mouseObj::objMounted))
+           {
+              %this.cancelCharacterPlacement($mouseObj::objMounted);
+           }
+
+           // Register action icon click event (selection / activation / toggle)
+           onActionIconClick(%clickedActionIcon);
+
+           // Strictly guarantee hexagon sprite remains firmly anchored at UI position and never mounts
+           resetActionIconsAnchor();
+           %this.objectSelected = false;
+           %this.dragStarted = false;
+           $mouseObj::isObjMounted = false;
+           $mouseObj::objMounted = "";
+           return;
+        }
+
         //check to see if we have an object already selected, 
         //if so we don't want to do anything expect set it to false so it doesn't follow anymore
         if(%this.objectSelected)
@@ -485,28 +682,15 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
         else
         {
                 //lets get a list of all the objects at the clicked point in the t2dScene
-                %objList = t2dScene.pickPoint(%worldPos);
-                //lets get a count of how many objects in the list
-                %objCount = getWordCount(%objList);
-        
-                //we will start looping through the list
+                %selected = false;
                 for(%i=0;%i<%objCount;%i++)
                 {
-                        //grabing the entry corresponding to the loop
                         %obj = getWord(%objList, %i);
-                
-                        //if we find an object in the list that "isSelectable = true"
-        
-                        if(%obj.isSelectable)
+                        if(%obj.isSelectable && !isActionIcon(%obj))
                         {
-                                //we toggle a value so we know we found an object that "isSelectable"
                                 %selected = true;
-                                //we kick out of the loop
-                                %i = %objCount;
-
-                        } else {
+                                break;
                         }
-                        
                 }
         
                 //if we found an "isSelectable" object
@@ -662,6 +846,9 @@ function initMouse()
         $hiiri.piilota = false;
         Canvas.setCursor(DefaultCursor);
         Canvas.showCursor();
+        
+        resetActionIconsAnchor();
+        updateActionIconsVisualState();
         
         //$debugMsg::mouse::selection=true;
         //$debugMsg::mouse::callbacks=true;

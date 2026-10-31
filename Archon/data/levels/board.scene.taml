@@ -42,7 +42,7 @@
         Position="28.3 -8.1"
         Size="16 16"
         SceneLayer="31"
-        isSelectable="1"
+        isSelectable="0"
         isIconDefence="1"
         BlendAlpha="0.7" />
     <Sprite
@@ -51,7 +51,7 @@
         Position="40 -15.1"
         Size="16 16"
         SceneLayer="31"
-        isSelectable="1"
+        isSelectable="0"
         isIconMagic="1"
         BlendAlpha="0.7" />
     <Sprite
@@ -60,7 +60,7 @@
         Position="40 -1.35"
         Size="16 16"
         SceneLayer="31"
-        isSelectable="1"
+        isSelectable="0"
         isIconAttack="1"
         BlendAlpha="0.7" />
     <Sprite

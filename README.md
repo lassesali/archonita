@@ -224,6 +224,14 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Configures release runtime with `$Scripts::ignoreDSOs = false;` to execute compiled DSO bytecode.
   - Explicitly purges all raw `.cs` files across the distribution folder (`Get-ChildItem -Path $DestinationDir -Filter *.cs -Recurse | Remove-Item -Force`), leaving 0 raw `.cs` files in release.
 
+### 8. UI Hexagon Sprites Anchoring & Action Selection State
+- Resolved critical input bug where clicking any of the three tactical action hexagon sprites (Swords, Shield, Star) permanently anchored the sprite to the mouse cursor:
+  - **Draggable Exclusion:** In [`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs), intercepted clicks on action icons (`isIconDefence`, `isIconMagic`, `isIconAttack`) in `sceneWindow2D::onMouseDown`, explicitly excluding them from placement mounting (`!isActionIcon(%obj)`) and preventing them from mounting to `$mouseObj::object`.
+  - **Action Selection & State Toggling:** Added `setSelectedAction` and `getSelectedAction` to the [`game`](file:///M:/Archonita/games/Archon/gameScripts/gameObject.cs) singleton object. Implemented `onActionIconClick` in `complexMouse.cs` to register selection and toggling of active tactical actions (1 = Defence, 2 = Magic, 3 = Attack), executing immediate defence resolution during battle (`doAction()`) and providing audio click feedback.
+  - **Static Coordinate Anchor Enforcement:** Created `resetActionIconsAnchor()` and `updateActionIconsVisualState()` in `complexMouse.cs`, guaranteeing the hexagon sprites remain strictly fixed at their static UI coordinates (`iconDefence2` at `28.3 -8.1`, `iconMagic3` at `40 -15.1`, and `iconAttack2` at `40 -1.35`). Moving the cursor across the screen maintains their anchored positions without tracking the cursor.
+  - **Dynamic Highlight & Hover Feedback:** Highlighted active or hovered action hexagons (`18x18`, alpha `1.0`, layer `30`) while keeping unselected hexagons in resting state (`16x16`, alpha `0.7`, layer `31`).
+  - **Scene Metadata Modernization:** Updated `isSelectable` to `"0"` / `"False"` on `iconDefence2`, `iconMagic3`, and `iconAttack2` in both [`Archon/data/levels/board.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/board.scene.taml) and [`Archon/data/levels/board.t2d`](file:///M:/Archonita/games/Archon/data/levels/board.t2d).
+
 ---
 
 > [!NOTE]
