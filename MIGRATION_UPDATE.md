@@ -153,8 +153,17 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Immediately halts ambient audio (`$introMusic`) and transitions smoothly to `mainmenuScreen()`.
 - Added a 350 ms debounce guard in `sceneWindow2D::onMouseDown` to prevent rapid double-clicks on the intro screen from prematurely triggering main menu options.
 - Guarded `sceneWindow2D::onMouseUp` in [`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs):
-  - Prevented execution of uninstantiated hero/tile queries (`HeroGroup.getObject()`, `%sankari.getValittuRuutu()`) during intro and non-battle states.
+  - Prevented execution of uninstantiated hero/tile queries during intro and non-battle states.
   - Protected all screen transitions against re-entrant click spam (`$mainMenuTransitioning`, `$cardSelectTransitioning`).
+
+### 3. Pre-Battle Unit Placement & Input Synchronization
+- **Unassigned Variable Resolution in Placement Logic:**
+  - Resolved bug in `sceneWindow2D::placeSelectedCharacter` ([`Archon/gameScripts/complexMouse.cs`](file:///M:/Archonita/games/Archon/gameScripts/complexMouse.cs)) where `%targetRuutu` attempted to call `getValittuRuutu()` on an unassigned `%sankari` variable rather than `%hero` (`HeroGroup.getObject(0)`), causing target tile validation to fail unconditionally and snapping selected units back into the recruitment tray.
+- **Dynamic Board Geometry Bounds Checking:**
+  - Replaced hardcoded dimensions (`0 <= x < 4`, `2 <= y < 4`) in `placeSelectedCharacter` and `cancelCharacterPlacement` with dynamic parameters from `BoardConfig` (`width`, `playerPlacementMinY`, `playerPlacementMaxY`).
+- **Input Pipeline Synchronization:**
+  - Ensured `mouseOverGreenGrid(%mod, %worldPos)` is evaluated immediately upon mouse release (`onMouseUp`) and secondary click (`onMouseDown`) before invoking `placeSelectedCharacter`, allowing seamless unit placement via both drag-and-drop and click-to-pick workflows.
+  - Verified full placement lifecycle: creature points deduction, recruitment tray reflow, obstacle map reservation (`$board.obstacles[x, y] = 255`), piece map registration (`$board.pieces[x, y]`), and unit sprite instantiation with correct layer and directional animation (`warriorStoppedAnimation_n`).
 
 ---
 

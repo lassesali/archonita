@@ -301,20 +301,36 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
       return false;
    }
 
+   if (!isObject(HeroGroup))
+   {
+      %this.cancelCharacterPlacement(%obj);
+      return false;
+   }
+
    %hero = HeroGroup.getObject(0);
-   %targetRuutu = %sankari.getValittuRuutu();
+   if (!isObject(%hero))
+   {
+      %this.cancelCharacterPlacement(%obj);
+      return false;
+   }
+
+   %targetRuutu = %hero.getSelectedTile();
    %targetX = %hero.getSelectedTileX();
    %targetY = %hero.getSelectedTileY();
 
+   %width = (isObject(BoardConfig) && BoardConfig.width !$= "") ? BoardConfig.width : 4;
+   %minY = (isObject(BoardConfig) && BoardConfig.playerPlacementMinY !$= "") ? BoardConfig.playerPlacementMinY : 2;
+   %maxY = (isObject(BoardConfig) && BoardConfig.playerPlacementMaxY !$= "") ? BoardConfig.playerPlacementMaxY : 3;
+
    // Strict validation of target tile:
    // 1. Must not be unselected (-1 -1 or empty)
-   // 2. Must fall within board array bounds: 0 <= x < 4, 2 <= y < 4 (player deployment area)
+   // 2. Must fall within board array bounds: 0 <= x < width, minY <= y <= maxY (player deployment area)
    // 3. Tile must be free of obstacles ($board.obstacles[x, y] == 0)
    // 4. Must specifically correspond to a valid active green placement tile ($green[x, y])
    %isValidTile = false;
    if (%targetRuutu !$= "-1 -1" && %targetRuutu !$= "")
    {
-      if (%targetX >= 0 && %targetX < 4 && %targetY >= 2 && %targetY < 4)
+      if (%targetX >= 0 && %targetX < %width && %targetY >= %minY && %targetY <= %maxY)
       {
          if ($board.obstacles[%targetX, %targetY] == 0 && isObject($green[%targetX, %targetY]))
          {
@@ -409,9 +425,13 @@ function sceneWindow2D::cancelCharacterPlacement(%this, %obj)
          $setupNappulaSprite[%j].setVisible(false);
    }
 
-   for (%ux = 0; %ux < 4; %ux++)
+   %width = (isObject(BoardConfig) && BoardConfig.width !$= "") ? BoardConfig.width : 4;
+   %minY = (isObject(BoardConfig) && BoardConfig.playerPlacementMinY !$= "") ? BoardConfig.playerPlacementMinY : 2;
+   %maxY = (isObject(BoardConfig) && BoardConfig.playerPlacementMaxY !$= "") ? BoardConfig.playerPlacementMaxY : 3;
+
+   for (%ux = 0; %ux < %width; %ux++)
    {
-      for (%uy = 2; %uy < 4; %uy++)
+      for (%uy = %minY; %uy <= %maxY; %uy++)
       {
          if ($board.obstacles[%ux, %uy] == 0 && isObject($green[%ux, %uy]))
             $green[%ux, %uy].setFrame("0");
@@ -457,6 +477,7 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
         {
                 if (getGameState() == $gamePreBattleState) 
                 {
+                   mouseOverGreenGrid(%mod, %worldPos);
                    %obj = $mouseObj::objMounted;
                    %this.placeSelectedCharacter(%obj);
                 }
@@ -547,6 +568,7 @@ function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 
          if ( getGameState() == $gamePreBattleState && %this.objectSelected && %this.dragStarted )
          {
+            mouseOverGreenGrid(%mod, %worldPos);
             %this.placeSelectedCharacter($mouseObj::objMounted);
          }
 
