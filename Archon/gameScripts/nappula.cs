@@ -31,7 +31,11 @@ function Piece::onMoveToComplete(%this)
 
 function Piece::onAnimationEnd(%this, %animationAssetID)
 {
-   Sprite::onAnimationEnd(%this, %animationAssetID);
+   if (%this.state.name $= "die" || %this.state == $olentoDieState[%this.creatureID])
+   {
+      %this.setLayer("3");
+      %this.setSceneLayerDepthBack();
+   }
 }
 
 // Backward-compatible Nappula class delegation

@@ -232,6 +232,12 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - **Dynamic Highlight & Hover Feedback:** Highlighted active or hovered action hexagons (`18x18`, alpha `1.0`, layer `30`) while keeping unselected hexagons in resting state (`16x16`, alpha `0.7`, layer `31`).
   - **Scene Metadata Modernization:** Updated `isSelectable` to `"0"` / `"False"` on `iconDefence2`, `iconMagic3`, and `iconAttack2` in both [`Archon/data/levels/board.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/board.scene.taml) and [`Archon/data/levels/board.t2d`](file:///M:/Archonita/games/Archon/data/levels/board.t2d).
 
+### 9. Z-Ordering / Visual Sorting for Defeated Corpses and Active Characters
+- Resolved visual layering issue where an active standing character navigating onto a tile containing a defeated undead/skeleton body was rendered behind the corpse:
+  - **Ground Layer Stratification (`SceneLayer 3`):** In [`Archon/gameScripts/CombatEngine.cs`](file:///M:/Archonita/games/Archon/gameScripts/CombatEngine.cs), updated `damagePiece` and `setPieceState` so defeated units transitioning to `$olentoDieState` are immediately placed on ground-level layer `3` (`%piece.setLayer("3")`) with their depth pushed to the background (`%piece.setSceneLayerDepthBack()`).
+  - **Active Character Layer Anchoring (`SceneLayer 2`):** In [`Archon/gameScripts/BoardManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/BoardManager.cs) and `CombatEngine::movePiece`, active units explicitly assert `SceneLayer 2` and `setSceneLayerDepthFront()`, guaranteeing that standing and moving units always render in front of ground-level corpses when occupying the same tile coordinates.
+  - **Animation Callback Safety:** In [`Archon/gameScripts/nappula.cs`](file:///M:/Archonita/games/Archon/gameScripts/nappula.cs), updated `Piece::onAnimationEnd` to ensure completed tipping-over animations maintain corpses on `SceneLayer 3` with `setSceneLayerDepthBack()`, replacing an obsolete call to non-existent `Sprite::onAnimationEnd`.
+
 ---
 
 > [!NOTE]

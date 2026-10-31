@@ -295,6 +295,9 @@ function CombatEngine::movePiece(%this, %pos, %boardpos)
 {
    %piece = $nappulaSprite[game.getSelectedPiece()];
 
+   %piece.setLayer("2");
+   %piece.setSceneLayerDepthFront();
+
    %piece.facing = %this.facing(%piece.positionOnBoard, %boardpos);
    %piece.moveto(%pos, 10, true, true, true);
    
@@ -386,6 +389,17 @@ function CombatEngine::setPieceState(%this, %piece, %state)
    
    %piece.playAnimation(%playanim, %restore);
    %piece.setFrameChangeCallback(1);
+
+   if (%state.name $= "die" || %state == $olentoDieState[%piece.creatureID])
+   {
+      %piece.setLayer("3");
+      %piece.setSceneLayerDepthBack();
+   }
+   else if (%piece.alive)
+   {
+      %piece.setLayer("2");
+      %piece.setSceneLayerDepthFront();
+   }
 }
 
 function CombatEngine::damagePiece(%this, %piece)
@@ -395,6 +409,8 @@ function CombatEngine::damagePiece(%this, %piece)
    
    if (%piece.hp <= 0) {
       %piece.alive = 0;
+      %piece.setLayer("3");
+      %piece.setSceneLayerDepthBack();
       schedule(100, 0, "setPieceState", %piece, $olentoDieState[%piece.creatureID]);
       echo("setPieceState(" @ %piece @ "," @ $olentoDieState[%piece.creatureID] @ ")");
       %this.hideBloodEvent = schedule(500, 0, hideBlood);

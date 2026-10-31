@@ -397,6 +397,7 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    $nappulaSprite[%j].setBlendAlpha("1");
    $nappulaSprite[%j].setVisible(true);
    $nappulaSprite[%j].setLayer("2");
+   $nappulaSprite[%j].setSceneLayerDepthFront();
    $nappulaSprite[%j].setUseMouseEvents(0);
    $nappulaSprite[%j].isSelectable = false;
 
