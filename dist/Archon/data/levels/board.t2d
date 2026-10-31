@@ -3,23 +3,26 @@
       cameraSize = "100 75";
       cameraPosition = "0 0";
 
-   new Sprite() {
+   new Sprite(diceBlue) {
       image = "Archon:diceblueImageMap";
       Image = "@asset=Archon:diceblueImageMap";
       position = "37.5 28.1";
       size = "8.38 8.85";
+      Angle = "340";
       Rotation = "340";
+      AngularVelocity = "10";
       AutoRotation = "-10";
       SceneLayer = "30";
       Layer = "30";
       BlendColor = "1 1 1 0.862745";
          mountID = "2";
    };
-   new Sprite() {
+   new Sprite(diceRed) {
       image = "Archon:diceredImageMap";
       Image = "@asset=Archon:diceredImageMap";
       position = "27.4 20.9";
       size = "11.4 11.4";
+      AngularVelocity = "-10";
       AutoRotation = "10";
       SceneLayer = "30";
       Layer = "30";

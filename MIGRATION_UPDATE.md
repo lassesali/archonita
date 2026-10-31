@@ -192,6 +192,13 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Canonical methods: `Card::onMoveToComplete`, `Card::onPositionTarget`.
   - Configured spawned sprites in `BoardManager.cs` and `TurnManager.cs` to instantiate `class = Piece; superclass = Nappula;` and `class = Card; superclass = Kortti;`, ensuring zero regressions for legacy event dispatchers.
 
+### 3. Decorative Dice Idle Rotation Animation
+- Resolved missing idle rotation animation on the decorative red and blue dice in the top right corner during the creature placement phase (`$gamePreBattleState`):
+  - **[`board.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/board.scene.taml)**: Configured `AngularVelocity="10"` and `Angle="340"` on `diceBlue` for continuous anti-clockwise rotation; configured `AngularVelocity="-10"` on `diceRed` for continuous clockwise rotation.
+  - **[`board.t2d`](file:///M:/Archonita/games/Archon/data/levels/board.t2d)**: Synchronized `AngularVelocity`, `Angle`, and `AutoRotation` fields on named `diceBlue` and `diceRed` sprite definitions.
+  - **[`BoardManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/BoardManager.cs)**: Added explicit angular velocity initialization in `BoardManager::showBoardScreen()` to guarantee active rotation upon entering the board.
+  - **[`t2d_compat.cs`](file:///M:/Archonita/games/Archon/gameScripts/t2d_compat.cs)**: Added `setAutoRotation(%val)` compatibility mapping on `SceneObject` and `Sprite` translating legacy TGB degrees-per-second auto-rotation into modern Torque2D angular velocity (`setAngularVelocity(-%val)`).
+
 ---
 
 > [!NOTE]

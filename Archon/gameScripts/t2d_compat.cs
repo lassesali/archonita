@@ -96,6 +96,16 @@ function SceneObject::setRotation(%this, %angle)
    %this.setAngle(%angle);
 }
 
+function SceneObject::setAutoRotation(%this, %val)
+{
+   %this.setAngularVelocity(-%val);
+}
+
+function Sprite::setAutoRotation(%this, %val)
+{
+   %this.setAngularVelocity(-%val);
+}
+
 function SceneObject::setLayer(%this, %layer)
 {
    %this.setSceneLayer(%layer);

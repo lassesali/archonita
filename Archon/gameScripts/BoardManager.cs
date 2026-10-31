@@ -45,6 +45,12 @@ function BoardManager::showBoardScreen(%this)
    startGame("Archon/data/levels/board.t2d");  
    
    InitNewGame();
+
+   // Decorative dice idle rotation: red die clockwise (-10), blue die anti-clockwise (+10)
+   if (isObject(diceBlue))
+      diceBlue.setAngularVelocity(10);
+   if (isObject(diceRed))
+      diceRed.setAngularVelocity(-10);
 }
 
 function BoardManager::initBoard(%this)

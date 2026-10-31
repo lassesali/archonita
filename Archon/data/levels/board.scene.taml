@@ -1,13 +1,20 @@
 <Scene Name="t2dScene">
     <Sprite
+        Name="diceBlue"
         Image="@asset=Archon:diceblueImageMap"
         Position="37.5 28.1"
         Size="8.38 8.85"
+        Angle="340"
+        AngularVelocity="10"
+        BlendAlpha="0.862745"
         SceneLayer="30" />
     <Sprite
+        Name="diceRed"
         Image="@asset=Archon:diceredImageMap"
         Position="27.4 20.9"
         Size="11.4 11.4"
+        AngularVelocity="-10"
+        BlendAlpha="0.901961"
         SceneLayer="30" />
     <Sprite
         Name="heroicongrid"
