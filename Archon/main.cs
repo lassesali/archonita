@@ -55,6 +55,8 @@ function initializeProject()
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
    exec("./gameScripts/gameObject.cs");
+   exec("./gameScripts/Card.cs");
+   exec("./gameScripts/Deck.cs");
    exec("./gameScripts/AudioManager.cs");
    if (!isObject($AudioManager))
       $AudioManager = new ScriptObject() { class = "AudioManager"; };

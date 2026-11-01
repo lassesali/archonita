@@ -280,7 +280,7 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    if (%topCard.isMethod("discardAfterCast"))
       %topCard.discardAfterCast();
    else
-      %topCard.startFadeOut(0.1, 1.0);
+      Card::discardAfterCast(%topCard);
    $topCardIndex--;
 
    game.setCanCastSpell(false);

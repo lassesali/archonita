@@ -2,9 +2,9 @@
 // Archonita - Card.cs
 // Spell card Sprite representation with post-cast discard trajectory and self-cleanup.
 // Conforms strictly to TORQUE_SCRIPT.md:
-// - One class per file, matching filename.
-// - Lifecycle in onAdd / onRemove using house init() convention.
-// - All state stored on %this (no globals).
+// - One class per file, matching filename (no god-namespaces).
+// - Lifecycle in onAdd / onRemove using the house init() convention.
+// - All state stored on %this (zero globals).
 // - Repeating schedule explicitly tracked and cancelled in onRemove.
 // - Self-cleanup via %this.safeDelete() once completely outside viewport AABB.
 //---------------------------------------------------------------------------------------------
@@ -12,13 +12,18 @@
 function Card::init(%this)
 {
    %this.discardTickEvent = 0;
-   %this.currentScale = 1.0;
-   %this.maxScale = 2.5;
-   %this.scaleStep = 0.04;
-   %this.spinSpeed = 240;        // Continuous axial rotation (deg/sec)
-   %this.discardAngle = 135;     // Trajectory heading toward top-left outer edge (0 deg = +X, CCW)
-   %this.discardSpeed = 48;      // Velocity in world units/sec
-   %this.cameraBounds = "";
+   %this.currentScale     = 1.0;
+   %this.maxScale         = 2.5;
+   %this.scaleStep        = 0.04;
+   %this.spinSpeed        = 240;        // Continuous axial rotation (deg/sec)
+   %this.discardAngle     = 135;        // Polar heading (135° = top-left off-screen trajectory)
+   %this.discardSpeed     = 48;         // Linear velocity in world units/sec
+   %this.cameraBounds     = "";
+   %this.currentPosX      = 0;
+   %this.currentPosY      = 0;
+   %this.currentAngle     = 0;
+   %this.vx               = 0;
+   %this.vy               = 0;
 }
 
 function Card::onAdd(%this)
@@ -28,7 +33,7 @@ function Card::onAdd(%this)
 
 function Card::onRemove(%this)
 {
-   // Strict cleanup: cancel any pending repeating schedules
+   // Strict cleanup: cancel any pending repeating schedules on %this
    if (isEventPending(%this.discardTickEvent))
    {
       cancel(%this.discardTickEvent);
@@ -50,11 +55,19 @@ function Card::discardAfterCast(%this, %cameraBounds)
 
    // 3. Store starting dimensions and initialize scale factor
    %size = %this.getSize();
-   %this.baseWidth = getWord(%size, 0);
-   %this.baseHeight = getWord(%size, 1);
+   %this.baseWidth    = getWord(%size, 0);
+   %this.baseHeight   = getWord(%size, 1);
    %this.currentScale = 1.0;
+   %this.maxScale     = 2.5;
+   %this.scaleStep    = 0.04;
 
-   // 4. Resolve camera/viewport bounding box (minX minY maxX maxY)
+   // 4. Store current position and rotation for kinematic interpolation
+   %pos = %this.getPosition();
+   %this.currentPosX  = getWord(%pos, 0);
+   %this.currentPosY  = getWord(%pos, 1);
+   %this.currentAngle = %this.getAngle();
+
+   // 5. Resolve camera / visible viewport bounds ("minX minY maxX maxY")
    if (%cameraBounds $= "")
    {
       if (isObject(sceneWindow2D))
@@ -64,11 +77,24 @@ function Card::discardAfterCast(%this, %cameraBounds)
    }
    %this.cameraBounds = %cameraBounds;
 
-   // 5. Apply continuous axial rotation and launch along trajectory
-   %this.setAngularVelocity(%this.spinSpeed);
-   %this.setLinearVelocityPolar(%this.discardAngle, %this.discardSpeed);
+   // 6. Calculate trajectory velocity vectors
+   %spin  = (%this.spinSpeed !$= "")    ? %this.spinSpeed    : 240;
+   %angle = (%this.discardAngle !$= "") ? %this.discardAngle : 135;
+   %speed = (%this.discardSpeed !$= "") ? %this.discardSpeed : 48;
 
-   // 6. Start the self-rescheduling tick loop for scale interpolation & bounds check
+   %this.spinSpeed    = %spin;
+   %this.discardAngle = %angle;
+   %this.discardSpeed = %speed;
+
+   %rad = mDegToRad(%angle);
+   %this.vx = mCos(%rad) * %speed;
+   %this.vy = mSin(%rad) * %speed;
+
+   // Apply engine physics methods (if physics simulation is active)
+   %this.setAngularVelocity(%spin);
+   %this.setLinearVelocityPolar(%angle, %speed);
+
+   // 7. Start the self-rescheduling tick loop for scale interpolation, kinematic motion & bounds check
    if (isEventPending(%this.discardTickEvent))
       cancel(%this.discardTickEvent);
 
@@ -76,7 +102,7 @@ function Card::discardAfterCast(%this, %cameraBounds)
 }
 
 //---------------------------------------------------------------------------------------------
-// Scale Interpolation & Viewport Boundary Check
+// Scale Interpolation, Kinematic Motion & Viewport Boundary Check
 //---------------------------------------------------------------------------------------------
 function Card::updateDiscard(%this)
 {
@@ -92,7 +118,15 @@ function Card::updateDiscard(%this)
       %this.setSize(%this.baseWidth * %this.currentScale, %this.baseHeight * %this.currentScale);
    }
 
-   // 2. Check if the card's current AABB has completely cleared the visible viewport
+   // 2. Kinematic transform step (ensures trajectory & spin work reliably across all scene modes)
+   %this.currentPosX += %this.vx * 0.016;
+   %this.currentPosY += %this.vy * 0.016;
+   %this.setPosition(%this.currentPosX, %this.currentPosY);
+
+   %this.currentAngle += %this.spinSpeed * 0.016;
+   %this.setAngle(%this.currentAngle);
+
+   // 3. Check if the card's current AABB has completely cleared the visible viewport
    %cardAABB = %this.getAABB();
    %cardMinX = getWord(%cardAABB, 0);
    %cardMinY = getWord(%cardAABB, 1);
@@ -104,7 +138,7 @@ function Card::updateDiscard(%this)
    %camMaxX = getWord(%this.cameraBounds, 2);
    %camMaxY = getWord(%this.cameraBounds, 3);
 
-   // Completely outside if any side of the card has passed beyond the viewport edge
+   // Completely outside if any dimension has fully passed the visible boundary
    %isOffScreen = (%cardMaxX < %camMinX) || (%cardMinX > %camMaxX) ||
                   (%cardMaxY < %camMinY) || (%cardMinY > %camMaxY);
 
@@ -115,6 +149,6 @@ function Card::updateDiscard(%this)
       return;
    }
 
-   // 3. Reschedule next tick (16ms ~ 60 FPS)
+   // 4. Reschedule next tick (16ms ~ 60 FPS)
    %this.discardTickEvent = %this.schedule(16, "updateDiscard");
 }
