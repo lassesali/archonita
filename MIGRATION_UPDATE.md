@@ -304,5 +304,48 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ---
 
+## 📦 Build History & Changelog
+
+### Build 103 (2.0.2-ea4) — 2026-11-02
+- **Spell Card Deck & Reveal System:**
+  - Implemented randomized 6-card spell deck (`$spellDeck[1..6]`) using frames 3–8 from `cards_2.png`.
+  - Added physical card stack dealing with top-card layer tracking (`$topCardIndex = 6..1`).
+  - Integrated Magic action hexagon icon (`iconMagic3`) to flip the top card to its hidden spell face.
+- **Spell Targeting & Effect Execution:**
+  - Implemented targeting category validation for `"all"` (board/creatures), `"avatar"` (hero avatar), and `"unit"` (single piece).
+  - Implemented 6 spell effects: *Taikamakkara* (+1 team defense), *Taikahattu* (+1 spell point), *Taikatikkari* (+1 spell damage), *Tulivuori* (volcano area damage), *Voikukan juuri* (+1 spell point), and *Vatsatauti* (inflicts illness, skipping enemy turn).
+  - Added spent card fade-out animation and turn-action resolution.
+- **Distribution Packaging & Bytecode Compilation:**
+  - Fixed [`make_dist.ps1`](file:///M:/Archonita/src/make_dist.ps1) to dynamically resolve paths with `$PSScriptRoot`, supporting automated deployment to both `src/dist` and parent `dist`.
+  - Recompiled all 35 game scripts into fresh `.dso` bytecode, resolving the issue where stale bytecode shadowed `CombatEngine::doMagic()`.
+  - Purged obsolete legacy `.dso` files from source tracking.
+- **Version Configuration:**
+  - Incremented build number to `103` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).
+
+### Build 102 (2.0.2-ea4) — 2026-11-01
+- **Combat Dice Rolling & Animation:**
+  - Implemented 500ms rolling sprite sheet animations (`blueDiceRollAnimation`, `redDiceRollAnimation`) for combat resolution.
+  - Added scheduled action gate (500ms delay) and input locking to prevent duplicate actions during rolls.
+  - Normalized dice aspect ratio from wide strips to square 336×336 px cells to prevent texture distortion.
+  - Set static upright dice faces on roll completion matching calculated `rollResult`.
+- **Randomized Dice Audio & Voice Pooling:**
+  - Added 9 randomized dice roll sound assets with repeat prevention.
+  - Implemented dynamic voice pooling (`maxConcurrentDiceSounds = 4`) and volume balancing.
+
+### Build 101 (2.0.1-ea4) — 2026-10-31
+- **Modern 64-Bit Engine Runtime Migration:**
+  - Converted legacy 32-bit TGB codebase to 64-bit Torque2D 4.0 (EA4).
+  - Ported all levels to TAML declarative format (`.scene.taml`).
+  - Converted legacy image and animation datablocks to modern `AssetDatabase` descriptors.
+  - Implemented `t2d_compat.cs` bridging legacy TGB APIs to T2D 4.0 classes.
+  - Replaced legacy audio profiles with OpenAL audio assets.
+- **Audio & UI Enhancements:**
+  - Implemented seamless, uninterrupted background music manager (`AudioManager.cs`).
+  - Added bottom-right viewport version watermark (`VersionConfig.cs`).
+  - Fixed action hexagon sprite cursor-sticking and anchored them to UI coordinates.
+  - Implemented DSO bytecode compilation script (`make_dist.ps1`).
+
+---
+
 > [!NOTE]
 > All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/src/TORQUE_SCRIPT.md).
