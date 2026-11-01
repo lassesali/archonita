@@ -66,7 +66,7 @@ function initializeProject()
       $AssetResolutionManager = new ScriptObject() { class = "AssetResolutionManager"; };
    exec("./gameScripts/FloatingTextManager.cs");
    if (!isObject($FloatingTextManager))
-      $FloatingTextManager = new ScriptObject(FloatingTextManager) { class = "FloatingTextManager"; };
+      $FloatingTextManager = FloatingTextManager;
       
    SetRandomSeed(getRealTime());
    if (!$Archon::skipSplash)

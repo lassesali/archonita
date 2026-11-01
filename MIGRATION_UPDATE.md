@@ -312,18 +312,39 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
     - *Frame 6 (Tulivuori):* `"-X HP"` (Crimson Red `#E53935`) above every living enemy unit.
     - *Frame 8 (Vatsatauti):* `"Skip Turn!"` (Sickly Green `#AED581`) above targeted enemy piece.
 
+- **Spell Reveal & Spell Casting Sound Effects (OpenAL Audio Assets):**
+  - Registered 7 `<AudioAsset>` descriptors in [`Archon/data/audio/`](file:///M:/Archonita/src/Archon/data/audio/) (`AssetAutoUnload="0"`):
+    - `sfx_spell_reveal.asset.taml` (`sfx_spell_reveal.wav`)
+    - `sfx_spell_frame3_taikamakkara.asset.taml` (`sfx_spell_frame3_taikamakkara.wav`)
+    - `sfx_spell_frame4_taikahattu.asset.taml` (`sfx_spell_frame4_taikahattu.wav`)
+    - `sfx_spell_frame5_taikatikkari.asset.taml` (`sfx_spell_frame5_taikatikkari.wav`)
+    - `sfx_spell_frame6_tulivuori.asset.taml` (`sfx_spell_frame6_tulivuori.wav`)
+    - `sfx_spell_frame7_voikukan_juuri.asset.taml` (`sfx_spell_frame7_voikukan_juuri.wav`)
+    - `sfx_spell_frame8_vatsatauti.asset.taml` (`sfx_spell_frame8_vatsatauti.wav`)
+  - Added preloading via `AudioManager::preloadSpellAudio()` in [`AudioManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/AudioManager.cs) on startup using `AssetDatabase.acquireAsset` to eliminate disk I/O latency.
+  - Hooked `playSpellRevealSound()` in [`CombatEngine::doMagic`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) to play only when transitioning from unrevealed to revealed.
+  - Hooked `playSpellCastSound(%spellFrame)` in [`CombatEngine::castRevealedSpell`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) immediately after target category validation succeeds, running asynchronously without blocking gameplay.
+
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 104 (2.0.2-ea4) — 2026-11-02
+- **Visual Feedback & Particle Effects:**
+  - Added subtle particle sparkles over Magic hexagon button (`magicButtonEffect`) active only when eligible to cast (`canCastSpell && $topCardIndex >= 1 && game.getActivePlayer() == 0`).
+  - Implemented asynchronous [`FloatingTextManager`](file:///M:/Archonita/src/Archon/gameScripts/FloatingTextManager.cs) for floating combat text over targets upon spell resolution.
+- **Sound Effects (SFX) Integration:**
+  - Registered 7 dedicated spell audio assets in OpenAL with preloading in `AudioManager.cs` via `AssetDatabase.acquireAsset` to eliminate disk I/O latency.
+  - Added card reveal sound (`sfx_spell_reveal.wav`) in `CombatEngine::doMagic()`.
+  - Added target-validated spell resolution SFX for card frames 3–8 in `CombatEngine::castRevealedSpell()`.
+- **Version Configuration:**
+  - Incremented build number to `104` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).
 
 ### Build 103 (2.0.2-ea4) — 2026-11-02
 - **Spell Card Deck & Reveal System:**
   - Implemented randomized 6-card spell deck (`$spellDeck[1..6]`) using frames 3–8 from `cards_2.png`.
   - Added physical card stack dealing with top-card layer tracking (`$topCardIndex = 6..1`).
   - Integrated Magic action hexagon icon (`iconMagic3`) to flip the top card to its hidden spell face.
-- **Visual Feedback & Particle Effects:**
-  - Added subtle particle sparkles over Magic hexagon button (`magicButtonEffect`) active only when eligible to cast.
-  - Implemented asynchronous [`FloatingTextManager`](file:///M:/Archonita/src/Archon/gameScripts/FloatingTextManager.cs) for floating combat text over targets on spell resolution.
 - **Spell Targeting & Effect Execution:**
   - Implemented targeting category validation for `"all"` (board/creatures), `"avatar"` (hero avatar), and `"unit"` (single piece).
   - Implemented 6 spell effects: *Taikamakkara* (+1 team defense), *Taikahattu* (+1 spell point), *Taikatikkari* (+1 spell damage), *Tulivuori* (volcano area damage), *Voikukan juuri* (+1 spell point), and *Vatsatauti* (inflicts illness, skipping enemy turn).

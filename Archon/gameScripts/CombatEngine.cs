@@ -188,6 +188,7 @@ function CombatEngine::doMagic(%this)
    {
       %topCard.setFrame(%topCard.spellFrame);
       game.setSpellRevealed(true);
+      playSpellRevealSound();
       %this.updateMagicButtonParticles();
    }
 }
@@ -221,6 +222,9 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    if (%requiredCategory $= "avatar" && %clickedCategory !$= "avatar") return false;
    if (%requiredCategory $= "unit" && (%clickedCategory !$= "unit" || !isObject(%targetPiece) || %targetPiece.alive == 0)) return false;
    if (%requiredCategory $= "all" && (%clickedCategory !$= "board" && %clickedCategory !$= "unit")) return false;
+
+   // Play spell resolution SFX upon valid target confirmation
+   playSpellCastSound(%spellFrame);
 
    %hero = HeroGroup.getObject(0);
 

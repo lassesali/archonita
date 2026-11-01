@@ -15,6 +15,9 @@ function AudioManager::onAdd(%this)
    %this.lastDiceRollIndex = 0;
    %this.maxConcurrentDiceSounds = 4;
    %this.activeDiceSoundCount = 0;
+
+   // Preload spell audio assets to eliminate disk I/O lag on trigger
+   %this.preloadSpellAudio();
 }
 
 function AudioManager::onRemove(%this)
@@ -213,6 +216,48 @@ function AudioManager::playDiceRollSound(%this, %volume)
 }
 
 //---------------------------------------------------------------------------------------------
+// Spell Audio Preloading & Playback
+//---------------------------------------------------------------------------------------------
+
+function AudioManager::preloadSpellAudio(%this)
+{
+   if (isObject(AssetDatabase))
+   {
+      AssetDatabase.acquireAsset("Archon:sfx_spell_reveal");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame3_taikamakkara");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame4_taikahattu");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame5_taikatikkari");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame6_tulivuori");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame7_voikukan_juuri");
+      AssetDatabase.acquireAsset("Archon:sfx_spell_frame8_vatsatauti");
+   }
+}
+
+function AudioManager::playSpellRevealSound(%this)
+{
+   return playArchonSound("Archon:sfx_spell_reveal");
+}
+
+function AudioManager::playSpellCastSound(%this, %spellFrame)
+{
+   %asset = $sfxSpellFrame[%spellFrame];
+   if (%asset $= "")
+   {
+      switch (%spellFrame)
+      {
+         case 3: %asset = "Archon:sfx_spell_frame3_taikamakkara";
+         case 4: %asset = "Archon:sfx_spell_frame4_taikahattu";
+         case 5: %asset = "Archon:sfx_spell_frame5_taikatikkari";
+         case 6: %asset = "Archon:sfx_spell_frame6_tulivuori";
+         case 7: %asset = "Archon:sfx_spell_frame7_voikukan_juuri";
+         case 8: %asset = "Archon:sfx_spell_frame8_vatsatauti";
+         default: return 0;
+      }
+   }
+   return playArchonSound(%asset);
+}
+
+//---------------------------------------------------------------------------------------------
 // Global Convenience Wrappers
 //---------------------------------------------------------------------------------------------
 
@@ -265,6 +310,24 @@ function stopAllDiceSounds()
       $AudioManager.stopAllDiceSounds();
    else if (isObject(AudioManager))
       AudioManager.stopAllDiceSounds();
+}
+
+function playSpellRevealSound()
+{
+   if (isObject($AudioManager))
+      return $AudioManager.playSpellRevealSound();
+   else if (isObject(AudioManager))
+      return AudioManager.playSpellRevealSound();
+   return playArchonSound("Archon:sfx_spell_reveal");
+}
+
+function playSpellCastSound(%spellFrame)
+{
+   if (isObject($AudioManager))
+      return $AudioManager.playSpellCastSound(%spellFrame);
+   else if (isObject(AudioManager))
+      return AudioManager.playSpellCastSound(%spellFrame);
+   return 0;
 }
 
 // Initialize Singleton
