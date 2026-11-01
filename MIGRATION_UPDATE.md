@@ -297,7 +297,12 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - In [`complexMouse.cs`](file:///M:/Archonita/src/Archon/gameScripts/complexMouse.cs) (`sceneWindow2D::onMouseDown`), intercepted clicks during active spell reveal to evaluate avatar hits or board tile coordinates (`t2dVectorDistance <= tileSize * 0.6`).
   - Added `%this.spellCastOnDown` guard in `sceneWindow2D::onMouseUp` to prevent unintentional movement or tile re-selection upon mouse release after casting.
 
+- **Distribution Bytecode Compilation & Asset Synchronization:**
+  - Updated [`make_dist.ps1`](file:///M:/Archonita/src/make_dist.ps1) to dynamically resolve paths using `$PSScriptRoot` and `$PSScriptRoot\dist`, removing obsolete hardcoded path references.
+  - Purged legacy pre-compiled `.dso` bytecode files that shadowed the new `CombatEngine::doMagic` and spellcasting logic.
+  - Recompiled all 35 TorqueScript modules into fresh `.dso` bytecode and synchronized the release packages in both `src/dist/` and `dist/` with full `cards_2.png` 4×4 asset definitions.
+
 ---
 
 > [!NOTE]
-> All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/games/TORQUE_SCRIPT.md).
+> All original Finnish domain functions, gameplay rules, and board behaviors from the 2006 release have been preserved in full conformity with [TORQUE_SCRIPT.md](file:///M:/Archonita/src/TORQUE_SCRIPT.md).

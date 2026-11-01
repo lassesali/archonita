@@ -2,12 +2,12 @@
 # Archonita - Build Release Distribution Script
 # ==============================================================================
 param(
-    [string]$DestinationDir = "M:\Archonita\games\dist",
-    [switch]$DeployToParentDist = $false
+    [string]$DestinationDir = "$PSScriptRoot\dist",
+    [switch]$DeployToParentDist = $true
 )
 
 $ErrorActionPreference = "Stop"
-$SourceRoot = "M:\Archonita\games"
+$SourceRoot = $PSScriptRoot
 
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host " Building Archonita Release Distribution " -ForegroundColor Cyan
