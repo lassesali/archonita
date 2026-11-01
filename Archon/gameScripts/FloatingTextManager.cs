@@ -4,9 +4,10 @@
 // Conforms to TORQUE_SCRIPT.md: ScriptObject subclass, lifecycle in onAdd/onRemove.
 //---------------------------------------------------------------------------------------------
 
-function FloatingTextManager::onAdd(%this)
+function FloatingTextManager::init(%this)
 {
-   %this.activeTexts = new SimSet();
+   if (!isObject(%this.activeTexts))
+      %this.activeTexts = new SimSet();
    %this.updateSchedule = 0;
    %this.tickInterval = 30; // ~33 FPS animation tick
    %this.nextInstanceId = 0;
@@ -18,8 +19,14 @@ function FloatingTextManager::onAdd(%this)
       {
          fillColor = "0 0 0 0";
          border = false;
+         useInput = false;
       };
    }
+}
+
+function FloatingTextManager::onAdd(%this)
+{
+   %this.init();
 }
 
 function FloatingTextManager::onRemove(%this)
@@ -77,6 +84,9 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
    if (!isObject(mainScreenGui))
       return;
 
+   if (!isObject(%this.activeTexts))
+      %this.init();
+
    if (%durationMs $= "" || %durationMs <= 0)
       %durationMs = 1300; // 1.3s default animation duration
 
@@ -106,34 +116,32 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
    %fgProfile = new GuiControlProfile(%fgProfileName : GuiDefaultProfile)
    {
       fontType = "Arial";
-      fontSize = 16;
+      fontSize = 18;
       fontColor = %colorR SPC %colorG SPC %colorB SPC "255";
       fontColorHL = %colorR SPC %colorG SPC %colorB SPC "255";
       fontColorNA = %colorR SPC %colorG SPC %colorB SPC "255";
       align = "center";
       vAlign = "middle";
-      autoSizeWidth = false;
-      autoSizeHeight = false;
       fillColor = "0 0 0 0";
       border = false;
+      useInput = false;
    };
 
    %shProfile = new GuiControlProfile(%shProfileName : GuiDefaultProfile)
    {
       fontType = "Arial";
-      fontSize = 16;
+      fontSize = 18;
       fontColor = "0 0 0 255";
       fontColorHL = "0 0 0 255";
       fontColorNA = "0 0 0 255";
       align = "center";
       vAlign = "middle";
-      autoSizeWidth = false;
-      autoSizeHeight = false;
       fillColor = "0 0 0 0";
       border = false;
+      useInput = false;
    };
 
-   // GUI Container
+   // GUI Container (GuiControl is the standard text-rendering control in Torque2D 4.0)
    %container = new GuiControl()
    {
       Profile = FloatingTextContainerProfile;
@@ -146,7 +154,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
       isContainer = "1";
 
       // 4-point dark shadow / outline for high contrast against any background
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %shProfile;
          HorizSizing = "width";
@@ -155,7 +163,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          Extent = %boxWidth SPC %boxHeight;
          text = %text;
       };
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %shProfile;
          HorizSizing = "width";
@@ -164,7 +172,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          Extent = %boxWidth SPC %boxHeight;
          text = %text;
       };
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %shProfile;
          HorizSizing = "width";
@@ -173,7 +181,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          Extent = %boxWidth SPC %boxHeight;
          text = %text;
       };
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %shProfile;
          HorizSizing = "width";
@@ -182,7 +190,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          Extent = %boxWidth SPC %boxHeight;
          text = %text;
       };
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %shProfile;
          HorizSizing = "width";
@@ -193,7 +201,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
       };
 
       // Foreground colored label
-      new GuiTextCtrl()
+      new GuiControl()
       {
          Profile = %fgProfile;
          HorizSizing = "width";
@@ -204,9 +212,9 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
       };
    };
 
+   // Add to main screen GUI and bring to the very front so it renders on top of sceneWindow2D
    mainScreenGui.add(%container);
-   if (isObject(sceneWindow2D))
-      mainScreenGui.pushToBack(sceneWindow2D);
+   mainScreenGui.pushToBack(%container);
 
    %instance = new ScriptObject()
    {
@@ -300,7 +308,7 @@ function FloatingTextManager::onUpdateTick(%this)
       %progress = %inst.elapsed / %inst.duration;
       %curY = %inst.startY - (%progress * %inst.floatDistance);
       if (isObject(%inst.container))
-         %inst.container.setPosition(%inst.startX SPC mFloor(%curY));
+         %inst.container.setPosition(%inst.startX, mFloor(%curY));
 
       // Alpha fade during final 500ms
       %remaining = %inst.duration - %inst.elapsed;
@@ -312,10 +320,18 @@ function FloatingTextManager::onUpdateTick(%this)
          %alpha = mFloor(%alphaFrac * 255);
 
          if (isObject(%inst.fgProfile))
+         {
             %inst.fgProfile.fontColor = %inst.colorR SPC %inst.colorG SPC %inst.colorB SPC %alpha;
+            %inst.fgProfile.fontColorHL = %inst.colorR SPC %inst.colorG SPC %inst.colorB SPC %alpha;
+            %inst.fgProfile.fontColorNA = %inst.colorR SPC %inst.colorG SPC %inst.colorB SPC %alpha;
+         }
 
          if (isObject(%inst.shadowProfile))
+         {
             %inst.shadowProfile.fontColor = "0 0 0" SPC %alpha;
+            %inst.shadowProfile.fontColorHL = "0 0 0" SPC %alpha;
+            %inst.shadowProfile.fontColorNA = "0 0 0" SPC %alpha;
+         }
       }
    }
 
@@ -381,5 +397,10 @@ function spawnFloatingTextAboveAvatar(%avatar, %text, %color, %duration)
 // Initialize Singleton
 if (!isObject(FloatingTextManager))
 {
-   new ScriptObject(FloatingTextManager) { class = "FloatingTextManager"; };
+   new ScriptObject(FloatingTextManager) { };
 }
+if (!isObject($FloatingTextManager))
+{
+   $FloatingTextManager = FloatingTextManager;
+}
+FloatingTextManager.init();
