@@ -53,6 +53,7 @@ function TurnManager::getGameState(%this)
 function TurnManager::initNewGame(%this)
 {
    game.setTurn(0);
+   %this.shuffleSpellDeck();
 
    $Sprite = new Sprite() { scene = t2dScene; };
    $Kortti = new Sprite() { scene = t2dScene; };
@@ -117,8 +118,27 @@ function TurnManager::updateCountdownTimer(%this)
    }
 }
 
+function TurnManager::shuffleSpellDeck(%this)
+{
+   %frames = "3 4 5 6 7 8";
+   for (%i = 1; %i <= 6; %i++)
+   {
+      %count = getWordCount(%frames);
+      %pick = getRandom(%count - 1);
+      $spellDeck[%i] = getWord(%frames, %pick);
+      %frames = removeWord(%frames, %pick);
+   }
+   $cardCount = 0;
+   $topCardIndex = 6;
+   game.setCanCastSpell(false);
+   game.setSpellRevealed(false);
+}
+
 function TurnManager::dealCards(%this)
 {
+   if ($cardCount $= "" || $spellDeck[1] $= "")
+      %this.shuffleSpellDeck();
+
    $cardCount++;
    $kortitnum = $cardCount;
    
@@ -136,6 +156,7 @@ function TurnManager::dealCards(%this)
    $specialcard[%i].setPosition(%posx SPC %posy);
    $specialcard[%i].setSize("24 24");
    $specialcard[%i].setFrame(0);
+   $specialcard[%i].spellFrame = $spellDeck[%i];
    $specialcard[%i].setVisible(true);
    $specialcard[%i].setLayer(10 - %i);
    $specialcard[%i].setUseMouseEvents(0);
@@ -283,6 +304,12 @@ function TurnManager::distributeTurnQueue(%this)
             game.setTurnQueue(game.getTurnQueue() SPC getword(%playerVector, %i) SPC getword(%aiVector, %i));
          }
       }
+
+      if ($topCardIndex >= 1)
+      {
+         game.setCanCastSpell(true);
+         game.setSpellRevealed(false);
+      }
    } 
    else 
    {
@@ -340,6 +367,16 @@ function TurnManager::nextTurn(%this)
                
          selectPiece(%pieceId);
 
+         if ($nappulaSprite[%pieceId].skipNextTurn == 1)
+         {
+            $nappulaSprite[%pieceId].skipNextTurn = 0;
+            $nappulaSprite[%pieceId].hasMoved = 1;
+            $nappulaSprite[%pieceId].hasDoneAction = 1;
+            sceneWindow2D.setUseWindowMouseEvents(false);
+            schedule(800, 0, "doDefence", game.getTurn());
+            return;
+         }
+
          if (game.getActivePlayer() == 0) {
             sceneWindow2D.setUseWindowMouseEvents(true);
          } else {
@@ -375,6 +412,7 @@ function updateCountdownTimer()    { TurnManager.updateCountdownTimer(); }
 function sekuntiLaskuri()          { TurnManager.updateCountdownTimer(); }
 function dealCards()               { TurnManager.dealCards(); }
 function jaaKortit()               { TurnManager.dealCards(); }
+function shuffleSpellDeck()        { TurnManager.shuffleSpellDeck(); }
 function updateActionIcons()       { TurnManager.updateActionIcons(); }
 function areUnitsAlive()           { return TurnManager.areUnitsAlive(); }
 function onkoNappulatElossa()      { return TurnManager.areUnitsAlive(); }

@@ -256,6 +256,40 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - On roll completion (`stopDiceAnimation`), transitioned dice sprites from rolling animations to static frames from [`dicered.png`](file:///M:/Archonita/games/Archon/data/images/dicered.png) (`diceredImageMap`) and [`diceblue.png`](file:///M:/Archonita/games/Archon/data/images/diceblue.png) (`diceblueImageMap`) matching their calculated `rollResult`.
   - Reset rotation angle (`setAngle(0)`) and angular velocity (`setAngularVelocity(0)`) so 3D isometric dice faces render upright and readable.
 
+### 11. Spell Card Deck, Reveal & Spellcasting Mechanics
+- **Randomized 6-Card Spell Deck & Dynamic Top-Card Layer Tracking:**
+  - Implemented `TurnManager::shuffleSpellDeck` in [`TurnManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/TurnManager.cs) to randomly shuffle spell card frames `3..8` from `cards_2.png` into `$spellDeck[1..6]`.
+  - Initialized `$topCardIndex = 6`, `$cardCount = 0`, `game.setCanCastSpell(false)`, and `game.setSpellRevealed(false)` on new game setup in `TurnManager::initNewGame`.
+  - In `TurnManager::dealCards`, dealt 6 physical card sprites (`$specialcard[1..6]`) with descending layers (`setLayer(10 - %i)`), ensuring `$specialcard[6]` rests on top of the visual stack at Layer 4, mapping `$specialcard[%i].spellFrame = $spellDeck[%i]`.
+  - Updated [`cardsImageMap.asset.taml`](file:///M:/Archonita/src/Archon/data/images/cardsImageMap.asset.taml) to reference `cards_2.png` with a 4×4 grid layout (`CellCountY="4"`), unlocking frames 3 through 8 for Torque2D while preserving hero selection frames 0 and 1.
+- **Round-Based Spellcasting Eligibility:**
+  - In `TurnManager::distributeTurnQueue`, enabled spellcasting opportunity (`game.setCanCastSpell(true)`) immediately on the first turn of battle, and renewed eligibility whenever all living characters on the board have had the opportunity to move once and a new turn queue is generated (`$topCardIndex >= 1`).
+- **Magic Action Icon & Top-Card Reveal:**
+  - Connected the Magic action hexagon sprite (`iconMagic3` / `%action == 2`) in `complexMouse.cs::onActionIconClick` to `CombatEngine::doAction()` and `CombatEngine::doMagic()`.
+  - In [`CombatEngine::doMagic`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs), guarded against inactive player turns, depleted decks (`$topCardIndex < 1`), or input locks. Flips the top card to its hidden spell artwork (`%topCard.setFrame(%topCard.spellFrame)`) and marks `game.setSpellRevealed(true)`.
+- **Target Category Validation & Effect Resolution:**
+  - Implemented `CombatEngine::getSpellTargetCategory` and `CombatEngine::castRevealedSpell` supporting three target categories:
+    - **Board / All Creatures (`"all"` - click board or units):**
+      - **Frame 3 (*Taikamakkara*):** Grants `+1 defence` and `defenceMAX` roll bonus to all friendly living creatures (`groupid == 0`).
+      - **Frame 6 (*Tulivuori*):** Deals `1 + hero.getSpellDamage()` damage across all living enemy creatures (`groupid == 1`).
+    - **Hero Avatar (`"avatar"` - click `heroicon` / `heroicongrid` at `"-40 -24"`):**
+      - **Frame 4 (*Taikahattu*):** Grants `+1 mana` (spell points) to player hero.
+      - **Frame 5 (*Taikatikkari*):** Increases hero spell damage bonus by `+1` ([`Hero::addSpellDamage`](file:///M:/Archonita/src/Archon/gameScripts/hero.cs)).
+      - **Frame 7 (*Voikukan juuri*):** Grants `+1 mana` (spell points) to player hero.
+    - **Specific Creature (`"unit"` - click living creature):**
+      - **Frame 8 (*Vatsatauti*):** Inflicts illness, marking the target piece with `skipNextTurn = 1`.
+  - Mismatched category clicks are rejected safely without consuming the spell card or locking spellcasting.
+- **Post-Cast Cleanup & Visual Fade:**
+  - Fades out the spent card via `%topCard.startFadeOut(0.1, 1.0)`.
+  - Decrements top card tracker (`$topCardIndex--`).
+  - Locks casting for the rest of the round (`game.setCanCastSpell(false)`), resets `game.setSpellRevealed(false)`, and deselects action icons via `updateActionIconsVisualState()`.
+- **Vatsatauti Turn-Skip Execution:**
+  - In `TurnManager::nextTurn`, checks `$nappulaSprite[%pieceId].skipNextTurn == 1` upon turn start.
+  - Clears `skipNextTurn = 0`, marks `hasMoved = 1` and `hasDoneAction = 1`, and schedules `doDefence(game.getTurn())` after 800ms, cleanly passing initiative to the next piece in queue.
+- **Mouse Input Interception & Click-Through Prevention:**
+  - In [`complexMouse.cs`](file:///M:/Archonita/src/Archon/gameScripts/complexMouse.cs) (`sceneWindow2D::onMouseDown`), intercepted clicks during active spell reveal to evaluate avatar hits or board tile coordinates (`t2dVectorDistance <= tileSize * 0.6`).
+  - Added `%this.spellCastOnDown` guard in `sceneWindow2D::onMouseUp` to prevent unintentional movement or tile re-selection upon mouse release after casting.
+
 ---
 
 > [!NOTE]

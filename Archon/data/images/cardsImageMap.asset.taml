@@ -1,7 +1,7 @@
 <ImageAsset
     AssetName="cardsImageMap"
-    ImageFile="cards.png"
+    ImageFile="cards_2.png"
     CellCountX="4"
-    CellCountY="1"
+    CellCountY="4"
     CellWidth="512"
     CellHeight="512" />

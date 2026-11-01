@@ -28,6 +28,7 @@ new SimGroup(HeroGroup)
       ammatti = 0;
       pieceCount = 0;
       nappulatLkm = 0;
+      spellDamageBonus = 0;
    };
 
    new ScriptObject(AI) 
@@ -49,6 +50,7 @@ new SimGroup(HeroGroup)
       ammatti = 0;
       pieceCount = 0;
       nappulatLkm = 0;
+      spellDamageBonus = 0;
    };
 };
 
@@ -185,3 +187,10 @@ function Hero::getHeroClass(%this)
 // Backward-compatible aliases for Hero Class
 function Hero::setAmmatti(%this, %a) { %this.setHeroClass(%a); }
 function Hero::getAmmatti(%this)     { return %this.getHeroClass(); }
+
+//---------------------------------------------------------------------------------------------
+// Spell Damage Bonus
+//---------------------------------------------------------------------------------------------
+function Hero::addSpellDamage(%this, %add)   { %this.spellDamageBonus = %this.getSpellDamage() + %add; }
+function Hero::getSpellDamage(%this)         { return (%this.spellDamageBonus !$= "") ? %this.spellDamageBonus : 0; }
+

@@ -2720,7 +2720,7 @@ $managedDatablockSet = new SimSet() {
    };
    new t2dImageMapDatablock(cardsImageMap) {
       canSaveDynamicFields = "1";
-      imageName = "Archon/data/images/cards";
+      imageName = "Archon/data/images/cards_2";
       imageMode = "CELL";
       frameCount = "-1";
       filterMode = "SMOOTH";

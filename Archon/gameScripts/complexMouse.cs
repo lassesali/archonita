@@ -199,12 +199,15 @@ function onActionIconClick(%actionIcon)
       game.setSelectedAction(%action);
       game.setHighlightedActionIcon(%action);
 
-      // In Battle State, Defence action triggers immediately
-      if (getGameState() == $gameBattleState && %action == 1)
+      // In Battle State, Defence action triggers immediately; Magic action reveals top spell card
+      if (getGameState() == $gameBattleState && (%action == 1 || %action == 2))
       {
          doAction();
-         game.setSelectedAction(0);
-         game.setHighlightedActionIcon(0);
+         if (%action == 1)
+         {
+            game.setSelectedAction(0);
+            game.setHighlightedActionIcon(0);
+         }
       }
    }
 
@@ -671,6 +674,50 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
            return;
         }
 
+        // Spell targeting: if a spell is currently revealed in battle, handle target clicks
+        if (getGameState() == $gameBattleState && game.getSpellRevealed())
+        {
+           for (%i = 0; %i < %objCount; %i++)
+           {
+              %picked = getWord(%objList, %i);
+              if (%picked == heroicon || %picked == heroicongrid || %picked.getName() $= "heroicon" || %picked.getName() $= "heroicongrid")
+              {
+                 if (CombatEngine.castRevealedSpell("avatar", %picked))
+                 {
+                    %this.spellCastOnDown = true;
+                    return;
+                 }
+              }
+           }
+
+           for (%bx = 0; %bx < BoardConfig.width; %bx++)
+           {
+              for (%by = 0; %by < BoardConfig.height; %by++)
+              {
+                 if (isObject($floor[%bx, %by]) && t2dVectorDistance(%worldPos, $floor[%bx, %by].getPosition()) <= (BoardConfig.tileSize * 0.6))
+                 {
+                    %pieceIdx = $board.nappulat[%bx, %by];
+                    if (%pieceIdx > 0 && isObject($nappulaSprite[%pieceIdx]) && $nappulaSprite[%pieceIdx].alive == 1)
+                    {
+                       if (CombatEngine.castRevealedSpell("unit", $nappulaSprite[%pieceIdx]))
+                       {
+                          %this.spellCastOnDown = true;
+                          return;
+                       }
+                    }
+                    else
+                    {
+                       if (CombatEngine.castRevealedSpell("board", ""))
+                       {
+                          %this.spellCastOnDown = true;
+                          return;
+                       }
+                    }
+                 }
+              }
+           }
+        }
+
         //check to see if we have an object already selected, 
         //if so we don't want to do anything expect set it to false so it doesn't follow anymore
         if(%this.objectSelected)
@@ -754,6 +801,15 @@ function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 {
          if ($inputLocked || (isObject(CombatEngine) && CombatEngine.isInputLocked()))
             return;
+
+         if (%this.spellCastOnDown)
+         {
+            %this.spellCastOnDown = false;
+            $hiiri.nappi = false;
+            $hiiri.nappireleased = true;
+            schedule(100, 0, setButtonReleasedOff);
+            return;
+         }
 
          if ( getGameState() == $gameIntroState )
          {

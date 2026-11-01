@@ -15,6 +15,8 @@ new ScriptObject(game)
    turnQueue = "";
    state = "";
    pieceCount = 0;
+   canCastSpell = false;
+   spellRevealed = false;
 };
 
 //---------------------------------------------------------------------------------------------
@@ -202,3 +204,12 @@ function game::addPieceCount(%this, %add)
 function game::setCountOfNappula(%this, %c) { %this.setPieceCount(%c); }
 function game::getCountOfNappula(%this)     { return %this.getPieceCount(); }
 function game::addCountOfNappula(%this, %a) { %this.addPieceCount(%a); }
+
+//---------------------------------------------------------------------------------------------
+// Spellcasting Eligibility & Top-Card Reveal State
+//---------------------------------------------------------------------------------------------
+function game::setCanCastSpell(%this, %val)  { %this.canCastSpell = %val; }
+function game::getCanCastSpell(%this)        { return (%this.canCastSpell !$= "") ? %this.canCastSpell : false; }
+function game::setSpellRevealed(%this, %val) { %this.spellRevealed = %val; }
+function game::getSpellRevealed(%this)       { return (%this.spellRevealed !$= "") ? %this.spellRevealed : false; }
+

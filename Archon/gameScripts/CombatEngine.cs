@@ -171,6 +171,109 @@ function CombatEngine::doDefence(%this, %turn)
 
 function CombatEngine::doMagic(%this)
 {
+   if (%this.isInputLocked() || getGameState() != $gameBattleState)
+      return;
+
+   if (game.getActivePlayer() != 0 || !game.getCanCastSpell() || $topCardIndex < 1)
+   {
+      game.setSelectedAction(0);
+      game.setHighlightedActionIcon(0);
+      updateActionIconsVisualState();
+      return;
+   }
+
+   %topCard = $specialcard[$topCardIndex];
+   if (isObject(%topCard) && !game.getSpellRevealed())
+   {
+      %topCard.setFrame(%topCard.spellFrame);
+      game.setSpellRevealed(true);
+   }
+}
+
+function CombatEngine::getSpellTargetCategory(%this, %spellFrame)
+{
+   switch (%spellFrame)
+   {
+      case 3: return "all";
+      case 4: return "avatar";
+      case 5: return "avatar";
+      case 6: return "all";
+      case 7: return "avatar";
+      case 8: return "unit";
+   }
+   return "";
+}
+
+function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
+{
+   if (!game.getCanCastSpell() || !game.getSpellRevealed() || $topCardIndex < 1)
+      return false;
+
+   %topCard = $specialcard[$topCardIndex];
+   if (!isObject(%topCard))
+      return false;
+
+   %spellFrame = %topCard.spellFrame;
+   %requiredCategory = %this.getSpellTargetCategory(%spellFrame);
+
+   if (%requiredCategory $= "avatar" && %clickedCategory !$= "avatar") return false;
+   if (%requiredCategory $= "unit" && (%clickedCategory !$= "unit" || !isObject(%targetPiece) || %targetPiece.alive == 0)) return false;
+   if (%requiredCategory $= "all" && (%clickedCategory !$= "board" && %clickedCategory !$= "unit")) return false;
+
+   %hero = HeroGroup.getObject(0);
+
+   switch (%spellFrame)
+   {
+      case 3: // Taikamakkara (+1 creature defense roll)
+         for (%i = 1; %i <= game.getPieceCount(); %i++)
+         {
+            if (isObject($nappulaSprite[%i]) && $nappulaSprite[%i].alive == 1 && $nappulaSprite[%i].groupid == 0)
+            {
+               $nappulaSprite[%i].defence += 1;
+               $nappulaSprite[%i].defenceMAX += 1;
+            }
+         }
+      case 4: // Taikahattu (+1 spell points)
+         %hero.addMana(1);
+      case 5: // Taikatikkari (+1 spell damage)
+         %hero.addSpellDamage(1);
+      case 6: // Tulivuori (Volcano damages enemy army)
+         %dmg = 1 + %hero.getSpellDamage();
+         %curPiece = game.getSelectedPiece();
+         %savedMoved = (isObject($nappulaSprite[%curPiece])) ? $nappulaSprite[%curPiece].hasMoved : 0;
+         %savedAction = (isObject($nappulaSprite[%curPiece])) ? $nappulaSprite[%curPiece].hasDoneAction : 0;
+         for (%i = 1; %i <= game.getPieceCount(); %i++)
+         {
+            %unit = $nappulaSprite[%i];
+            if (isObject(%unit) && %unit.alive == 1 && %unit.groupid == 1)
+            {
+               for (%d = 0; %d < %dmg; %d++)
+               {
+                  if (%unit.alive == 1)
+                     %this.damagePiece(%unit);
+               }
+            }
+         }
+         if (isObject($nappulaSprite[%curPiece]))
+         {
+            $nappulaSprite[%curPiece].hasMoved = %savedMoved;
+            $nappulaSprite[%curPiece].hasDoneAction = %savedAction;
+         }
+      case 7: // Voikukan juuri (+1 spell points)
+         %hero.addMana(1);
+      case 8: // Vatsatauti (Target skips next turn)
+         %targetPiece.skipNextTurn = 1;
+   }
+
+   %topCard.startFadeOut(0.1, 1.0);
+   $topCardIndex--;
+
+   game.setCanCastSpell(false);
+   game.setSpellRevealed(false);
+   game.setSelectedAction(0);
+   game.setHighlightedActionIcon(0);
+   updateActionIconsVisualState();
+   return true;
 }
 
 function CombatEngine::doAttack(%this, %targetEnemy, %turn)
@@ -673,6 +776,8 @@ function doAction()                                { CombatEngine.doAction(); }
 function doDefence(%turn)                          { CombatEngine.doDefence(%turn); }
 function doDefense(%turn)                          { CombatEngine.doDefence(%turn); }
 function doMagic()                                 { CombatEngine.doMagic(); }
+function getSpellTargetCategory(%spellFrame)       { return CombatEngine.getSpellTargetCategory(%spellFrame); }
+function castRevealedSpell(%clickedCategory, %piece) { return CombatEngine.castRevealedSpell(%clickedCategory, %piece); }
 function doAttack(%target, %turn)                  { CombatEngine.doAttack(%target, %turn); }
 function hideBlood()                               { CombatEngine.hideBlood(); }
 function piilotaveri()                             { CombatEngine.hideBlood(); }
