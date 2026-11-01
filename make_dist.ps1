@@ -25,7 +25,6 @@ if (Test-Path $DestinationDir) {
 # 2. Copy Executables & DLLs
 Write-Host "Copying engine binaries and libraries..."
 Copy-Item "$SourceRoot\Torque2D.exe" "$DestinationDir\Archonita.exe"
-Copy-Item "$SourceRoot\Torque2D.exe" "$DestinationDir\Torque2D.exe"
 Copy-Item "$SourceRoot\OpenAL32.dll" "$DestinationDir\OpenAL32.dll"
 
 # 3. Create Root main.cs (Release Direct Boot)
@@ -248,7 +247,7 @@ Set-Content -Path $compileScriptPath -Value $compileScriptContent -Encoding ASCI
 
 # Launch Torque2D executable to run the temporary script and quit upon completion
 Write-Host "Launching Torque2D executable to compile scripts..."
-$compileProc = Start-Process -FilePath "$DestinationDir\Torque2D.exe" -ArgumentList "compile_release_dso.cs" -WorkingDirectory $DestinationDir -PassThru -Wait
+$compileProc = Start-Process -FilePath "$DestinationDir\Archonita.exe" -ArgumentList "compile_release_dso.cs" -WorkingDirectory $DestinationDir -PassThru -Wait
 if ($compileProc.ExitCode -ne 0) {
     Write-Warning "DSO compiler finished with exit code $($compileProc.ExitCode)"
 }
