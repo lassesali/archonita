@@ -52,9 +52,15 @@ function BoardManager::showBoardScreen(%this)
 
    // Decorative dice idle rotation: red die clockwise (-10), blue die anti-clockwise (+10)
    if (isObject(diceBlue))
+   {
+      diceBlue.setSize("11.4 11.4");
       diceBlue.setAngularVelocity(10);
+   }
    if (isObject(diceRed))
+   {
+      diceRed.setSize("11.4 11.4");
       diceRed.setAngularVelocity(-10);
+   }
 }
 
 function BoardManager::initBoard(%this)

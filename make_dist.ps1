@@ -17,9 +17,10 @@ Write-Host "Target: $DestinationDir"
 # 1. Clean / Recreate Destination
 if (Test-Path $DestinationDir) {
     Write-Host "Cleaning existing dist directory..."
-    Remove-Item -Path $DestinationDir -Recurse -Force
+    Remove-Item -Path "$DestinationDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+} else {
+    New-Item -ItemType Directory -Path $DestinationDir -Force | Out-Null
 }
-New-Item -ItemType Directory -Path $DestinationDir -Force | Out-Null
 
 # 2. Copy Executables & DLLs
 Write-Host "Copying engine binaries and libraries..."

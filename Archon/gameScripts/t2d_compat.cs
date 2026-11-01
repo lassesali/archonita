@@ -42,6 +42,22 @@ function Sprite::setImageMap(%this, %map)
    %this.setImage("Archon:" @ %name);
 }
 
+function isDiceRollAnimation(%anim)
+{
+   if (%anim $= "")
+      return false;
+   if (strstr(%anim, "redDiceRollAnimation") != -1 ||
+       strstr(%anim, "blueDiceRollAnimation") != -1 ||
+       strstr(%anim, "diceRedRollAnimation") != -1 ||
+       strstr(%anim, "diceBlueRollAnimation") != -1 ||
+       strstr(%anim, "DiceRoll") != -1 ||
+       strstr(%anim, "diceRoll") != -1)
+   {
+      return true;
+   }
+   return false;
+}
+
 function Sprite::playAnimation(%this, %anim, %restore)
 {
    if (%anim $= "")
@@ -53,6 +69,34 @@ function Sprite::playAnimation(%this, %anim, %restore)
       %asset = "Archon:" @ %asset;
    %this.Animation = %asset;
    SpriteBase::playAnimation(%this, %asset);
+
+   if (%this.isDie || %this.isDice || %this.dieType !$= "" || isDiceRollAnimation(%asset))
+   {
+      if (getSimTime() != $lastDiceAnimationSoundTick)
+      {
+         $lastDiceAnimationSoundTick = getSimTime();
+         playDiceRollSound();
+      }
+   }
+}
+
+function DiceSprite::playAnimation(%this, %anim, %restore)
+{
+   if (%anim $= "")
+      return;
+   %asset = %anim;
+   if (isObject(%anim))
+      %asset = %anim.getName();
+   if (strstr(%asset, "Archon:") == -1)
+      %asset = "Archon:" @ %asset;
+   %this.Animation = %asset;
+   SpriteBase::playAnimation(%this, %asset);
+
+   if (getSimTime() != $lastDiceAnimationSoundTick)
+   {
+      $lastDiceAnimationSoundTick = getSimTime();
+      playDiceRollSound();
+   }
 }
 
 function Sprite::setAnimationName(%this, %anim)

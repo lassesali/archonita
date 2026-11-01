@@ -3,7 +3,7 @@
         Name="diceBlue"
         Image="@asset=Archon:diceblueImageMap"
         Position="37.5 28.1"
-        Size="8.38 8.85"
+        Size="11.4 11.4"
         Angle="340"
         AngularVelocity="10"
         BlendAlpha="0.862745"

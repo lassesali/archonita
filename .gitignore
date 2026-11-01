@@ -26,10 +26,16 @@ ohno*.png
 crop_*.png
 logo_*.png
 shots/
+screenshot*.jpg
 
 # Temporary and backup files
 *.bak
 _test_*.cs
+scratch/
+
+# Local input assets (moved to Archon/data/)
+/*_dice_sheet*.png
+/diceroll*.ogg
 
 # Python migration and helper scripts
 *.py

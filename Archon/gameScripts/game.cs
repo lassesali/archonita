@@ -75,6 +75,8 @@ function startGame(%level)
 //---------------------------------------------------------------------------------------------
 function endGame()
 {
+   if (isObject(CombatEngine))
+      CombatEngine.cancelDiceRoll();
    stopBackgroundMusic();
    alxStopAll();
    if (isObject(testActionMap))

@@ -356,6 +356,8 @@ function TurnManager::nextTurn(%this)
 
 function TurnManager::endBattle(%this)
 {
+   if (isObject(CombatEngine))
+      CombatEngine.cancelDiceRoll();
    sceneWindow2D.setUseWindowMouseEvents(false);
    %this.endBattleEvent = schedule(2000, 0, creditsscreen);
 }

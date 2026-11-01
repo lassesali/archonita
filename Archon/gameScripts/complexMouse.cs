@@ -610,6 +610,9 @@ function sceneWindow2D::cancelCharacterPlacement(%this, %obj)
 
 function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 {
+        if ($inputLocked || (isObject(CombatEngine) && CombatEngine.isInputLocked()))
+            return;
+
         if (getGameState() == $gameIntroState) 
         {
             skipIntro();
@@ -749,6 +752,9 @@ function setNappiReleasedOff() {
 
 function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
 {
+         if ($inputLocked || (isObject(CombatEngine) && CombatEngine.isInputLocked()))
+            return;
+
          if ( getGameState() == $gameIntroState )
          {
             return;

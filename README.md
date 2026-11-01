@@ -238,6 +238,24 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - **Active Character Layer Anchoring (`SceneLayer 2`):** In [`Archon/gameScripts/BoardManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/BoardManager.cs) and `CombatEngine::movePiece`, active units explicitly assert `SceneLayer 2` and `setSceneLayerDepthFront()`, guaranteeing that standing and moving units always render in front of ground-level corpses when occupying the same tile coordinates.
   - **Animation Callback Safety:** In [`Archon/gameScripts/nappula.cs`](file:///M:/Archonita/games/Archon/gameScripts/nappula.cs), updated `Piece::onAnimationEnd` to ensure completed tipping-over animations maintain corpses on `SceneLayer 3` with `setSceneLayerDepthBack()`, replacing an obsolete call to non-existent `Sprite::onAnimationEnd`.
 
+### 10. Combat Dice Rolling Animation, Audio Pooling, Aspect Ratio & Outcome Visualization
+- **500ms Combat Rolling Animation & Scheduled Action Gate:**
+  - Implemented 500ms sprite-sheet dice rolling animations ([`redDiceRollAnimation`](file:///M:/Archonita/games/Archon/data/animations/redDiceRollAnimation.asset.taml) and [`blueDiceRollAnimation`](file:///M:/Archonita/games/Archon/data/animations/blueDiceRollAnimation.asset.taml)) on combat dice (`$noppa`, `$noppadef`) instantiated with `class = "DiceSprite"`.
+  - Deferred combat outcome resolution by 500ms via `schedule(500, "onAttackRollComplete", ...)` with input locking (`lockInput`/`unlockInput`) on `sceneWindow2D` mouse events to prevent overlapping player clicks during rolls.
+  - Preserved immediate deterministic movement on empty tiles in [`CombatEngine::doMovement`](file:///M:/Archonita/games/Archon/gameScripts/CombatEngine.cs).
+- **Randomized Dice Roll Audio & Voice Pooling:**
+  - Registered 9 audio assets ([`diceroll1.ogg`](file:///M:/Archonita/games/Archon/data/audio/diceroll1.ogg) through [`diceroll9.ogg`](file:///M:/Archonita/games/Archon/data/audio/diceroll9.ogg)) in [`Archon/data/audio/`](file:///M:/Archonita/games/Archon/data/audio/) mapped to `$diceRollAudio[1..9]` in [`audiodatablocks.cs`](file:///M:/Archonita/games/Archon/gameScripts/audiodatablocks.cs).
+  - Implemented `AudioManager::getRandomDiceRollIndex` in [`AudioManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/AudioManager.cs) with uniform distribution and sequential back-to-back repeat prevention (`pick[n] != pick[n-1]`).
+  - Implemented dynamic voice channel pooling (`maxConcurrentDiceSounds = 4`) and gain balancing (`0.85`) in [`AudioManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/AudioManager.cs), allowing overlapping rolls to play concurrently without voice exhaustion or digital clipping.
+  - Hooked animation triggers in [`DiceSprite::playAnimation`](file:///M:/Archonita/games/Archon/gameScripts/t2d_compat.cs) and combat rolls with tick-level burst deduplication (`$lastDiceAnimationSoundTick`).
+- **Dice Aspect Ratio & Texture Dimension Normalization:**
+  - Cropped vertical black letterboxing from master dice sheets into square cells (336×336 px, 2016×336 px total), fitting safely within Torque2D's 2048px texture dimension cap.
+  - Standardized decorative dice `diceBlue` and `diceRed` to uniform `11.4 11.4` size in [`board.scene.taml`](file:///M:/Archonita/games/Archon/data/levels/board.scene.taml), [`board.t2d`](file:///M:/Archonita/games/Archon/data/levels/board.t2d), and [`BoardManager.cs`](file:///M:/Archonita/games/Archon/gameScripts/BoardManager.cs), eliminating squished lozenge distortion.
+  - Standardized combat dice size to uniform `8 8`.
+- **Post-Roll Rolled Result Display:**
+  - On roll completion (`stopDiceAnimation`), transitioned dice sprites from rolling animations to static frames from [`dicered.png`](file:///M:/Archonita/games/Archon/data/images/dicered.png) (`diceredImageMap`) and [`diceblue.png`](file:///M:/Archonita/games/Archon/data/images/diceblue.png) (`diceblueImageMap`) matching their calculated `rollResult`.
+  - Reset rotation angle (`setAngle(0)`) and angular velocity (`setAngularVelocity(0)`) so 3D isometric dice faces render upright and readable.
+
 ---
 
 > [!NOTE]

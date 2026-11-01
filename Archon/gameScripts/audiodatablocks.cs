@@ -8,3 +8,8 @@ $fxSword = "Archon:fxSword";
 $fxBeenHit = "Archon:fxBeenHit";
 $fxFootStep = "Archon:fxFootStep";
 $fxDie = "Archon:fxDie";
+
+for (%i = 1; %i <= 9; %i++)
+{
+   $diceRollAudio[%i] = "Archon:diceroll" @ %i;
+}

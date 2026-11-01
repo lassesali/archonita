@@ -7,7 +7,7 @@
       image = "Archon:diceblueImageMap";
       Image = "@asset=Archon:diceblueImageMap";
       position = "37.5 28.1";
-      size = "8.38 8.85";
+      size = "11.4 11.4";
       Angle = "340";
       Rotation = "340";
       AngularVelocity = "10";
