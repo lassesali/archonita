@@ -64,6 +64,9 @@ function initializeProject()
    exec("./gameScripts/AssetResolutionManager.cs");
    if (!isObject($AssetResolutionManager))
       $AssetResolutionManager = new ScriptObject() { class = "AssetResolutionManager"; };
+   exec("./gameScripts/FloatingTextManager.cs");
+   if (!isObject($FloatingTextManager))
+      $FloatingTextManager = new ScriptObject(FloatingTextManager) { class = "FloatingTextManager"; };
       
    SetRandomSeed(getRealTime());
    if (!$Archon::skipSplash)
@@ -86,6 +89,8 @@ function shutdownProject()
       $AudioManager.delete();
    if (isObject($AssetResolutionManager))
       $AssetResolutionManager.delete();
+   if (isObject($FloatingTextManager))
+      $FloatingTextManager.delete();
    endGame();
 }
 

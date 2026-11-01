@@ -179,6 +179,7 @@ function CombatEngine::doMagic(%this)
       game.setSelectedAction(0);
       game.setHighlightedActionIcon(0);
       updateActionIconsVisualState();
+      %this.updateMagicButtonParticles();
       return;
    }
 
@@ -187,6 +188,7 @@ function CombatEngine::doMagic(%this)
    {
       %topCard.setFrame(%topCard.spellFrame);
       game.setSpellRevealed(true);
+      %this.updateMagicButtonParticles();
    }
 }
 
@@ -231,12 +233,15 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
             {
                $nappulaSprite[%i].defence += 1;
                $nappulaSprite[%i].defenceMAX += 1;
+               FloatingTextManager.spawnAbovePiece($nappulaSprite[%i], "+1 Defence Roll", "77 208 225");
             }
          }
       case 4: // Taikahattu (+1 spell points)
          %hero.addMana(1);
+         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Mana", "100 181 246");
       case 5: // Taikatikkari (+1 spell damage)
          %hero.addSpellDamage(1);
+         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Spell Damage", "255 183 77");
       case 6: // Tulivuori (Volcano damages enemy army)
          %dmg = 1 + %hero.getSpellDamage();
          %curPiece = game.getSelectedPiece();
@@ -247,6 +252,7 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
             %unit = $nappulaSprite[%i];
             if (isObject(%unit) && %unit.alive == 1 && %unit.groupid == 1)
             {
+               FloatingTextManager.spawnAbovePiece(%unit, "-" @ %dmg @ " HP", "229 57 53");
                for (%d = 0; %d < %dmg; %d++)
                {
                   if (%unit.alive == 1)
@@ -261,8 +267,10 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
          }
       case 7: // Voikukan juuri (+1 spell points)
          %hero.addMana(1);
+         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Mana", "100 181 246");
       case 8: // Vatsatauti (Target skips next turn)
          %targetPiece.skipNextTurn = 1;
+         FloatingTextManager.spawnAbovePiece(%targetPiece, "Skip Turn!", "174 213 129");
    }
 
    %topCard.startFadeOut(0.1, 1.0);
@@ -273,7 +281,63 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    game.setSelectedAction(0);
    game.setHighlightedActionIcon(0);
    updateActionIconsVisualState();
+   %this.updateMagicButtonParticles();
    return true;
+}
+
+function CombatEngine::updateMagicButtonParticles(%this)
+{
+   if (!isObject(magicButtonEffect))
+   {
+      if (isObject(t2dScene))
+      {
+         new ParticlePlayer(magicButtonEffect)
+         {
+            scene = t2dScene;
+            Particle = "Archon:magic_button_glow";
+            Position = "40 -15.1";
+            Size = "16 16";
+            SceneLayer = 29;
+         };
+         if (isObject(magicButtonEffect))
+         {
+            magicButtonEffect.stop(false, true);
+            magicButtonEffect.isPlaying = false;
+         }
+      }
+      else
+      {
+         return;
+      }
+   }
+
+   %isEligible = (isObject(game) && 
+                  game.getCanCastSpell() && 
+                  $topCardIndex >= 1 && 
+                  game.getActivePlayer() == 0 && 
+                  getGameState() == $gameBattleState);
+
+   if (%isEligible)
+   {
+      if (!magicButtonEffect.isPlaying)
+      {
+         magicButtonEffect.play(false);
+         magicButtonEffect.isPlaying = true;
+      }
+
+      if (game.getSpellRevealed())
+         magicButtonEffect.ParticlePlayerEmissionRateScale = 1.7;
+      else
+         magicButtonEffect.ParticlePlayerEmissionRateScale = 1.0;
+   }
+   else
+   {
+      if (magicButtonEffect.isPlaying)
+      {
+         magicButtonEffect.stop(true, false);
+         magicButtonEffect.isPlaying = false;
+      }
+   }
 }
 
 function CombatEngine::doAttack(%this, %targetEnemy, %turn)
@@ -778,6 +842,7 @@ function doDefense(%turn)                          { CombatEngine.doDefence(%tur
 function doMagic()                                 { CombatEngine.doMagic(); }
 function getSpellTargetCategory(%spellFrame)       { return CombatEngine.getSpellTargetCategory(%spellFrame); }
 function castRevealedSpell(%clickedCategory, %piece) { return CombatEngine.castRevealedSpell(%clickedCategory, %piece); }
+function updateMagicButtonParticleState()          { CombatEngine.updateMagicButtonParticles(); }
 function doAttack(%target, %turn)                  { CombatEngine.doAttack(%target, %turn); }
 function hideBlood()                               { CombatEngine.hideBlood(); }
 function piilotaveri()                             { CombatEngine.hideBlood(); }

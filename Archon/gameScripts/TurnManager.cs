@@ -132,6 +132,7 @@ function TurnManager::shuffleSpellDeck(%this)
    $topCardIndex = 6;
    game.setCanCastSpell(false);
    game.setSpellRevealed(false);
+   updateMagicButtonParticleState();
 }
 
 function TurnManager::dealCards(%this)
@@ -310,6 +311,7 @@ function TurnManager::distributeTurnQueue(%this)
          game.setCanCastSpell(true);
          game.setSpellRevealed(false);
       }
+      updateMagicButtonParticleState();
    } 
    else 
    {
@@ -382,6 +384,7 @@ function TurnManager::nextTurn(%this)
          } else {
             sceneWindow2D.setUseWindowMouseEvents(false);
          }
+         updateMagicButtonParticleState();
       }
    }
    else
@@ -396,6 +399,9 @@ function TurnManager::endBattle(%this)
    if (isObject(CombatEngine))
       CombatEngine.cancelDiceRoll();
    sceneWindow2D.setUseWindowMouseEvents(false);
+   updateMagicButtonParticleState();
+   if (isObject(FloatingTextManager))
+      FloatingTextManager.clearAll();
    %this.endBattleEvent = schedule(2000, 0, creditsscreen);
 }
 

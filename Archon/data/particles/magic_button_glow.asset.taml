@@ -1,0 +1,118 @@
+<ParticleAsset
+    AssetName="magic_button_glow">
+    <ParticleAssetEmitter
+        EmitterName="MagicGlow"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles1ImageMap"
+        Frame="0">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="6" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="1.0" />
+            </Lifetime>
+            <Speed>
+                <Key Time="0" Value="1.2" />
+            </Speed>
+            <EmissionArc>
+                <Key Time="0" Value="360" />
+            </EmissionArc>
+            <EmissionRadius>
+                <Key Time="0" Value="3.5" />
+            </EmissionRadius>
+            <SizeX>
+                <Key Time="0" Value="1.8" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="0.8" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.5" />
+                <Key Time="0.5" Value="1.2" />
+                <Key Time="1" Value="0.2" />
+            </SizeXLife>
+            <AlphaChannel>
+                <Key Time="0" Value="0" />
+                <Key Time="0.2" Value="0.85" />
+                <Key Time="0.7" Value="0.7" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="0.4" />
+                <Key Time="0.5" Value="0.7" />
+                <Key Time="1" Value="0.4" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.8" />
+                <Key Time="0.5" Value="0.95" />
+                <Key Time="1" Value="0.8" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="1.0" />
+                <Key Time="0.5" Value="1.0" />
+                <Key Time="1" Value="1.0" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+    <ParticleAssetEmitter
+        EmitterName="GoldenSpark"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles1ImageMap"
+        Frame="1">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="4" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="1.2" />
+            </Lifetime>
+            <Speed>
+                <Key Time="0" Value="1.5" />
+            </Speed>
+            <EmissionAngle>
+                <Key Time="0" Value="90" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="180" />
+            </EmissionArc>
+            <EmissionRadius>
+                <Key Time="0" Value="3.0" />
+            </EmissionRadius>
+            <SizeX>
+                <Key Time="0" Value="2.0" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="1.0" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.3" />
+                <Key Time="0.4" Value="1.4" />
+                <Key Time="1" Value="0.1" />
+            </SizeXLife>
+            <AlphaChannel>
+                <Key Time="0" Value="0" />
+                <Key Time="0.25" Value="0.9" />
+                <Key Time="0.75" Value="0.8" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1.0" />
+                <Key Time="0.5" Value="1.0" />
+                <Key Time="1" Value="0.9" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.85" />
+                <Key Time="0.5" Value="0.9" />
+                <Key Time="1" Value="0.7" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.3" />
+                <Key Time="0.5" Value="0.4" />
+                <Key Time="1" Value="0.1" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+</ParticleAsset>

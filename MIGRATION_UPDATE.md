@@ -300,7 +300,17 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 - **Distribution Bytecode Compilation & Asset Synchronization:**
   - Updated [`make_dist.ps1`](file:///M:/Archonita/src/make_dist.ps1) to dynamically resolve paths using `$PSScriptRoot` and `$PSScriptRoot\dist`, removing obsolete hardcoded path references.
   - Purged legacy pre-compiled `.dso` bytecode files that shadowed the new `CombatEngine::doMagic` and spellcasting logic.
-  - Recompiled all 35 TorqueScript modules into fresh `.dso` bytecode and synchronized the release packages in both `src/dist/` and `dist/` with full `cards_2.png` 4×4 asset definitions.
+  - Recompiled all 36 TorqueScript modules into fresh `.dso` bytecode and synchronized the release packages in both `src/dist/` and `dist/` with full `cards_2.png` 4×4 asset definitions.
+
+- **Visual UI Feedback: Magic Button Particles & Floating Combat Text:**
+  - **Subtle Magic Action Button Particle Emitter:** Created [`magic_button_glow.asset.taml`](file:///M:/Archonita/src/Archon/data/particles/magic_button_glow.asset.taml) with dual soft cyan and gold sparkle emitters (`particles1ImageMap`). Positioned `magicButtonEffect` centered on `iconMagic3` (`40 -15.1`, layer 29) in [`board.scene.taml`](file:///M:/Archonita/src/Archon/data/levels/board.scene.taml). Emits particles ONLY when `canCastSpell && $topCardIndex >= 1 && game.getActivePlayer() == 0`, immediately halting emission via `stop(true, false)` (natural fade-out) when cast or turn ends, with enhanced twinkle speed when spell is revealed.
+  - **Asynchronous Floating Combat Text (FCT) Manager:** Implemented [`FloatingTextManager`](file:///M:/Archonita/src/Archon/gameScripts/FloatingTextManager.cs) managing non-blocking floating combat text with 4-way dark drop shadows and bold typography. Spawns above targets and smoothly floats upward ~35px over 1.3s with final 0.5s alpha fade.
+  - **Spell Payloads & Colors:**
+    - *Frame 3 (Taikamakkara):* `"+1 Defence Roll"` (Cyan `#4DD0E1`) above every living friendly creature.
+    - *Frame 4 (Taikahattu) & Frame 7 (Voikukan juuri):* `"+1 Mana"` (Arcane Blue `#64B5F6`) above hero portrait.
+    - *Frame 5 (Taikatikkari):* `"+1 Spell Damage"` (Fiery Gold `#FFB74D`) above hero portrait.
+    - *Frame 6 (Tulivuori):* `"-X HP"` (Crimson Red `#E53935`) above every living enemy unit.
+    - *Frame 8 (Vatsatauti):* `"Skip Turn!"` (Sickly Green `#AED581`) above targeted enemy piece.
 
 ---
 
@@ -311,13 +321,16 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Implemented randomized 6-card spell deck (`$spellDeck[1..6]`) using frames 3–8 from `cards_2.png`.
   - Added physical card stack dealing with top-card layer tracking (`$topCardIndex = 6..1`).
   - Integrated Magic action hexagon icon (`iconMagic3`) to flip the top card to its hidden spell face.
+- **Visual Feedback & Particle Effects:**
+  - Added subtle particle sparkles over Magic hexagon button (`magicButtonEffect`) active only when eligible to cast.
+  - Implemented asynchronous [`FloatingTextManager`](file:///M:/Archonita/src/Archon/gameScripts/FloatingTextManager.cs) for floating combat text over targets on spell resolution.
 - **Spell Targeting & Effect Execution:**
   - Implemented targeting category validation for `"all"` (board/creatures), `"avatar"` (hero avatar), and `"unit"` (single piece).
   - Implemented 6 spell effects: *Taikamakkara* (+1 team defense), *Taikahattu* (+1 spell point), *Taikatikkari* (+1 spell damage), *Tulivuori* (volcano area damage), *Voikukan juuri* (+1 spell point), and *Vatsatauti* (inflicts illness, skipping enemy turn).
   - Added spent card fade-out animation and turn-action resolution.
 - **Distribution Packaging & Bytecode Compilation:**
   - Fixed [`make_dist.ps1`](file:///M:/Archonita/src/make_dist.ps1) to dynamically resolve paths with `$PSScriptRoot`, supporting automated deployment to both `src/dist` and parent `dist`.
-  - Recompiled all 35 game scripts into fresh `.dso` bytecode, resolving the issue where stale bytecode shadowed `CombatEngine::doMagic()`.
+  - Recompiled all 36 game scripts into fresh `.dso` bytecode, resolving the issue where stale bytecode shadowed `CombatEngine::doMagic()`.
   - Purged obsolete legacy `.dso` files from source tracking.
 - **Version Configuration:**
   - Incremented build number to `103` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).

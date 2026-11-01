@@ -171,6 +171,7 @@ function mouseOverActionIcons( %mod, %worldPos )
    }
 
    updateActionIconsVisualState();
+   updateMagicButtonParticleState();
 }
 
 function onActionIconClick(%actionIcon)
@@ -212,6 +213,7 @@ function onActionIconClick(%actionIcon)
    }
 
    updateActionIconsVisualState();
+   updateMagicButtonParticleState();
 }
 
 

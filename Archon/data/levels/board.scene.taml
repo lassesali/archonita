@@ -54,6 +54,12 @@
         isSelectable="0"
         isIconMagic="1"
         BlendAlpha="0.7" />
+    <ParticlePlayer
+        Name="magicButtonEffect"
+        Particle="@asset=Archon:magic_button_glow"
+        Position="40 -15.1"
+        Size="16 16"
+        SceneLayer="29" />
     <Sprite
         Name="iconAttack2"
         Image="@asset=Archon:grid_6_hexImageMap"
