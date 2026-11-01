@@ -277,7 +277,10 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
          FloatingTextManager.spawnAbovePiece(%targetPiece, "Skip Turn!", "174 213 129");
    }
 
-   %topCard.startFadeOut(0.1, 1.0);
+   if (%topCard.isMethod("discardAfterCast"))
+      %topCard.discardAfterCast();
+   else
+      %topCard.startFadeOut(0.1, 1.0);
    $topCardIndex--;
 
    game.setCanCastSpell(false);
