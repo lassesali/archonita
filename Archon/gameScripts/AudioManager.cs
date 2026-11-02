@@ -333,7 +333,7 @@ function playSpellCastSound(%spellFrame)
 // Initialize Singleton
 if (!isObject(AudioManager))
 {
-   new ScriptObject(AudioManager) { class = "AudioManager"; };
+   new ScriptObject(AudioManager) { };
 }
 if (!isObject($AudioManager))
 {
