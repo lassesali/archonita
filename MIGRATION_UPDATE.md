@@ -325,9 +325,29 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Hooked `playSpellRevealSound()` in [`CombatEngine::doMagic`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) to play only when transitioning from unrevealed to revealed.
   - Hooked `playSpellCastSound(%spellFrame)` in [`CombatEngine::castRevealedSpell`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) immediately after target category validation succeeds, running asynchronously without blocking gameplay.
 
+- **Post-Cast Card Discard Animation & Lifecycle (`Card.cs`, `Deck.cs`):**
+  - Implemented modular [`Card`](file:///M:/Archonita/src/Archon/gameScripts/Card.cs) and [`Deck`](file:///M:/Archonita/src/Archon/gameScripts/Deck.cs) classes conforming strictly to [`TORQUE_SCRIPT.md`](file:///M:/Archonita/src/TORQUE_SCRIPT.md).
+  - Designed the post-cast discard sequence with simultaneous 240 deg/s continuous axial spin, 135° outward polar trajectory (48 world units/s), and smooth scale interpolation (1.0x to 2.5x).
+  - Implemented camera viewport AABB boundary detection via `sceneWindow2D.getCameraArea()` that safely deletes the card once it completely clears the screen.
+  - Eliminated engine `Fatal-ISV: SimObject::deleteObject` callback depth assertions by deferring card deletion through the root schedule dispatcher `schedule(1, 0, "deleteSimObject", %this)` (`mCallbackDepth == 0`).
+  - Preserved synchronous `SceneObject::safeDelete` in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) and streamlined creature placement sequencing in [`complexMouse.cs`](file:///M:/Archonita/src/Archon/gameScripts/complexMouse.cs) to prevent race conditions during board setup.
+
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 105 (2.0.2-ea4) — 2026-11-02
+- **Post-Cast Spell Discard & Deck Lifecycle:**
+  - Implemented [`Card::discardAfterCast`](file:///M:/Archonita/src/Archon/gameScripts/Card.cs) handling 240°/s spin, 135° polar trajectory velocity, smooth 1.0x -> 2.5x scaling, and viewport AABB off-screen self-deletion.
+  - Created [`Deck`](file:///M:/Archonita/src/Archon/gameScripts/Deck.cs) orchestrator managing spell card stack popping and relinquishing references for independent card lifecycle handling.
+- **Engine Stability & Lifecycle Fixes:**
+  - Resolved `SimObject::deleteObject` fatal callback depth assertion by routing deferred deletions through the root schedule dispatcher (`deleteSimObject`).
+  - Restored synchronous `SceneObject::safeDelete` in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) and streamlined character placement cleanup in [`complexMouse.cs`](file:///M:/Archonita/src/Archon/gameScripts/complexMouse.cs).
+- **Distribution Packaging:**
+  - Excluded `Torque2D.exe` from `dist/` packaging in [`make_dist.ps1`](file:///M:/Archonita/src/make_dist.ps1) so only `Archonita.exe` is shipped.
+  - Recompiled all 38 scripts to `.dso` bytecode across `src/dist` and `dist/`.
+- **Version Configuration:**
+  - Incremented build number to `105` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).
 
 ### Build 104 (2.0.2-ea4) — 2026-11-02
 - **Visual Feedback & Particle Effects:**
