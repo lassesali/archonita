@@ -338,9 +338,22 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Created a mouse-transparent (`useInput = false`) on-screen FPS counter (`FpsCounterOverlay`) in the top-left corner of `mainScreenGui` with drop-shadow rendering, dynamic warning color shifting, and optional native `t2dScene.setDebugOn("fps")` support.
   - Added a continuous `schedule()` framerate monitoring loop (`Metrics::onUpdateTick`) that detects when FPS drops below 30 and writes a timestamped warning message (`getLocalTime()` + `getSimTime()`) to `console.log` via `echo()`.
 
+- **Sprite Sheet Texture Atlas Bleed Fix (Character Sprite Sheets):**
+  - Resolved visual rendering artifact where distinct, thin dark horizontal lines rendered across grid tiles directly beneath character sprites (notably skeleton warrior and skeleton archer after combat actions).
+  - Identified root cause in sprite sheet texture atlases (`attackImageMap.png`, `beenImageMap.png`, `stoppedImageMap.png`, `walkingImageMap.png`, `tippingImageMap.png`): unused slots in character sprite sheets contained solid opaque black (`RGBA = [0, 0, 0, 255]`) dummy cells.
+  - When the OpenGL renderer sampled cell quad boundary vertices under bilinear texture filtering (`GL_LINEAR`), it interpolated between the transparent sprite border and adjacent 100% opaque black dummy cells, projecting a dark line spanning the sprite footprint across the underlying tile.
+  - Cleaned all unused dummy cells across 36 character sprite sheets to fully transparent black (`RGBA = [0, 0, 0, 0]`), preserving original artwork integrity and eliminating all edge bleeding artifacts without compromising smooth bilinear filtering.
+
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 107 (2.0.2-ea4) — 2026-11-02
+- **Visual Artifact & Texture Bleed Resolution:**
+  - Cleared solid black dummy cells across 36 character sprite sheets in [Archon/data/images/](file:///M:/Archonita/src/Archon/data/images/) to 100% transparent (RGBA = [0, 0, 0, 0]).
+  - Fixed horizontal line rendering beneath character sprites (specifically skeleton warrior and skeleton archer on the 4x4 tile grid) caused by bilinear interpolation blending transparent cell margins with adjacent opaque black cells.
+- **Version Configuration:**
+  - Incremented build number to 107 in [version.json](file:///M:/Archonita/src/version.json) and [version.env](file:///M:/Archonita/src/version.env).
 
 ### Build 106 (2.0.2-ea4) — 2026-11-02
 - **Developer Console & Keybinding (`metrics.cs`):**

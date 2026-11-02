@@ -335,6 +335,13 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 107 (2.0.2-ea4) — 2026-11-02
+- **Visual Artifact & Texture Bleed Resolution:**
+  - Cleared solid black dummy cells across 36 character sprite sheets in [Archon/data/images/](file:///M:/Archonita/src/Archon/data/images/) to 100% transparent (`RGBA = [0, 0, 0, 0]`).
+  - Fixed horizontal line rendering beneath character sprites (specifically skeleton warrior and skeleton archer on the 4x4 tile grid) caused by bilinear interpolation blending transparent cell margins with adjacent opaque black cells.
+- **Version Configuration:**
+  - Incremented build number to `107` in [version.json](file:///M:/Archonita/src/version.json) and [version.env](file:///M:/Archonita/src/version.env).
+
 ### Build 106 (2.0.2-ea4) — 2026-11-02
 - **Developer Console & Keybinding (`metrics.cs`):**
   - Added self-contained in-game developer console (`ArchonConsoleDialog`) using `GuiConsole`, `GuiScrollCtrl`, and `GuiConsoleEditCtrl`, bound to the tilde (`~`) key on `GlobalActionMap`.
