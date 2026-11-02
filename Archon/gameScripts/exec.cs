@@ -11,3 +11,4 @@ exec("./TacticalAI.cs");
 exec("./AudioManager.cs");
 exec("./versionConfig.cs");
 exec("./FloatingTextManager.cs");
+exec("./metrics.cs");
