@@ -332,9 +332,24 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Eliminated engine `Fatal-ISV: SimObject::deleteObject` callback depth assertions by deferring card deletion through the root schedule dispatcher `schedule(1, 0, "deleteSimObject", %this)` (`mCallbackDepth == 0`).
   - Preserved synchronous `SceneObject::safeDelete` in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) and streamlined creature placement sequencing in [`complexMouse.cs`](file:///M:/Archonita/src/Archon/gameScripts/complexMouse.cs) to prevent race conditions during board setup.
 
+- **In-Game Developer Console & Real-Time FPS Tracking (`metrics.cs`):**
+  - Implemented [`Metrics`](file:///M:/Archonita/src/Archon/gameScripts/metrics.cs) as a `ScriptObject` subsystem conforming to [`TORQUE_SCRIPT.md`](file:///M:/Archonita/src/TORQUE_SCRIPT.md) (`onAdd` / `onRemove` lifecycle).
+  - Enabled the in-game developer console (`ArchonConsoleDialog` built with `GuiConsole`, `GuiScrollCtrl`, and `GuiConsoleEditCtrl`) bound globally to the tilde (`~`) key via `GlobalActionMap`.
+  - Created a mouse-transparent (`useInput = false`) on-screen FPS counter (`FpsCounterOverlay`) in the top-left corner of `mainScreenGui` with drop-shadow rendering, dynamic warning color shifting, and optional native `t2dScene.setDebugOn("fps")` support.
+  - Added a continuous `schedule()` framerate monitoring loop (`Metrics::onUpdateTick`) that detects when FPS drops below 30 and writes a timestamped warning message (`getLocalTime()` + `getSimTime()`) to `console.log` via `echo()`.
+
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 106 (2.0.2-ea4) — 2026-11-02
+- **Developer Console & Keybinding (`metrics.cs`):**
+  - Added self-contained in-game developer console (`ArchonConsoleDialog`) using `GuiConsole`, `GuiScrollCtrl`, and `GuiConsoleEditCtrl`, bound to the tilde (`~`) key on `GlobalActionMap`.
+- **On-Screen FPS Counter & Telemetry:**
+  - Added top-left `FpsCounterOverlay` GUI readout on `mainScreenGui` (`useInput = false`) querying `t2dScene.getFPS()` and `$fps::framePeriod`, plus helper support for the engine's built-in `t2dScene.setDebugOn("fps")` overlay.
+  - Implemented continuous `schedule()` tracking in [`Metrics::onUpdateTick`](file:///M:/Archonita/src/Archon/gameScripts/metrics.cs) that detects framerate drops below 30 FPS and logs timestamped warnings (`getLocalTime()` and `getSimTime()`) to `console.log` via `echo()`.
+- **Version Configuration:**
+  - Incremented build number to `106` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).
 
 ### Build 105 (2.0.2-ea4) — 2026-11-02
 - **Post-Cast Spell Discard & Deck Lifecycle:**
