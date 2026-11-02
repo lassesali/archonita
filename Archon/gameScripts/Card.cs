@@ -41,6 +41,21 @@ function Card::onRemove(%this)
    }
 }
 
+function Card::safeDelete(%this)
+{
+   if (isObject(%this))
+   {
+      %this.setVisible(false);
+      if (isEventPending(%this.discardTickEvent))
+      {
+         cancel(%this.discardTickEvent);
+         %this.discardTickEvent = 0;
+      }
+      // Defer deletion to next tick so callback unwinds cleanly without Fatal-ISV
+      %this.schedule(1, "delete");
+   }
+}
+
 //---------------------------------------------------------------------------------------------
 // Discard Animation Trigger
 //---------------------------------------------------------------------------------------------

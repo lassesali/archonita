@@ -167,7 +167,7 @@ function SceneObject::safeDelete(%this)
       if (isObject(%this.mountedChildren))
          %this.mountedChildren.delete();
       %this.dismount();
-      %this.delete();
+      %this.schedule(1, "delete");
    }
 }
 
