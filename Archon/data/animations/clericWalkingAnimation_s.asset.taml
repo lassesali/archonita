@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="clericWalkingAnimation_s"
+    Image="@asset=Archon:clericWalkingImageMap"
+    AnimationFrames="16 17 18 19 20 21 22 23"
+    AnimationTime="1"
+    AnimationCycle="1" />

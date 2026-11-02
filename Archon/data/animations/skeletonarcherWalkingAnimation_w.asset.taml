@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="skeletonarcherWalkingAnimation_w"
+    Image="@asset=Archon:skeletonarcherWalkingImageMap"
+    AnimationFrames="24 25 26 27 28 29 30 31"
+    AnimationTime="1"
+    AnimationCycle="1" />

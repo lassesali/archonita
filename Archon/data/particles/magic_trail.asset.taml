@@ -1,0 +1,107 @@
+<ParticleAsset
+    AssetName="magic_trail">
+    <ParticleAssetEmitter
+        EmitterName="sTARTrail"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles5ImageMap"
+        Frame="3">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="30" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="0.6" />
+            </Lifetime>
+            <Speed>
+                <Key Time="0" Value="2.5" />
+            </Speed>
+            <EmissionArc>
+                <Key Time="0" Value="360" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="2.5" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="4.0" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="1.1" />
+                <Key Time="0.4" Value="1.4" />
+                <Key Time="1" Value="0.1" />
+            </SizeXLife>
+            <AlphaChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.6" Value="1" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.4" Value="1" />
+                <Key Time="1" Value="0" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.75" />
+                <Key Time="0.4" Value="0.8" />
+                <Key Time="1" Value="0" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.41" />
+                <Key Time="0.4" Value="0.29" />
+                <Key Time="1" Value="0" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+    <ParticleAssetEmitter
+        EmitterName="FlickerTrail"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles1ImageMap"
+        Frame="3">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="30" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="0.6" />
+            </Lifetime>
+            <Speed>
+                <Key Time="0" Value="3.0" />
+            </Speed>
+            <EmissionArc>
+                <Key Time="0" Value="360" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="2.5" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="4.0" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.4" />
+                <Key Time="0.5" Value="1.4" />
+                <Key Time="1" Value="0.1" />
+            </SizeXLife>
+            <AlphaChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.6" Value="1" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.4" Value="1" />
+                <Key Time="1" Value="0" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.75" />
+                <Key Time="0.4" Value="0.8" />
+                <Key Time="1" Value="0" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.41" />
+                <Key Time="0.4" Value="0.29" />
+                <Key Time="1" Value="0" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+</ParticleAsset>

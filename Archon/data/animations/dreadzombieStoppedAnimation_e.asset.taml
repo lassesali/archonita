@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="dreadzombieStoppedAnimation_e"
+    Image="@asset=Archon:dreadzombieStoppedImageMap"
+    AnimationFrames="6"
+    AnimationTime="1"
+    AnimationCycle="1" />

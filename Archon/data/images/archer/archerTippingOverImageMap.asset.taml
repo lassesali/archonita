@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="archerTippingOverImageMap"
+    ImageFile="tippingImageMap.png"
+    CellCountX="10"
+    CellCountY="6"
+    CellWidth="128"
+    CellHeight="128" />

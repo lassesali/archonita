@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="clericStoppedAnimation_s"
+    Image="@asset=Archon:clericStoppedImageMap"
+    AnimationFrames="0"
+    AnimationTime="1"
+    AnimationCycle="1" />

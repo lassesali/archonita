@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="paladinBeenHitAnimation_s"
+    Image="@asset=Archon:paladinBeenHitImageMap"
+    AnimationFrames="18 19 20 21 22 23 24 25 26"
+    AnimationTime="1"
+    AnimationCycle="0" />

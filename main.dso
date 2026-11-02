@@ -1,0 +1,27 @@
+//-----------------------------------------------------------------------------
+// Archonita - 2D Turn-Based Tactical Board Game
+// Torque2D 4.0 Release Bootstrapper
+//-----------------------------------------------------------------------------
+setRandomSeed();
+setLogMode(2);
+setScriptExecEcho(false);
+trace(false);
+
+$Scripts::ignoreDSOs = false;
+setCompanyAndProduct("Torque Game Engines", "Archonita");
+
+ModuleDatabase.EchoInfo = false;
+AssetDatabase.EchoInfo = false;
+AssetDatabase.IgnoreAutoUnload = true;
+
+ModuleDatabase.scanModules("./library");
+ModuleDatabase.scanModules("./Archon");
+ModuleDatabase.loadExplicit("AppCore");
+
+function onExit()
+{
+    if (isObject(AppCore))
+    {
+        ModuleDatabase.unloadExplicit("AppCore");
+    }
+}

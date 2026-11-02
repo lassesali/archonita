@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="heroiconsImageMap"
+    ImageFile="heroicons.png"
+    CellCountX="3"
+    CellCountY="1"
+    CellWidth="128"
+    CellHeight="128" />

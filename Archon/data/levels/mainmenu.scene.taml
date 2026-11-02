@@ -1,0 +1,45 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Name="kuva"
+        Image="@asset=Archon:startpicImageMap"
+        Position="0 0"
+        Size="100 75"
+        SceneLayer="4" />
+    <ParticlePlayer
+        Name="mouseTrail"
+        Particle="@asset=Archon:magic_trail"
+        Position="3.06 48"
+        Size="16 16"
+        SceneLayer="1" />
+    <Sprite
+        Name="archonita"
+        Image="@asset=Archon:archonita_title_newImageMap"
+        Position="0 25.5"
+        Size="75 18.75"
+        SceneLayer="3" />
+    <Sprite
+        Name="akka"
+        Image="@asset=Archon:warriorImageMap"
+        Position="-29.2 -6.99"
+        Size="32 64"
+        FlipX="true"
+        SceneLayer="2" />
+    <Sprite
+        Name="blowjob"
+        Image="@asset=Archon:blowjobImageMap"
+        Position="-33 16.8"
+        Size="4 4"
+        FlipX="true"
+        SceneLayer="1" />
+    <Sprite
+        Image="@asset=Archon:blackImageMap"
+        Position="-0.279 -0.139"
+        Size="101 76.7"
+        SceneLayer="31" />
+    <ParticlePlayer
+        Name="saippuakuplat"
+        Particle="@asset=Archon:bubbles"
+        Position="-33.1 17.1"
+        Size="2.23 2.16"
+        SceneLayer="1" />
+</Scene>

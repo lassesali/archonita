@@ -1,0 +1,5 @@
+<AudioAsset
+    AssetName="fxBeenHit"
+    AssetAutoUnload="0"
+    AudioFile="beenhit.wav"
+    Looping="false" />

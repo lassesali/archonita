@@ -1,0 +1,7 @@
+<AudioAsset
+    AssetName="sfx_spell_frame4_taikahattu"
+    AssetAutoUnload="0"
+    AudioFile="sfx_spell_frame4_taikahattu.wav"
+    Looping="false"
+    Volume="1"
+    VolumeChannel="1" />

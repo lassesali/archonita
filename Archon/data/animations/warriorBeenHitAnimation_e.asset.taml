@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="warriorBeenHitAnimation_e"
+    Image="@asset=Archon:warriorBeenHitImageMap"
+    AnimationFrames="0 1 2 3 4 5 6"
+    AnimationTime="1"
+    AnimationCycle="0" />

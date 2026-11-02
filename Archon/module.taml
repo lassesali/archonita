@@ -1,0 +1,15 @@
+<ModuleDefinition
+    ModuleId="Archon"
+    VersionId="1"
+    BuildId="1"
+    Group="launch"
+    Description="Archonita - 2D Turn-Based Tactical Board Game"
+    ScriptFile="main.cs"
+    CreateFunction="create"
+    DestroyFunction="destroy"
+    Dependencies="AppCore=1">
+        <DeclaredAssets
+            Path="data"
+            Extension="asset.taml"
+            Recurse="true" />
+</ModuleDefinition>
