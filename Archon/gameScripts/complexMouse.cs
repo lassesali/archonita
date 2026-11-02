@@ -526,18 +526,17 @@ function sceneWindow2D::placeSelectedCharacter(%this, %obj)
    %obj.dismount();
    $mouseObj::isObjMounted = false;
    $mouseObj::objMounted = "";
+   %this.selectedObj = "";
+   %this.objectSelected = false;
+   %this.dragStarted = false;
 
    if (isObject($numb[%iconIndex]))
       $numb[%iconIndex].delete();
 
-   updatePlacementHUD();
-
    if (isObject(%obj))
       %obj.delete();
 
-   dismountobject();
-   %this.objectSelected = false;
-   %this.dragStarted = false;
+   updatePlacementHUD();
 
    for (%j = 0; %j < 4; %j++)
    {

@@ -51,8 +51,8 @@ function Card::safeDelete(%this)
          cancel(%this.discardTickEvent);
          %this.discardTickEvent = 0;
       }
-      // Defer deletion to next tick so callback unwinds cleanly without Fatal-ISV
-      %this.schedule(1, "delete");
+      // Defer deletion to next tick via global dispatcher so callback unwinds cleanly without Fatal-ISV
+      schedule(1, 0, "deleteSimObject", %this);
    }
 }
 
@@ -85,9 +85,10 @@ function Card::discardAfterCast(%this, %cameraBounds)
    // 5. Resolve camera / visible viewport bounds ("minX minY maxX maxY")
    if (%cameraBounds $= "")
    {
-      if (isObject(sceneWindow2D))
-         %cameraBounds = sceneWindow2D.getCurrentCameraArea();
-      else
+      if (isObject(sceneWindow2D) && sceneWindow2D.isMethod("getCameraArea"))
+         %cameraBounds = sceneWindow2D.getCameraArea();
+
+      if (%cameraBounds $= "" || getWordCount(%cameraBounds) < 4)
          %cameraBounds = "-50 -37.5 50 37.5";
    }
    %this.cameraBounds = %cameraBounds;
