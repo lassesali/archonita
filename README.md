@@ -331,9 +331,35 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Created a mouse-transparent (`useInput = false`) on-screen FPS counter (`FpsCounterOverlay`) in the top-left corner of `mainScreenGui` with drop-shadow rendering, dynamic warning color shifting, and optional native `t2dScene.setDebugOn("fps")` support.
   - Added a continuous `schedule()` framerate monitoring loop (`Metrics::onUpdateTick`) that detects when FPS drops below 30 and writes a timestamped warning message (`getLocalTime()` + `getSimTime()`) to `console.log` via `echo()`.
 
+- **Sprite Sheet Texture Atlas Bleed Fix (Character Sprite Sheets):**
+  - Resolved visual rendering artifact where distinct, thin dark horizontal lines rendered across grid tiles directly beneath character sprites (notably skeleton warrior and skeleton archer after combat actions).
+  - Identified root cause in sprite sheet texture atlases (`attackImageMap.png`, `beenImageMap.png`, `stoppedImageMap.png`, `walkingImageMap.png`, `tippingImageMap.png`): unused slots in character sprite sheets contained solid opaque black (`RGBA = [0, 0, 0, 255]`) dummy cells.
+  - When the OpenGL renderer sampled cell quad boundary vertices under bilinear texture filtering (`GL_LINEAR`), it interpolated between the transparent sprite border and adjacent 100% opaque black dummy cells, projecting a dark line spanning the sprite footprint across the underlying tile.
+  - Cleaned all unused dummy cells across 36 character sprite sheets to fully transparent black (`RGBA = [0, 0, 0, 0]`), preserving original artwork integrity and eliminating all edge bleeding artifacts without compromising smooth bilinear filtering.
+
+- **Static Dice Sprite Animation Guarding & Engine Warning Suppression:**
+  - Resolved `SpriteBase::stopAnimation()` console warnings triggered when combat dice were halted after displaying static roll-result frames.
+  - Added `!%this.isStaticFrameProvider()` state checks in [`CombatEngine::stopDiceAnimation`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) for both attacker (`$noppa[%i]`) and defender (`$noppadef[%i]`) dice sprites before calling `stopAnimation()`.
+  - Added safe `stopAnimation()` method overrides on `Sprite` and `DiceSprite` classes in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) that bypass native animation stoppage when the object is a static frame provider.
+  - Added an empty `onAssetDirtyChanged()` event handler in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) to cleanly capture asset status notifications without undefined function warnings.
+  - Cleaned ScriptObject instantiation syntax in [`AudioManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/AudioManager.cs), removing redundant `class = "AudioManager";` assignment.
+  - Removed orphaned `<ParticlePlayer>` without an asset reference from [`board.scene.taml`](file:///M:/Archonita/src/Archon/data/levels/board.scene.taml) and pruned deprecated `<EmissionRadius>` properties from [`magic_button_glow.asset.taml`](file:///M:/Archonita/src/Archon/data/particles/magic_button_glow.asset.taml) to eliminate TAML loader warnings.
+
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 108 (2.0.2-ea4) — 2026-11-02
+- **Combat Dice Animation Guarding (`CombatEngine.cs`, `t2d_compat.cs`):**
+  - Added `isStaticFrameProvider()` safety guards in [`CombatEngine::stopDiceAnimation`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) for attacker and defender dice sprites (`$noppa[%i]` and `$noppadef[%i]`) to prevent calling `stopAnimation()` on static frames.
+  - Implemented `Sprite::stopAnimation` and `DiceSprite::stopAnimation` overrides in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) that safely check `!%this.isStaticFrameProvider()` before delegating to `SpriteBase::stopAnimation(%this)`.
+- **Console Warning Cleanup & Asset Handlers:**
+  - Added empty `onAssetDirtyChanged()` callback stub in [`t2d_compat.cs`](file:///M:/Archonita/src/Archon/gameScripts/t2d_compat.cs) to cleanly silence engine asset change notifications.
+  - Cleaned up ScriptObject instantiation syntax in [`AudioManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/AudioManager.cs), eliminating redundant `class = "AudioManager";` field.
+  - Pruned orphaned `<ParticlePlayer>` with no asset reference from [`board.scene.taml`](file:///M:/Archonita/src/Archon/data/levels/board.scene.taml) and [`dist/Archon/data/levels/board.scene.taml`](file:///M:/Archonita/src/dist/Archon/data/levels/board.scene.taml).
+  - Removed deprecated `<EmissionRadius>` blocks from [`magic_button_glow.asset.taml`](file:///M:/Archonita/src/Archon/data/particles/magic_button_glow.asset.taml) to ensure clean TAML deserialization.
+- **Version Configuration:**
+  - Incremented build number to `108` in [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env).
 
 ### Build 107 (2.0.2-ea4) — 2026-11-02
 - **Visual Artifact & Texture Bleed Resolution:**
