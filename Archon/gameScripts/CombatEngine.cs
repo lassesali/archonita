@@ -110,7 +110,7 @@ function CombatEngine::stopDiceAnimation(%this)
    {
       if (isObject($noppa[%i]))
       {
-         $noppa[%i].stopAnimation();
+         if (!$noppa[%i].isStaticFrameProvider()) $noppa[%i].stopAnimation();
          if ($noppa[%i].dieType $= "red")
             $noppa[%i].setImage("Archon:diceredImageMap");
          else
@@ -123,7 +123,7 @@ function CombatEngine::stopDiceAnimation(%this)
       }
       if (isObject($noppadef[%i]))
       {
-         $noppadef[%i].stopAnimation();
+         if (!$noppadef[%i].isStaticFrameProvider()) $noppadef[%i].stopAnimation();
          if ($noppadef[%i].dieType $= "red")
             $noppadef[%i].setImage("Archon:diceredImageMap");
          else

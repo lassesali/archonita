@@ -69,6 +69,9 @@ function initializeProject()
    exec("./gameScripts/FloatingTextManager.cs");
    if (!isObject($FloatingTextManager))
       $FloatingTextManager = FloatingTextManager;
+   exec("./gameScripts/metrics.cs");
+   if (!isObject($Metrics))
+      $Metrics = Metrics;
       
    SetRandomSeed(getRealTime());
    if (!$Archon::skipSplash)
@@ -93,6 +96,8 @@ function shutdownProject()
       $AssetResolutionManager.delete();
    if (isObject($FloatingTextManager))
       $FloatingTextManager.delete();
+   if (isObject($Metrics))
+      $Metrics.delete();
    endGame();
 }
 

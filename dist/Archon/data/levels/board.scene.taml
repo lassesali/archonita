@@ -22,9 +22,6 @@
         Position="-40 -16"
         Size="16 16"
         SceneLayer="30" />
-    <ParticlePlayer
-        Position="-30.5 7.68"
-        Size="10.2 10.9" />
     <Sprite
         Name="background"
         Image="@asset=Archon:background1ImageMap"

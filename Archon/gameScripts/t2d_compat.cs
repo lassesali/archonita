@@ -99,6 +99,22 @@ function DiceSprite::playAnimation(%this, %anim, %restore)
    }
 }
 
+function Sprite::stopAnimation(%this)
+{
+   if (!%this.isStaticFrameProvider())
+      SpriteBase::stopAnimation(%this);
+}
+
+function DiceSprite::stopAnimation(%this)
+{
+   if (!%this.isStaticFrameProvider())
+      SpriteBase::stopAnimation(%this);
+}
+
+function onAssetDirtyChanged()
+{
+}
+
 function Sprite::setAnimationName(%this, %anim)
 {
    %this.playAnimation(%anim);

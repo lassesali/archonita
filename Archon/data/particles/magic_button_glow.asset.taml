@@ -19,9 +19,6 @@
             <EmissionArc>
                 <Key Time="0" Value="360" />
             </EmissionArc>
-            <EmissionRadius>
-                <Key Time="0" Value="3.5" />
-            </EmissionRadius>
             <SizeX>
                 <Key Time="0" Value="1.8" />
             </SizeX>
@@ -78,9 +75,6 @@
             <EmissionArc>
                 <Key Time="0" Value="180" />
             </EmissionArc>
-            <EmissionRadius>
-                <Key Time="0" Value="3.0" />
-            </EmissionRadius>
             <SizeX>
                 <Key Time="0" Value="2.0" />
             </SizeX>
