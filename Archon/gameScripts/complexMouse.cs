@@ -618,7 +618,8 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
             return;
 
         if ((isObject($PauseMenuManager) && $PauseMenuManager.isPaused) ||
-            (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible()))
+            (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible()) ||
+            (isObject($FactionSelectGui) && $FactionSelectGui.isVisible()))
             return;
 
         if (getGameState() == $gameIntroState) 

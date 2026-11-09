@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="demonWalkingAnimation_s"
+    Image="@asset=Archon:demonWalkingImageMap"
+    AnimationFrames="16 17 18 19 20 21 22 23"
+    AnimationTime="1"
+    AnimationCycle="1" />

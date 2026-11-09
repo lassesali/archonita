@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="golddragonStoppedAnimation_s"
+    Image="@asset=Archon:golddragonStoppedImageMap"
+    AnimationFrames="0"
+    AnimationTime="1"
+    AnimationCycle="1" />

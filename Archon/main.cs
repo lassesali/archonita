@@ -96,6 +96,12 @@ function initializeProject()
    exec("./gameScripts/OptionsMenuGui.cs");
    if (!isObject($OptionsMenuGui))
       $OptionsMenuGui = new ScriptObject(OptionsMenuGui) { };
+   exec("./gameScripts/FactionManager.cs");
+   if (!isObject($FactionManager))
+      $FactionManager = new ScriptObject() { class = "FactionManager"; };
+   exec("./gameScripts/FactionSelectGui.cs");
+   if (!isObject($FactionSelectGui))
+      $FactionSelectGui = new ScriptObject(FactionSelectGui) { };
 
    if (isObject($ResolutionManager))
       $ResolutionManager.reanchorAllGuis();
@@ -115,6 +121,10 @@ function initializeProject()
 //---------------------------------------------------------------------------------------------
 function shutdownProject()
 {
+   if (isObject($FactionSelectGui))
+      $FactionSelectGui.delete();
+   if (isObject($FactionManager))
+      $FactionManager.delete();
    if (isObject($OptionsMenuGui))
       $OptionsMenuGui.delete();
    if (isObject($TitleMenuManager))

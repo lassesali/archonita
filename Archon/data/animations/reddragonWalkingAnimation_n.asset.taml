@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="reddragonWalkingAnimation_n"
+    Image="@asset=Archon:reddragonWalkingImageMap"
+    AnimationFrames="10 11 12 13 14 15 16 17 18 19"
+    AnimationTime="1"
+    AnimationCycle="1" />

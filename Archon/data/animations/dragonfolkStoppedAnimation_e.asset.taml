@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="dragonfolkStoppedAnimation_e"
+    Image="@asset=Archon:dragonfolkStoppedImageMap"
+    AnimationFrames="6"
+    AnimationTime="1"
+    AnimationCycle="1" />

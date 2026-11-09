@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="mistressStoppedAnimation_e"
+    Image="@asset=Archon:mistressStoppedImageMap"
+    AnimationFrames="6"
+    AnimationTime="1"
+    AnimationCycle="1" />

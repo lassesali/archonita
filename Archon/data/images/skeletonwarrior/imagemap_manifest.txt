@@ -1,0 +1,107 @@
+====================================================================================
+ARCHONITA CREATURE SPRITE SHEET COMPILATION REPORT: SKELETONWARRIOR
+====================================================================================
+
+1. MASTER TEXTURE ATLAS SPECIFICATIONS
+------------------------------------------------------------------------------------
+  Output File:           imagemap.png
+  Pixel Dimensions:      1248 x 1344 px
+  Cell Dimensions:       96 x 96 px
+  Grid Dimensions:       13 cols x 14 rows
+  Total Cells / Frames:  182 frames
+  Color Format:          RGBA (32-bit RGBA with full alpha transparency)
+  Layout Mode:           uniform
+
+2. ACTION SEQUENCING & VERTICAL GRID LAYOUT
+------------------------------------------------------------------------------------
+Action Name            Source File              Rows     Y-Offset (px)  Frames   Padded   Frame IDs
+------------------------------------------------------------------------------------
+Stopped / Idle         stoppedImageMap.png      0        0..96          13       0        0..12
+Walking / Locomotion   walkingImageMap.png      1..3     96..384        39       0        13..51
+Attack / Combat        attackImageMap.png       4..7     384..768       52       0        52..103
+Been Hit / Pain        beenImageMap.png         8..10    768..1056      39       0        104..142
+Tipping Over / Death   tippingImageMap.png      11..13   1056..1344     39       0        143..181
+------------------------------------------------------------------------------------
+
+3. SOURCE RECTANGLES & CLIPPING BOUNDS
+------------------------------------------------------------------------------------
+  [stopped] Stopped / Idle
+    Source File:      stoppedImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=0, Width=1248, Height=96
+    Grid Rows:        Start=0, Count=1
+    Frame Index Range:0 to 12
+    Active / Padded:  13 active frames, 0 transparent padding cells
+
+  [walking] Walking / Locomotion
+    Source File:      walkingImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=96, Width=1248, Height=288
+    Grid Rows:        Start=1, Count=3
+    Frame Index Range:13 to 51
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+  [attack] Attack / Combat
+    Source File:      attackImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=384, Width=1248, Height=384
+    Grid Rows:        Start=4, Count=4
+    Frame Index Range:52 to 103
+    Active / Padded:  52 active frames, 0 transparent padding cells
+
+  [beenHit] Been Hit / Pain
+    Source File:      beenImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=768, Width=1248, Height=288
+    Grid Rows:        Start=8, Count=3
+    Frame Index Range:104 to 142
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+  [tippingOver] Tipping Over / Death
+    Source File:      tippingImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=1056, Width=1248, Height=288
+    Grid Rows:        Start=11, Count=3
+    Frame Index Range:143 to 181
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+4. DIRECTIONAL ANIMATION FRAME MAPPINGS FOR GAME ENGINE
+------------------------------------------------------------------------------------
+  Stopped / Idle Animations:
+    - Direction East   (skeletonwarriorStoppedAnimation_e) -> Frames: 6
+    - Direction North  (skeletonwarriorStoppedAnimation_n) -> Frames: 4
+    - Direction South  (skeletonwarriorStoppedAnimation_s) -> Frames: 0
+    - Direction West   (skeletonwarriorStoppedAnimation_w) -> Frames: 2
+
+  Walking / Locomotion Animations:
+    - Direction East   (skeletonwarriorWalkingAnimation_e) -> Frames: 13 14 15 16 17 18 19 20 21
+    - Direction North  (skeletonwarriorWalkingAnimation_n) -> Frames: 22 23 24 25 26 27 28 29 30
+    - Direction South  (skeletonwarriorWalkingAnimation_s) -> Frames: 31 32 33 34 35 36 37 38 39
+    - Direction West   (skeletonwarriorWalkingAnimation_w) -> Frames: 40 41 42 43 44 45 46 47 48
+
+  Attack / Combat Animations:
+    - Direction East   (skeletonwarriorAttackAnimation_e) -> Frames: 52 53 54 55 56 57 58 59 60 61
+    - Direction North  (skeletonwarriorAttackAnimation_n) -> Frames: 62 63 64 65 66 67 68 69 70 71
+    - Direction South  (skeletonwarriorAttackAnimation_s) -> Frames: 72 73 74 75 76 77 78 79 80 81
+    - Direction West   (skeletonwarriorAttackAnimation_w) -> Frames: 82 83 84 85 86 87 88 89 90 91
+
+  Been Hit / Pain Animations:
+    - Direction East   (skeletonwarriorBeenHitAnimation_e) -> Frames: 104 105 106 107 108 109 110
+    - Direction North  (skeletonwarriorBeenHitAnimation_n) -> Frames: 111 112 113 114 115 116 117
+    - Direction South  (skeletonwarriorBeenHitAnimation_s) -> Frames: 118 119 120 121 122 123 124
+    - Direction West   (skeletonwarriorBeenHitAnimation_w) -> Frames: 125 126 127 128 129 130 131
+
+  Tipping Over / Death Animations:
+    - Direction East   (skeletonwarriorTippingOverAnimation_e) -> Frames: 143 144 145 146 147 148 149 150 151
+    - Direction North  (skeletonwarriorTippingOverAnimation_n) -> Frames: 152 153 154 155 156 157 158 159 160
+    - Direction South  (skeletonwarriorTippingOverAnimation_s) -> Frames: 161 162 163 164 165 166 167 168 169
+    - Direction West   (skeletonwarriorTippingOverAnimation_w) -> Frames: 170 171 172 173 174 175 176 177 178
+
+5. TORQUE2D 4.0 ASSET INTEGRATION SNIPPET
+------------------------------------------------------------------------------------
+<ImageAsset
+    AssetName="skeletonwarriorMasterImageMap"
+    ImageFile="imagemap.png"
+    CellCountX="13"
+    CellCountY="14"
+    CellWidth="96"
+    CellHeight="96" />
+
+====================================================================================
+END OF MANIFEST REPORT
+====================================================================================

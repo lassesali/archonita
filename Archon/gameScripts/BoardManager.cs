@@ -199,7 +199,7 @@ function BoardManager::updatePlacementGrids(%this)
 
 function BoardManager::createSetupPieces(%this)
 {
-   $unitNames = "warrior archer cleric paladin skeletonwarrior skeletonarcher dreadzombie ancientghost";
+   $unitNames = "warrior archer cleric paladin skeletonwarrior skeletonarcher dreadzombie ancientghost dragonfolk reddragon airdragon golddragon gremlin hornedoneye mistress demon";
    $nappulaNimi = $unitNames;
 
    for (%i = 0; %i < 4; %i++)
@@ -404,8 +404,8 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    
    if (%heroid == 1) 
    {
-      %animindex = %pieceLevel + 3;
-      %pieceLevel = %pieceLevel + 4;
+      %factionOffset = isObject($FactionManager) ? $FactionManager.getEnemyFactionOffset() : 4;
+      %animindex = (%pieceLevel - 1) + %factionOffset;
       %facing = "s";
    } else 
    {
@@ -438,7 +438,7 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    $nappulaSprite[%j].setUseMouseEvents(0);
    $nappulaSprite[%j].isSelectable = false;
 
-   %i = %pieceLevel - 1; 
+   %i = %animindex; 
    $nappulaSprite[%j].hp = UnitProperties.hp[%i];
    $nappulaSprite[%j].hpMAX = UnitProperties.hp[%i];
    $nappulaSprite[%j].attack = UnitProperties.attack[%i];
@@ -448,11 +448,11 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    $nappulaSprite[%j].mana = UnitProperties.mana[%i];
    $nappulaSprite[%j].manaMAX = UnitProperties.mana[%i];
    $nappulaSprite[%j].level = UnitProperties.lvl[%i];
-   $nappulaSprite[%j].groupid = UnitProperties.groupid[%i];
-   $nappulaSprite[%j].creatureID = UnitProperties.lvl[%i] - 1 + $nappulaSprite[%j].groupid * 4;
+   $nappulaSprite[%j].groupid = %heroid;
+   $nappulaSprite[%j].creatureID = %i;
    $nappulaSprite[%j].spells = UnitProperties.spells[%i];
    $nappulaSprite[%j].missile = UnitProperties.missile[%i];
-   $nappulaSprite[%j].name = getWord($unitNames, %pieceLevel - 1);
+   $nappulaSprite[%j].name = getWord($unitNames, %i);
    $nappulaSprite[%j].alive = 1;
    
    $nappulaSprite[%j].boardX = %lx;

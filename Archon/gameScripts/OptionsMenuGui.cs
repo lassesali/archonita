@@ -224,7 +224,7 @@ function OptionsMenuGui::createControls(%this)
    }
 
    %panelW = 540;
-   %panelH = 420;
+   %panelH = 486;
    %panelX = mFloor((%mainW - %panelW) / 2);
    %panelY = mFloor((%mainH - %panelH) / 2);
 
@@ -253,7 +253,7 @@ function OptionsMenuGui::createControls(%this)
       Profile = %this.headerProfile;
       Position = "20 14";
       Extent = "500 30";
-      Text = "VIDEO & AUDIO OPTIONS";
+      Text = "SETTINGS & FACTION OPTIONS";
    };
    %this.panelCtrl.add(%this.headerLabel);
 
@@ -344,7 +344,7 @@ function OptionsMenuGui::createControls(%this)
    %this.audioLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 302";
+      Position = "24 296";
       Extent = "492 22";
       Text = "Audio Controls:";
    };
@@ -353,7 +353,7 @@ function OptionsMenuGui::createControls(%this)
    %this.btnOptSFX = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "24 328";
+      Position = "24 322";
       Extent = "240 32";
       Text = "SFX: ON";
       Command = "$OptionsMenuGui.onToggleSFX();";
@@ -363,18 +363,58 @@ function OptionsMenuGui::createControls(%this)
    %this.btnOptMusic = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "276 328";
+      Position = "276 322";
       Extent = "240 32";
       Text = "MUSIC: ON";
       Command = "$OptionsMenuGui.onToggleMusic();";
    };
    %this.panelCtrl.add(%this.btnOptMusic);
 
-   // 5. Apply & Close Buttons
+   // 5. Enemy Faction Selection Section
+   %this.factionLabel = new GuiControl()
+   {
+      Profile = %this.sectionProfile;
+      Position = "24 362";
+      Extent = "492 22";
+      Text = "Enemy Faction:";
+   };
+   %this.panelCtrl.add(%this.factionLabel);
+
+   %this.factionBtn[0] = new GuiButtonCtrl()
+   {
+      Profile = %this.btnNormalProfile;
+      Position = "24 388";
+      Extent = "156 32";
+      Text = "UNDEAD";
+      Command = "$OptionsMenuGui.onSelectFaction(\"undead\");";
+   };
+   %this.panelCtrl.add(%this.factionBtn[0]);
+
+   %this.factionBtn[1] = new GuiButtonCtrl()
+   {
+      Profile = %this.btnNormalProfile;
+      Position = "192 388";
+      Extent = "156 32";
+      Text = "DRAGONFOLK";
+      Command = "$OptionsMenuGui.onSelectFaction(\"dragonfolk\");";
+   };
+   %this.panelCtrl.add(%this.factionBtn[1]);
+
+   %this.factionBtn[2] = new GuiButtonCtrl()
+   {
+      Profile = %this.btnNormalProfile;
+      Position = "360 388";
+      Extent = "156 32";
+      Text = "GREMLINS";
+      Command = "$OptionsMenuGui.onSelectFaction(\"gremlin\");";
+   };
+   %this.panelCtrl.add(%this.factionBtn[2]);
+
+   // 6. Apply & Close Buttons
    %this.btnApply = new GuiButtonCtrl(OptionsMenuApplyBtn)
    {
       Profile = %this.btnActionProfile;
-      Position = "24 372";
+      Position = "24 434";
       Extent = "240 36";
       Text = "APPLY VIDEO SETTINGS";
       Command = "$OptionsMenuGui.onApplyClicked();";
@@ -384,7 +424,7 @@ function OptionsMenuGui::createControls(%this)
    %this.btnClose = new GuiButtonCtrl(OptionsMenuCloseBtn)
    {
       Profile = %this.btnNormalProfile;
-      Position = "276 372";
+      Position = "276 434";
       Extent = "240 36";
       Text = "CLOSE";
       Command = "$OptionsMenuGui.onCloseClicked();";
@@ -513,6 +553,28 @@ function OptionsMenuGui::updateVisuals(%this)
       %this.btnOptMusic.setText(%musMuted ? "MUSIC: MUTED" : "MUSIC: ON");
       %this.btnOptMusic.Profile = (%musMuted ? %this.btnNormalProfile : %this.btnSelectedProfile);
    }
+
+   if (isObject($FactionManager))
+   {
+      %fCur = $FactionManager.getEnemyFaction();
+      %fKeys = "undead" TAB "dragonfolk" TAB "gremlin";
+      for (%f = 0; %f < 3; %f++)
+      {
+         if (isObject(%this.factionBtn[%f]))
+         {
+            %isFSel = (getField(%fKeys, %f) $= %fCur);
+            %this.factionBtn[%f].Profile = (%isFSel ? %this.btnSelectedProfile : %this.btnNormalProfile);
+         }
+      }
+   }
+}
+
+function OptionsMenuGui::onSelectFaction(%this, %factionKey)
+{
+   playArchonSound(fxSword);
+   if (isObject($FactionManager))
+      $FactionManager.setEnemyFaction(%factionKey);
+   %this.updateVisuals();
 }
 
 function OptionsMenuGui::onSelectAspect(%this, %aspectStr)

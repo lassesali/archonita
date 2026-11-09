@@ -6,6 +6,8 @@ $cardSelectTransitioning = false;
 $boardScreenSchedule = "";
 
 function cardScreenFadeOut() {
+   if (isObject($FactionSelectGui))
+      $FactionSelectGui.show(false);
    if (isObject(card_0))
       card_0.startFadeOut(0.2);
    if (isObject(card_1))
@@ -21,6 +23,8 @@ function cardScreenFadeOut() {
 function selectHeroScreen() {
    $heroSelectSchedule = "";
    $cardSelectTransitioning = false;
+   if (isObject($FactionSelectGui))
+      $FactionSelectGui.show(false);
 
    setGameState($gameCardSelectState);
    startBackgroundMusic();
@@ -41,10 +45,15 @@ function checkSelectedCard() {
       Canvas.showCursor();
       $selectedHero = 1;
       $sankarivalittu = 1;
-      cardScreenFadeOut();
-      if ($boardScreenSchedule !$= "")
-         cancel($boardScreenSchedule);
-      $boardScreenSchedule = schedule(1000, 0, showBoardScreen);
+
+      if (isObject($FactionSelectGui)) {
+         $FactionSelectGui.show(true);
+      } else {
+         cardScreenFadeOut();
+         if ($boardScreenSchedule !$= "")
+            cancel($boardScreenSchedule);
+         $boardScreenSchedule = schedule(1000, 0, showBoardScreen);
+      }
    } else if (isObject(card_1) && (card_1.selected || card_1.valittu)) {
       $cardSelectTransitioning = true;
       $hiiri.piilota = false;
@@ -52,10 +61,15 @@ function checkSelectedCard() {
       Canvas.showCursor();
       $selectedHero = 2;
       $sankarivalittu = 2;
-      cardScreenFadeOut();
-      if ($boardScreenSchedule !$= "")
-         cancel($boardScreenSchedule);
-      $boardScreenSchedule = schedule(1000, 0, showBoardScreen);
+
+      if (isObject($FactionSelectGui)) {
+         $FactionSelectGui.show(true);
+      } else {
+         cardScreenFadeOut();
+         if ($boardScreenSchedule !$= "")
+            cancel($boardScreenSchedule);
+         $boardScreenSchedule = schedule(1000, 0, showBoardScreen);
+      }
    } 
 }
 

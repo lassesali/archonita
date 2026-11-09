@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="reddragonBeenHitAnimation_s"
+    Image="@asset=Archon:reddragonBeenHitImageMap"
+    AnimationFrames="14 15 16 17 18 19 20"
+    AnimationTime="1"
+    AnimationCycle="0" />

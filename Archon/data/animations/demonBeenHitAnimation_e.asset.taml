@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="demonBeenHitAnimation_e"
+    Image="@asset=Archon:demonBeenHitImageMap"
+    AnimationFrames="0 1 2 3 4 5 6"
+    AnimationTime="1"
+    AnimationCycle="0" />

@@ -196,6 +196,8 @@ function ResolutionManager::reanchorAllGuis(%this)
       $TitleMenuManager.reanchor();
    if (isObject($OptionsMenuGui))
       $OptionsMenuGui.reanchor();
+   if (isObject($FactionSelectGui))
+      $FactionSelectGui.reanchor();
    if (isObject($PauseMenuManager))
       $PauseMenuManager.reanchor();
    if (isObject(MainMenuWatermark) && isObject(mainScreenGui))

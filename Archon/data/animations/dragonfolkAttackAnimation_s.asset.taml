@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="dragonfolkAttackAnimation_s"
+    Image="@asset=Archon:dragonfolkAttackImageMap"
+    AnimationFrames="20 21 22 23 24 25 26 27 28 29"
+    AnimationTime="1"
+    AnimationCycle="0" />

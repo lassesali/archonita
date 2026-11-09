@@ -1,0 +1,107 @@
+====================================================================================
+ARCHONITA CREATURE SPRITE SHEET COMPILATION REPORT: AIRDRAGON
+====================================================================================
+
+1. MASTER TEXTURE ATLAS SPECIFICATIONS
+------------------------------------------------------------------------------------
+  Output File:           imagemap.png
+  Pixel Dimensions:      1280 x 2176 px
+  Cell Dimensions:       128 x 128 px
+  Grid Dimensions:       10 cols x 17 rows
+  Total Cells / Frames:  170 frames
+  Color Format:          RGBA (32-bit RGBA with full alpha transparency)
+  Layout Mode:           uniform
+
+2. ACTION SEQUENCING & VERTICAL GRID LAYOUT
+------------------------------------------------------------------------------------
+Action Name            Source File              Rows     Y-Offset (px)  Frames   Padded   Frame IDs
+------------------------------------------------------------------------------------
+Stopped / Idle         stoppedImageMap.png      0        0..128         10       0        0..9
+Walking / Locomotion   walkingImageMap.png      1..4     128..640       40       0        10..49
+Attack / Combat        attackImageMap.png       5..8     640..1152      40       0        50..89
+Been Hit / Pain        beenImageMap.png         9..11    1152..1536     30       0        90..119
+Tipping Over / Death   tippingImageMap.png      12..16   1536..2176     50       0        120..169
+------------------------------------------------------------------------------------
+
+3. SOURCE RECTANGLES & CLIPPING BOUNDS
+------------------------------------------------------------------------------------
+  [stopped] Stopped / Idle
+    Source File:      stoppedImageMap.png (source cell 128x128)
+    Master Rectangle: X=0, Y=0, Width=1280, Height=128
+    Grid Rows:        Start=0, Count=1
+    Frame Index Range:0 to 9
+    Active / Padded:  10 active frames, 0 transparent padding cells
+
+  [walking] Walking / Locomotion
+    Source File:      walkingImageMap.png (source cell 128x128)
+    Master Rectangle: X=0, Y=128, Width=1280, Height=512
+    Grid Rows:        Start=1, Count=4
+    Frame Index Range:10 to 49
+    Active / Padded:  40 active frames, 0 transparent padding cells
+
+  [attack] Attack / Combat
+    Source File:      attackImageMap.png (source cell 128x128)
+    Master Rectangle: X=0, Y=640, Width=1280, Height=512
+    Grid Rows:        Start=5, Count=4
+    Frame Index Range:50 to 89
+    Active / Padded:  40 active frames, 0 transparent padding cells
+
+  [beenHit] Been Hit / Pain
+    Source File:      beenImageMap.png (source cell 128x128)
+    Master Rectangle: X=0, Y=1152, Width=1280, Height=384
+    Grid Rows:        Start=9, Count=3
+    Frame Index Range:90 to 119
+    Active / Padded:  30 active frames, 0 transparent padding cells
+
+  [tippingOver] Tipping Over / Death
+    Source File:      tippingImageMap.png (source cell 128x128)
+    Master Rectangle: X=0, Y=1536, Width=1280, Height=640
+    Grid Rows:        Start=12, Count=5
+    Frame Index Range:120 to 169
+    Active / Padded:  50 active frames, 0 transparent padding cells
+
+4. DIRECTIONAL ANIMATION FRAME MAPPINGS FOR GAME ENGINE
+------------------------------------------------------------------------------------
+  Stopped / Idle Animations:
+    - Direction East   (airdragonStoppedAnimation_e) -> Frames: 6
+    - Direction North  (airdragonStoppedAnimation_n) -> Frames: 4
+    - Direction South  (airdragonStoppedAnimation_s) -> Frames: 0
+    - Direction West   (airdragonStoppedAnimation_w) -> Frames: 2
+
+  Walking / Locomotion Animations:
+    - Direction East   (airdragonWalkingAnimation_e) -> Frames: 10 11 12 13 14 15 16 17 18 19
+    - Direction North  (airdragonWalkingAnimation_n) -> Frames: 20 21 22 23 24 25 26 27 28 29
+    - Direction South  (airdragonWalkingAnimation_s) -> Frames: 30 31 32 33 34 35 36 37 38 39
+    - Direction West   (airdragonWalkingAnimation_w) -> Frames: 40 41 42 43 44 45 46 47 48 49
+
+  Attack / Combat Animations:
+    - Direction East   (airdragonAttackAnimation_e) -> Frames: 50 51 52 53 54 55 56 57 58 59
+    - Direction North  (airdragonAttackAnimation_n) -> Frames: 60 61 62 63 64 65 66 67 68 69
+    - Direction South  (airdragonAttackAnimation_s) -> Frames: 70 71 72 73 74 75 76 77 78 79
+    - Direction West   (airdragonAttackAnimation_w) -> Frames: 80 81 82 83 84 85 86 87 88 89
+
+  Been Hit / Pain Animations:
+    - Direction East   (airdragonBeenHitAnimation_e) -> Frames: 90 91 92 93 94 95 96
+    - Direction North  (airdragonBeenHitAnimation_n) -> Frames: 97 98 99 100 101 102 103
+    - Direction South  (airdragonBeenHitAnimation_s) -> Frames: 104 105 106 107 108 109 110
+    - Direction West   (airdragonBeenHitAnimation_w) -> Frames: 111 112 113 114 115 116 117
+
+  Tipping Over / Death Animations:
+    - Direction East   (airdragonTippingOverAnimation_e) -> Frames: 120 121 122 123 124 125 126 127 128 129
+    - Direction North  (airdragonTippingOverAnimation_n) -> Frames: 130 131 132 133 134 135 136 137 138 139
+    - Direction South  (airdragonTippingOverAnimation_s) -> Frames: 140 141 142 143 144 145 146 147 148 149
+    - Direction West   (airdragonTippingOverAnimation_w) -> Frames: 150 151 152 153 154 155 156 157 158 159
+
+5. TORQUE2D 4.0 ASSET INTEGRATION SNIPPET
+------------------------------------------------------------------------------------
+<ImageAsset
+    AssetName="airdragonMasterImageMap"
+    ImageFile="imagemap.png"
+    CellCountX="10"
+    CellCountY="17"
+    CellWidth="128"
+    CellHeight="128" />
+
+====================================================================================
+END OF MANIFEST REPORT
+====================================================================================

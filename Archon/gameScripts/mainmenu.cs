@@ -7,6 +7,11 @@ $bubbleSchedule = "";
 $heroSelectSchedule = "";
 
 function onEscapeKeyPressed() {
+   if (isObject($FactionSelectGui) && $FactionSelectGui.isVisible())
+   {
+      $FactionSelectGui.onBackClicked();
+      return;
+   }
    if (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible())
    {
       $OptionsMenuGui.show(false);

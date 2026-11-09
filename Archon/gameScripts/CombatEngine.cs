@@ -739,10 +739,10 @@ function CombatEngine::facing(%this, %pos1, %pos2)
 
 function CombatEngine::initAnimStates(%this)
 {
-   $unitNames = "warrior archer cleric paladin skeletonwarrior skeletonarcher dreadzombie ancientghost";
+   $unitNames = "warrior archer cleric paladin skeletonwarrior skeletonarcher dreadzombie ancientghost dragonfolk reddragon airdragon golddragon gremlin hornedoneye mistress demon";
    $nappulaNimi = $unitNames;
 
-   for (%i = 0; %i < 8; %i++)
+   for (%i = 0; %i < 16; %i++)
    {
       %name = getword($unitNames, %i);
       $olentoStandState[%i] = new ScriptObject() {};

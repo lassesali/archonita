@@ -126,6 +126,93 @@
 
       // spell=ghostly touch (-2 defence)
   
+
+      // ==========================================
+      // Dragonfolk Faction (groupid 1 for AI enemy)
+      // ==========================================
+
+      // dragonfolk (Lvl 1 Melee):
+      lvl[8]=1;
+      hp[8]=2;
+      mana[8]=0;
+      attack[8]=2;
+      defence[8]=3;
+      spells[8]="";
+      groupid[8]=1;
+      missile[8]=0;
+
+      // reddragon (Lvl 2 Ranged / Fire Breath):
+      lvl[9]=2;
+      hp[9]=2;
+      mana[9]=0;
+      attack[9]=2;
+      defence[9]=3;
+      spells[9]="";
+      groupid[9]=1;
+      missile[9]=1;
+
+      // airdragon (Lvl 3 Flying / Lightning Caster):
+      lvl[10]=3;
+      hp[10]=3;
+      mana[10]=1;
+      attack[10]=3;
+      defence[10]=4;
+      spells[10]="1";
+      groupid[10]=1;
+      missile[10]=0;
+
+      // golddragon (Lvl 4 Majestic Sovereign Boss):
+      lvl[11]=4;
+      hp[11]=4;
+      mana[11]=1;
+      attack[11]=4;
+      defence[11]=5;
+      spells[11]="2";
+      groupid[11]=1;
+      missile[11]=0;
+
+      // ==========================================
+      // Gremlin Faction (groupid 1 for AI enemy)
+      // ==========================================
+
+      // gremlin (Lvl 1 Fast Melee):
+      lvl[12]=1;
+      hp[12]=1;
+      mana[12]=0;
+      attack[12]=2;
+      defence[12]=2;
+      spells[12]="";
+      groupid[12]=1;
+      missile[12]=0;
+
+      // hornedoneye (Lvl 2 Eye-Beam Ranged):
+      lvl[13]=2;
+      hp[13]=2;
+      mana[13]=0;
+      attack[13]=2;
+      defence[13]=2;
+      spells[13]="";
+      groupid[13]=1;
+      missile[13]=1;
+
+      // mistress (Lvl 3 Sorceress / Dark Caster):
+      lvl[14]=3;
+      hp[14]=2;
+      mana[14]=1;
+      attack[14]=3;
+      defence[14]=4;
+      spells[14]="1";
+      groupid[14]=1;
+      missile[14]=0;
+
+      // demon (Lvl 4 Infernal Fiend Boss):
+      lvl[15]=4;
+      hp[15]=4;
+      mana[15]=1;
+      attack[15]=4;
+      defence[15]=5;
+      spells[15]="2";
+      groupid[15]=1;
+      missile[15]=0;
+
    };
-  
-  
