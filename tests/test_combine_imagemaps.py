@@ -150,6 +150,45 @@ class TestCombineImageMaps(unittest.TestCase):
         self.assertEqual(result["total_frames"], 170)
         self.assertEqual(result["verification"]["status"], "PASSED")
 
+    def test_hornedoneye_spritesheet_combination_no_stopped_bleed(self):
+        """Verify hornedoneye sprite maps combination and that stopped state cells do not bleed adjacent units."""
+        result = combine_sprite_sheets(
+            input_dir=str(PROJECT_ROOT / "Archon/data/images/hornedoneye"),
+            output_dir=str(self.temp_path),
+            output_filename="imagemap_hornedoneye.png",
+            manifest_json_filename="imagemap_hornedoneye.json",
+            manifest_txt_filename="imagemap_hornedoneye.txt",
+            creature_name="hornedoneye"
+        )
+        self.assertEqual(result["dimensions"], (1280, 2560))
+        self.assertEqual(result["grid"], (10, 20))
+        self.assertEqual(result["cell_size"], (128, 128))
+        self.assertEqual(result["total_frames"], 200)
+        self.assertEqual(result["verification"]["status"], "PASSED")
+
+        # Verify that each directional frame (0: South, 2: West, 4: North, 6: East)
+        # in the stopped row has no adjacent unit bleed (exactly 1 horizontal span of pixels)
+        combined_img = Image.open(self.temp_path / "imagemap_hornedoneye.png")
+        for frame_idx in [0, 2, 4, 6]:
+            cell = combined_img.crop((frame_idx * 128, 0, (frame_idx + 1) * 128, 128))
+            alpha = cell.split()[-1]
+            x_has_pixels = [any(alpha.getpixel((x, y)) > 0 for y in range(cell.height)) for x in range(cell.width)]
+            spans = []
+            in_span = False
+            start = 0
+            for x, has in enumerate(x_has_pixels):
+                if has and not in_span:
+                    in_span = True
+                    start = x
+                elif not has and in_span:
+                    in_span = False
+                    spans.append((start, x - 1))
+            if in_span:
+                spans.append((start, cell.width - 1))
+            self.assertEqual(len(spans), 1, f"Frame {frame_idx} has bleeding spans: {spans}")
+            self.assertGreaterEqual(spans[0][0], 20, f"Frame {frame_idx} left margin too small: {spans[0][0]}")
+            self.assertLessEqual(spans[0][1], 108, f"Frame {frame_idx} right margin too small: {spans[0][1]}")
+
     def test_all_16_creatures_verification(self):
         """Verify that all 16 creature folders have valid compiled imagemap.png and manifests."""
         base_dir = PROJECT_ROOT / "Archon/data/images"

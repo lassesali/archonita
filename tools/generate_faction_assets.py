@@ -19,7 +19,7 @@ CREATURE_SPECS = [
     {"name": "golddragon", "cw": 128, "ch": 128},
     # Gremlin Faction
     {"name": "gremlin", "cw": 96, "ch": 96},
-    {"name": "hornedoneye", "cw": 128, "ch": 128, "stopped_ch": 96},
+    {"name": "hornedoneye", "cw": 128, "ch": 128},
     {"name": "mistress", "cw": 96, "ch": 96, "tipping_cw": 128, "tipping_ch": 128},
     {"name": "demon", "cw": 96, "ch": 96}
 ]
@@ -62,8 +62,11 @@ def generate_assets():
             # Determine cell size for this image
             cw = default_cw
             ch = default_ch
-            if act_key == "Stopped" and "stopped_ch" in spec:
-                ch = spec["stopped_ch"]
+            if act_key == "Stopped":
+                if "stopped_cw" in spec:
+                    cw = spec["stopped_cw"]
+                if "stopped_ch" in spec:
+                    ch = spec["stopped_ch"]
             elif act_key == "TippingOver" and "tipping_cw" in spec:
                 cw = spec["tipping_cw"]
                 ch = spec["tipping_ch"]

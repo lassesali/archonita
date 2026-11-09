@@ -4,7 +4,7 @@
     "creature": "hornedoneye",
     "texture_atlas": {
       "file_name": "imagemap.png",
-      "file_path": "Archon\\data\\images\\hornedoneye\\imagemap.png",
+      "file_path": "imagemap.png",
       "width": 1280,
       "height": 2560,
       "cell_width": 128,
@@ -150,11 +150,11 @@
       "source_path": "Archon\\data\\images\\hornedoneye\\stoppedImageMap.png",
       "source_dimensions": {
         "width": 1280,
-        "height": 96
+        "height": 128
       },
       "source_cell_size": {
         "width": 128,
-        "height": 96
+        "height": 128
       },
       "grid_placement": {
         "start_row": 0,
