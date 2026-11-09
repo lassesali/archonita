@@ -37,8 +37,13 @@ scratch/
 /*_dice_sheet*.png
 /diceroll*.ogg
 
-# Python migration and helper scripts
-*.py
+# Python cache
+__pycache__/
+*.pyc
+
+# Python migration and helper scripts in root
+/*.py
+!tools/*.py
 
 # Migration prompts and notes
 archonita_torque2d_4_0_migration_prompt.txt
