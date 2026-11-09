@@ -537,7 +537,7 @@ function TitleMenuManager::onQuitClicked(%this)
    %this.show(false);
    if (isObject($PauseMenuManager))
       $PauseMenuManager.discardSavedSession();
-   creditsScreen();
+   shutdown();
 }
 
 if (!isObject($TitleMenuManager))

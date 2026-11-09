@@ -19,8 +19,11 @@ function onEscapeKeyPressed() {
       return;
    }
    if (isObject($TitleMenuManager))
-      $TitleMenuManager.show(false);
-   creditsScreen();
+   {
+      $TitleMenuManager.onQuitClicked();
+      return;
+   }
+   shutdown();
 }
 
 function mainMenuFadeOut() {
@@ -51,6 +54,31 @@ function mainmenuScreen() {
    {
       cancel($introMenuSchedule);
       $introMenuSchedule = "";
+   }
+   if (isObject(creditsActionMap))
+   {
+      creditsActionMap.pop();
+      creditsActionMap.delete();
+   }
+   if ($creditsReturnSchedule !$= "")
+   {
+      cancel($creditsReturnSchedule);
+      $creditsReturnSchedule = "";
+   }
+   if ($creditsShutdownSchedule !$= "")
+   {
+      cancel($creditsShutdownSchedule);
+      $creditsShutdownSchedule = "";
+   }
+   if ($creditsFadeSchedule !$= "")
+   {
+      cancel($creditsFadeSchedule);
+      $creditsFadeSchedule = "";
+   }
+   if ($creditsExplosionSchedule !$= "")
+   {
+      cancel($creditsExplosionSchedule);
+      $creditsExplosionSchedule = "";
    }
    // Ensure background music continues seamlessly across scene transitions
    startBackgroundMusic();

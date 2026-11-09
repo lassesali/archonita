@@ -9,6 +9,7 @@ function AudioManager::onAdd(%this)
    %this.bgMusic = 0;
    %this.bgMusicSchedule = "";
    %this.loopInterval = 2000;
+   %this.isMusicPaused = false;
 
    // Mute states (restored from persistent preferences if available)
    %this.musicMuted = ($pref::Audio::musicMuted == 1 || $pref::Audio::musicMuted $= "true");
@@ -37,6 +38,11 @@ function AudioManager::isMusicMuted(%this)
    return (%this.musicMuted == 1 || %this.musicMuted $= "true");
 }
 
+function AudioManager::isMusicPaused(%this)
+{
+   return (%this.isMusicPaused == true || %this.isMusicPaused $= "true");
+}
+
 function AudioManager::isSFXMuted(%this)
 {
    return (%this.sfxMuted == 1 || %this.sfxMuted $= "true");
@@ -49,12 +55,12 @@ function AudioManager::setMusicMuted(%this, %muted)
 
    if (%this.musicMuted)
    {
-      %this.stopBackgroundMusic();
+      %this.pauseBackgroundMusic();
    }
    else
    {
       %state = getGameState();
-      if (%state != $gameCreditsState)
+      if ($gameCreditsState $= "" || %state != $gameCreditsState)
          %this.startBackgroundMusic();
    }
 
@@ -140,12 +146,55 @@ function AudioManager::isMusicPlaying(%this)
    return false;
 }
 
+function AudioManager::pauseBackgroundMusic(%this)
+{
+   if (%this.bgMusicSchedule !$= "")
+   {
+      cancel(%this.bgMusicSchedule);
+      %this.bgMusicSchedule = "";
+   }
+
+   if (%this.bgMusic != 0)
+   {
+      alxPause(%this.bgMusic);
+      %this.isMusicPaused = true;
+   }
+
+   if ($introMusic != 0 && $introMusic != %this.bgMusic)
+   {
+      alxPause($introMusic);
+   }
+}
+
+function AudioManager::resumeBackgroundMusic(%this)
+{
+   return %this.startBackgroundMusic();
+}
+
 function AudioManager::startBackgroundMusic(%this)
 {
    if (%this.isMusicMuted())
    {
-      %this.stopBackgroundMusic();
+      %this.pauseBackgroundMusic();
       return 0;
+   }
+
+   if (%this.isMusicPaused && %this.bgMusic != 0)
+   {
+      alxUnpause(%this.bgMusic);
+      if ($introMusic != 0 && $introMusic != %this.bgMusic)
+         alxUnpause($introMusic);
+      %this.isMusicPaused = false;
+
+      if (%this.isMusicPlaying())
+      {
+         if (%this.bgMusicSchedule !$= "")
+            cancel(%this.bgMusicSchedule);
+         %this.bgMusicSchedule = %this.schedule(%this.loopInterval, checkBackgroundMusicLoop);
+         return %this.bgMusic;
+      }
+
+      %this.bgMusic = 0;
    }
 
    if (%this.isMusicPlaying())
@@ -162,6 +211,7 @@ function AudioManager::startBackgroundMusic(%this)
    // Play ambient1Audio
    %this.bgMusic = playArchonSound(ambient1Audio);
    $introMusic = %this.bgMusic;
+   %this.isMusicPaused = false;
 
    if (%this.bgMusicSchedule !$= "")
    {
@@ -181,7 +231,7 @@ function AudioManager::checkBackgroundMusicLoop(%this)
       return;
 
    %state = getGameState();
-   if (%state == $gameCreditsState)
+   if ($gameCreditsState !$= "" && %state == $gameCreditsState)
       return;
 
    if (!%this.isMusicPlaying())
@@ -212,6 +262,8 @@ function AudioManager::stopBackgroundMusic(%this)
       alxStop($introMusic);
       $introMusic = 0;
    }
+
+   %this.isMusicPaused = false;
 }
 
 //---------------------------------------------------------------------------------------------
@@ -393,6 +445,23 @@ function stopBackgroundMusic()
       AudioManager.stopBackgroundMusic();
 }
 
+function pauseBackgroundMusic()
+{
+   if (isObject($AudioManager))
+      $AudioManager.pauseBackgroundMusic();
+   else if (isObject(AudioManager))
+      AudioManager.pauseBackgroundMusic();
+}
+
+function resumeBackgroundMusic()
+{
+   if (isObject($AudioManager))
+      return $AudioManager.resumeBackgroundMusic();
+   else if (isObject(AudioManager))
+      return AudioManager.resumeBackgroundMusic();
+   return 0;
+}
+
 function checkBackgroundMusicLoop()
 {
    if (isObject($AudioManager))
@@ -483,6 +552,15 @@ function isMusicMuted()
       return $AudioManager.isMusicMuted();
    else if (isObject(AudioManager))
       return AudioManager.isMusicMuted();
+   return false;
+}
+
+function isMusicPaused()
+{
+   if (isObject($AudioManager))
+      return $AudioManager.isMusicPaused();
+   else if (isObject(AudioManager))
+      return AudioManager.isMusicPaused();
    return false;
 }
 

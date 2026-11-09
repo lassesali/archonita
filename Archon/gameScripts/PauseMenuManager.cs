@@ -349,7 +349,7 @@ function PauseMenuManager::onQuitClicked(%this)
    if (isObject(%this.backdropCtrl))
       %this.backdropCtrl.setVisible(false);
    %this.discardSavedSession();
-   creditsScreen();
+   shutdown();
 }
 
 function PauseMenuManager::suspendAndReturnToTitle(%this)

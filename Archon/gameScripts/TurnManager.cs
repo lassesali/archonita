@@ -29,6 +29,7 @@ function TurnManager::initStateMachine(%this)
 {
    $gameIntroState = new ScriptObject() { };
    $gameMainMenuState = new ScriptObject() { };
+   $gameCreditsState = new ScriptObject() { };
    $gameCardSelectState = new ScriptObject() { };
    $gamePreBattleState = new ScriptObject() { };
    $gamePreBattleTimerState = new ScriptObject() { };
@@ -36,6 +37,7 @@ function TurnManager::initStateMachine(%this)
    $gameBattleState = new ScriptObject() { };
    $gameEndState = new ScriptObject() { };  
    
+   $gameCreditsState.name = "Credits State";
    $gameBattleState.name = "Battle State";
    $gameEndState.name = "End State";
 }
@@ -415,7 +417,7 @@ function TurnManager::endBattle(%this)
    updateMagicButtonParticleState();
    if (isObject(FloatingTextManager))
       FloatingTextManager.clearAll();
-   %this.endBattleEvent = schedule(2000, 0, creditsscreen);
+   %this.endBattleEvent = schedule(2000, 0, mainmenuScreen);
 }
 
 //---------------------------------------------------------------------------------------------

@@ -627,6 +627,12 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
             return;
         }
 
+        if (getGameState() == $gameCreditsState)
+        {
+            returnFromCredits();
+            return;
+        }
+
         if (getGameState() == $gameMainMenuState) 
         {
             return;
@@ -812,6 +818,11 @@ function sceneWindow2D::onMouseUp( %this, %mod, %worldPos, %mouseClicks )
          }
 
          if ( getGameState() == $gameIntroState )
+         {
+            return;
+         }
+
+         if ( getGameState() == $gameCreditsState )
          {
             return;
          }
