@@ -356,6 +356,34 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 109 (2.0.3-ea4) — 2026-11-09
+- **Title Menu, Options Dialog & Multi-Resolution Display Subsystems (`TitleMenuManager.cs`, `OptionsMenuGui.cs`, `ResolutionManager.cs`, `PauseMenuManager.cs`, `BoardAudioHud.cs`):**
+  - Integrated keyboard-navigable Title Menu ([`TitleMenuManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/TitleMenuManager.cs)) with New Game, Options, Help, Credits, and Quit options, button hover sound effects, and clean Escape key transitions.
+  - Implemented modal [`OptionsMenuGui.cs`](file:///M:/Archonita/src/Archon/gameScripts/OptionsMenuGui.cs) accessible from both Title Menu and Pause Menu ([`PauseMenuManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/PauseMenuManager.cs)), featuring dynamic resolution dropdown selection, fullscreen toggling, Master/Music/SFX volume controls, and Enemy Faction selection.
+  - Created [`ResolutionManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/ResolutionManager.cs) supporting 7 resolutions across 4 aspect ratios (16:9, 16:10, 4:3, 5:4) from 800x600 to 2560x1440, camera viewport centering, and dynamic background letterbox/pillarbox adjustment.
+  - Added in-game [`BoardAudioHud.cs`](file:///M:/Archonita/src/Archon/gameScripts/BoardAudioHud.cs) allowing on-the-fly volume adjustments and mute toggling directly from the tactical board.
+  - Fixed audio restoration on unmute and ensured Escape key returns to title screen from credits.
+- **Dragonfolk & Gremlin Faction Expansion (`FactionManager.cs`, `FactionSelectGui.cs`, `BoardManager.cs`, `CombatEngine.cs`):**
+  - Expanded enemy factions from the base Undead roster (+4 offset) to include the Dragonfolk Faction (+8 offset: Dragon Folk, Red Dragon, Air Dragon, Gold Dragon) and Gremlin Faction (+12 offset: Gremlin, Horned One-Eye, Mistress, Demon).
+  - Implemented [`FactionManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/FactionManager.cs) to manage active enemy faction, piece offsets, and user preferences persistence.
+  - Implemented pre-battle interactive [`FactionSelectGui.cs`](file:///M:/Archonita/src/Archon/gameScripts/FactionSelectGui.cs) allowing the player to select the enemy army before character placement.
+  - Updated [`BoardManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/BoardManager.cs) to spawn enemy armies dynamically based on the selected faction offset.
+  - Expanded [`CombatEngine.cs`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) animation state machine initialization across all 16 units in 4 compass directions.
+  - Converted all 40 individual sprite sheet files for new factions to transparent alpha channels via [`tools/apply_transparency_to_new_factions.py`](file:///M:/Archonita/src/tools/apply_transparency_to_new_factions.py).
+  - Generated master sprite atlases (`imagemap.png`) with JSON and TXT manifests for all 16 creatures via [`tools/combine_imagemaps.py`](file:///M:/Archonita/src/tools/combine_imagemaps.py).
+- **Sprite Sheet Alignment & Stopped Bleed Resolution (`hornedoneye`):**
+  - Re-aligned Horned One-Eye idle frames into uniform 128x128 px cells in [`Archon/data/images/hornedoneye/stoppedImageMap.png`](file:///M:/Archonita/src/Archon/data/images/hornedoneye/stoppedImageMap.png) and [`dist/Archon/data/images/hornedoneye/stoppedImageMap.png`](file:///M:/Archonita/src/dist/Archon/data/images/hornedoneye/stoppedImageMap.png) with 16 px margins, eliminating adjacent frame bleeding in South/West/North orientations and restoring the East direction.
+  - Updated [`hornedoneyeStoppedImageMap.asset.taml`](file:///M:/Archonita/src/Archon/data/images/hornedoneye/hornedoneyeStoppedImageMap.asset.taml) and [`dist/Archon/data/images/hornedoneye/hornedoneyeStoppedImageMap.asset.taml`](file:///M:/Archonita/src/dist/Archon/data/images/hornedoneye/hornedoneyeStoppedImageMap.asset.taml) to `CellWidth="128" CellHeight="128"`.
+  - Updated [`tools/generate_faction_assets.py`](file:///M:/Archonita/src/tools/generate_faction_assets.py) to configure `hornedoneye` uniformly as 128x128 across all actions.
+  - Re-synthesized master sprite atlas [`imagemap.png`](file:///M:/Archonita/src/Archon/data/images/hornedoneye/imagemap.png) and companion manifests.
+  - Added regression test `test_hornedoneye_spritesheet_combination_no_stopped_bleed` to [`tests/test_combine_imagemaps.py`](file:///M:/Archonita/src/tests/test_combine_imagemaps.py).
+- **QA Automation & Windows High-DPI Scaling Specification:**
+  - Added Windows high-DPI scaling automation and QA specification report in PDF and TXT formats covering 125% and 150% scaling coordinate normalization formulas.
+  - Added [`tools/win_dpi_qa_agent.py`](file:///M:/Archonita/src/tools/win_dpi_qa_agent.py), [`tools/generate_reports.py`](file:///M:/Archonita/src/tools/generate_reports.py), and [`tests/lib/DpiAwareInput.ps1`](file:///M:/Archonita/src/tests/lib/DpiAwareInput.ps1).
+  - Added automated integration test suite [`tests/test_factions.cs`](file:///M:/Archonita/src/tests/test_factions.cs) validating FactionManager, UnitProperties, CombatEngine, and FactionSelectGui.
+- **Version Configuration:**
+  - Incremented build number to `109` and version to `2.0.3-ea4` across [`version.json`](file:///M:/Archonita/src/version.json) and [`version.env`](file:///M:/Archonita/src/version.env) in repository root, module, and distribution folders.
+
 ### Build 108 (2.0.2-ea4) — 2026-11-02
 - **Combat Dice Animation Guarding (`CombatEngine.cs`, `t2d_compat.cs`):**
   - Added `isStaticFrameProvider()` safety guards in [`CombatEngine::stopDiceAnimation`](file:///M:/Archonita/src/Archon/gameScripts/CombatEngine.cs) for attacker and defender dice sprites (`$noppa[%i]` and `$noppadef[%i]`) to prevent calling `stopAnimation()` on static frames.
