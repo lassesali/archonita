@@ -10,6 +10,11 @@ function AudioManager::onAdd(%this)
    %this.bgMusicSchedule = "";
    %this.loopInterval = 2000;
 
+   // Mute states (restored from persistent preferences if available)
+   %this.musicMuted = ($pref::Audio::musicMuted == 1 || $pref::Audio::musicMuted $= "true");
+   %this.sfxMuted = ($pref::Audio::sfxMuted == 1 || $pref::Audio::sfxMuted $= "true");
+   %this.activeSFXCount = 0;
+
    // Dice roll audio pool configuration
    %this.diceSoundCount = 9;
    %this.lastDiceRollIndex = 0;
@@ -24,6 +29,104 @@ function AudioManager::onRemove(%this)
 {
    %this.stopBackgroundMusic();
    %this.stopAllDiceSounds();
+   %this.stopAllSFXHandles();
+}
+
+function AudioManager::isMusicMuted(%this)
+{
+   return (%this.musicMuted == 1 || %this.musicMuted $= "true");
+}
+
+function AudioManager::isSFXMuted(%this)
+{
+   return (%this.sfxMuted == 1 || %this.sfxMuted $= "true");
+}
+
+function AudioManager::setMusicMuted(%this, %muted)
+{
+   %this.musicMuted = (%muted == 1 || %muted $= "true") ? true : false;
+   $pref::Audio::musicMuted = %this.musicMuted;
+
+   if (%this.musicMuted)
+   {
+      %this.stopBackgroundMusic();
+   }
+   else
+   {
+      %state = getGameState();
+      if (%state != $gameCreditsState)
+         %this.startBackgroundMusic();
+   }
+
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.updateVisuals();
+   if (isObject($OptionsMenuGui))
+      $OptionsMenuGui.updateVisuals();
+   if (isObject($ResolutionManager))
+      $ResolutionManager.savePreferences();
+}
+
+function AudioManager::toggleMusicMute(%this)
+{
+   %this.setMusicMuted(!%this.isMusicMuted());
+}
+
+function AudioManager::setSFXMuted(%this, %muted)
+{
+   %this.sfxMuted = (%muted == 1 || %muted $= "true") ? true : false;
+   $pref::Audio::sfxMuted = %this.sfxMuted;
+
+   if (%this.sfxMuted)
+   {
+      %this.stopAllDiceSounds();
+      %this.stopAllSFXHandles();
+   }
+
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.updateVisuals();
+   if (isObject($OptionsMenuGui))
+      $OptionsMenuGui.updateVisuals();
+   if (isObject($ResolutionManager))
+      $ResolutionManager.savePreferences();
+}
+
+function AudioManager::toggleSFXMute(%this)
+{
+   %this.setSFXMuted(!%this.isSFXMuted());
+}
+
+function AudioManager::registerSFXHandle(%this, %handle)
+{
+   if (%handle == 0)
+      return;
+
+   %validCount = 0;
+   for (%i = 0; %i < %this.activeSFXCount; %i++)
+   {
+      %h = %this.activeSFX[%i];
+      if (%h != 0 && alxIsPlaying(%h))
+      {
+         %valid[%validCount] = %h;
+         %validCount++;
+      }
+   }
+   for (%i = 0; %i < %validCount; %i++)
+      %this.activeSFX[%i] = %valid[%i];
+
+   %this.activeSFX[%validCount] = %handle;
+   %this.activeSFXCount = %validCount + 1;
+}
+
+function AudioManager::stopAllSFXHandles(%this)
+{
+   for (%i = 0; %i < %this.activeSFXCount; %i++)
+   {
+      %h = %this.activeSFX[%i];
+      if (%h != 0 && alxIsPlaying(%h))
+         alxStop(%h);
+      %this.activeSFX[%i] = 0;
+   }
+   %this.activeSFXCount = 0;
 }
 
 function AudioManager::isMusicPlaying(%this)
@@ -39,6 +142,12 @@ function AudioManager::isMusicPlaying(%this)
 
 function AudioManager::startBackgroundMusic(%this)
 {
+   if (%this.isMusicMuted())
+   {
+      %this.stopBackgroundMusic();
+      return 0;
+   }
+
    if (%this.isMusicPlaying())
    {
       if (%this.bgMusic == 0 && $introMusic != 0)
@@ -67,6 +176,9 @@ function AudioManager::startBackgroundMusic(%this)
 function AudioManager::checkBackgroundMusicLoop(%this)
 {
    %this.bgMusicSchedule = "";
+
+   if (%this.isMusicMuted())
+      return;
 
    %state = getGameState();
    if (%state == $gameCreditsState)
@@ -171,6 +283,9 @@ function AudioManager::stopAllDiceSounds(%this)
 
 function AudioManager::playDiceRollSound(%this, %volume)
 {
+   if (%this.isSFXMuted())
+      return 0;
+
    // Prune finished sounds from active channel pool
    %this.pruneActiveDiceSounds();
 
@@ -328,6 +443,56 @@ function playSpellCastSound(%spellFrame)
    else if (isObject(AudioManager))
       return AudioManager.playSpellCastSound(%spellFrame);
    return 0;
+}
+
+function toggleMusicMute()
+{
+   if (isObject($AudioManager))
+      $AudioManager.toggleMusicMute();
+   else if (isObject(AudioManager))
+      AudioManager.toggleMusicMute();
+}
+
+function toggleSFXMute()
+{
+   if (isObject($AudioManager))
+      $AudioManager.toggleSFXMute();
+   else if (isObject(AudioManager))
+      AudioManager.toggleSFXMute();
+}
+
+function setMusicMuted(%muted)
+{
+   if (isObject($AudioManager))
+      $AudioManager.setMusicMuted(%muted);
+   else if (isObject(AudioManager))
+      AudioManager.setMusicMuted(%muted);
+}
+
+function setSFXMuted(%muted)
+{
+   if (isObject($AudioManager))
+      $AudioManager.setSFXMuted(%muted);
+   else if (isObject(AudioManager))
+      AudioManager.setSFXMuted(%muted);
+}
+
+function isMusicMuted()
+{
+   if (isObject($AudioManager))
+      return $AudioManager.isMusicMuted();
+   else if (isObject(AudioManager))
+      return AudioManager.isMusicMuted();
+   return false;
+}
+
+function isSFXMuted()
+{
+   if (isObject($AudioManager))
+      return $AudioManager.isSFXMuted();
+   else if (isObject(AudioManager))
+      return AudioManager.isSFXMuted();
+   return false;
 }
 
 // Initialize Singleton

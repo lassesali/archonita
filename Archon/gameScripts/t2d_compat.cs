@@ -377,5 +377,18 @@ function playArchonSound(%name)
    if (%name $= "" || %name $= "0") return 0;
    if (strstr(%name, "Archon:") == -1)
       %name = "Archon:" @ %name;
-   return alxPlay(%name);
+
+   %isMusic = (%name $= "Archon:ambient1Audio");
+   if (isObject($AudioManager))
+   {
+      if (%isMusic && $AudioManager.isMusicMuted())
+         return 0;
+      if (!%isMusic && $AudioManager.isSFXMuted())
+         return 0;
+   }
+
+   %handle = alxPlay(%name);
+   if (!%isMusic && %handle != 0 && isObject($AudioManager))
+      $AudioManager.registerSFXHandle(%handle);
+   return %handle;
 }

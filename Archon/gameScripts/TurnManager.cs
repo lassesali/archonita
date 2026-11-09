@@ -52,6 +52,16 @@ function TurnManager::getGameState(%this)
 
 function TurnManager::initNewGame(%this)
 {
+   if (isObject(game))
+      game.reset();
+   if (isObject(HeroGroup))
+   {
+      if (isObject(HeroGroup.getObject(0)))
+         HeroGroup.getObject(0).reset();
+      if (isObject(HeroGroup.getObject(1)))
+         HeroGroup.getObject(1).reset();
+   }
+
    game.setTurn(0);
    %this.shuffleSpellDeck();
 
@@ -396,6 +406,9 @@ function TurnManager::nextTurn(%this)
 
 function TurnManager::endBattle(%this)
 {
+   $GameSession::hasActiveSession = false;
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.show(false);
    if (isObject(CombatEngine))
       CombatEngine.cancelDiceRoll();
    sceneWindow2D.setUseWindowMouseEvents(false);

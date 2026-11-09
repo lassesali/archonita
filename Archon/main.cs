@@ -22,21 +22,33 @@ function Archon::destroy(%this)
 
 function initializeProject()
 {
-
    %res = getDesktopResolution();
    echo(%res);
-   %fs = false;
-   if ($pref::Video::fullScreen !$= "")
-      %fs = $pref::Video::fullScreen;
-   setScreenMode( 1024, 768, 32, %fs );
 
-   // Load up the in game gui.
+   // Load up the in game gui and resolution preferences.
    exec("./gameScripts/t2d_compat.cs");
+   exec("./gameScripts/ResolutionManager.cs");
+   if (!isObject($ResolutionManager))
+      $ResolutionManager = new ScriptObject(ResolutionManager) { };
+
+   %bootW = getWord($ResolutionManager.currentResolution, 0);
+   %bootH = getWord($ResolutionManager.currentResolution, 1);
+   if (%bootW <= 0 || %bootH <= 0)
+   {
+      %bootW = 1280;
+      %bootH = 720;
+   }
+   setScreenMode( %bootW, %bootH, 32, $ResolutionManager.currentFullScreen );
+
    OpenALInitDriver();
    Canvas.setCursor(DefaultCursor);
    Canvas.showCursor();
    exec("./gui/ggSplash.gui");
    exec("./gui/mainScreen.gui");
+   if (isObject(mainScreenGui))
+      mainScreenGui.Extent = %bootW SPC %bootH;
+   if (isObject(sceneWindow2D))
+      sceneWindow2D.Extent = %bootW SPC %bootH;
       
    // Exec game scripts.
    exec("./gameScripts/intro.cs");
@@ -72,6 +84,21 @@ function initializeProject()
    exec("./gameScripts/metrics.cs");
    if (!isObject($Metrics))
       $Metrics = Metrics;
+   exec("./gameScripts/BoardAudioHud.cs");
+   if (!isObject($BoardAudioHud))
+      $BoardAudioHud = new ScriptObject(BoardAudioHud) { };
+   exec("./gameScripts/PauseMenuManager.cs");
+   if (!isObject($PauseMenuManager))
+      $PauseMenuManager = new ScriptObject(PauseMenuManager) { };
+   exec("./gameScripts/TitleMenuManager.cs");
+   if (!isObject($TitleMenuManager))
+      $TitleMenuManager = new ScriptObject(TitleMenuManager) { };
+   exec("./gameScripts/OptionsMenuGui.cs");
+   if (!isObject($OptionsMenuGui))
+      $OptionsMenuGui = new ScriptObject(OptionsMenuGui) { };
+
+   if (isObject($ResolutionManager))
+      $ResolutionManager.reanchorAllGuis();
       
    SetRandomSeed(getRealTime());
    if (!$Archon::skipSplash)
@@ -88,6 +115,16 @@ function initializeProject()
 //---------------------------------------------------------------------------------------------
 function shutdownProject()
 {
+   if (isObject($OptionsMenuGui))
+      $OptionsMenuGui.delete();
+   if (isObject($TitleMenuManager))
+      $TitleMenuManager.delete();
+   if (isObject($PauseMenuManager))
+      $PauseMenuManager.delete();
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.delete();
+   if (isObject($ResolutionManager))
+      $ResolutionManager.delete();
    if (isObject($VersionConfig))
       $VersionConfig.delete();
    if (isObject($AudioManager))

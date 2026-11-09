@@ -40,6 +40,13 @@ function BoardManager::onRemove(%this)
 
 function BoardManager::showBoardScreen(%this)
 {
+   if (isObject($PauseMenuManager))
+      $PauseMenuManager.discardSavedSession();
+
+   if (isObject($TitleMenuManager))
+      $TitleMenuManager.show(false);
+   showVersionWatermark(false);
+
    setGameState($gamePreBattleState);
    startBackgroundMusic();
    dismountobject();
@@ -61,6 +68,30 @@ function BoardManager::showBoardScreen(%this)
       diceRed.setSize("11.4 11.4");
       diceRed.setAngularVelocity(-10);
    }
+
+   $GameSession::hasActiveSession = true;
+   %this.bindBoardHotkeys();
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.show(true);
+}
+
+function BoardManager::bindBoardHotkeys(%this)
+{
+   if (isObject(testActionMap))
+      testActionMap.delete();
+   new ActionMap(testActionMap);
+   testActionMap.bindCmd(keyboard, "escape", "", "onEscapeKeyPressed();");
+   testActionMap.bindCmd(keyboard, "m", "toggleMusicMute();", "");
+   testActionMap.bindCmd(keyboard, "n", "toggleSFXMute();", "");
+   testActionMap.bindCmd(keyboard, "d", "", "dumpBoardDebug();");
+   testActionMap.push();
+}
+
+function BoardManager::resumeBoardScreen(%this)
+{
+   if (isObject($PauseMenuManager))
+      return $PauseMenuManager.resumeToBoardFromTitle();
+   return false;
 }
 
 function BoardManager::initBoard(%this)

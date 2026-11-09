@@ -19,6 +19,29 @@ new ScriptObject(game)
    spellRevealed = false;
 };
 
+function game::reset(%this)
+{
+   %this.highlightedIcon = 0;
+   %this.highlightedicon = 0;
+   %this.selectedAction = 0;
+   %this.selectedPiece = 0;
+   %this.nappulaSelected = 0;
+   %this.activePlayer = 0;
+   %this.vuorossaOlevaPelaaja = 0;
+   %this.activeOpponent = 1;
+   %this.vuorossaOlevanPelaajanVastustaja = 1;
+   %this.turn = 0;
+   %this.vuoro = 0;
+   %this.gameTimer = 0;
+   %this.timer = 0;
+   %this.turnQueue = "";
+   %this.vuorotVector = "";
+   %this.pieceCount = 0;
+   %this.countOfNappula = 0;
+   %this.canCastSpell = false;
+   %this.spellRevealed = false;
+}
+
 //---------------------------------------------------------------------------------------------
 // Action Icon Highlighting & Selection
 //---------------------------------------------------------------------------------------------

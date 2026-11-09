@@ -23,7 +23,15 @@ function SceneWindow::loadLevel(%this, %level)
       {
          %this.setScene(%sceneObj);
          %this.setCameraPosition(0, 0);
-         %this.setCameraSize(100, 75);
+         if (isObject($ResolutionManager))
+         {
+            $ResolutionManager.applyCameraAspect(%this);
+            $ResolutionManager.adaptSceneBackground();
+         }
+         else
+         {
+            %this.setCameraSize(100, 75);
+         }
          return;
       }
    }
@@ -36,7 +44,15 @@ function SceneWindow::loadLevel(%this, %level)
       {
          %this.setScene(t2dScene);
          %this.setCameraPosition(0, 0);
-         %this.setCameraSize(100, 75);
+         if (isObject($ResolutionManager))
+         {
+            $ResolutionManager.applyCameraAspect(%this);
+            $ResolutionManager.adaptSceneBackground();
+         }
+         else
+         {
+            %this.setCameraSize(100, 75);
+         }
       }
    }
 }

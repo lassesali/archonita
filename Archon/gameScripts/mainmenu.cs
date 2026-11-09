@@ -6,7 +6,28 @@ $mainMenuTransitioning = false;
 $bubbleSchedule = "";
 $heroSelectSchedule = "";
 
+function onEscapeKeyPressed() {
+   if (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible())
+   {
+      $OptionsMenuGui.show(false);
+      return;
+   }
+   if (isObject($PauseMenuManager) &&
+       ($PauseMenuManager.isBoardState(getGameState()) || $PauseMenuManager.isPaused))
+   {
+      $PauseMenuManager.togglePauseMenu();
+      return;
+   }
+   if (isObject($TitleMenuManager))
+      $TitleMenuManager.show(false);
+   creditsScreen();
+}
+
 function mainMenuFadeOut() {
+   if (isObject($TitleMenuManager))
+      $TitleMenuManager.show(false);
+   if (isObject($OptionsMenuGui))
+      $OptionsMenuGui.show(false);
    if (isObject(blowjob))
       blowjob.startFadeOut(0.2);
    if (isObject(akka))
@@ -41,7 +62,9 @@ function mainmenuScreen() {
    if (isObject(testActionMap))
       testActionMap.delete();
    new ActionMap(testActionMap);
-   testActionMap.bindCmd(keyboard, "escape", "", "creditsScreen();");
+   testActionMap.bindCmd(keyboard, "escape", "", "onEscapeKeyPressed();");
+   testActionMap.bindCmd(keyboard, "m", "toggleMusicMute();", "");
+   testActionMap.bindCmd(keyboard, "n", "toggleSFXMute();", "");
    testActionMap.bindCmd(keyboard, "d", "", "dumpBoardDebug();");
    testActionMap.push();
 
@@ -51,6 +74,12 @@ function mainmenuScreen() {
    Canvas.setCursor(DefaultCursor);
    Canvas.showCursor();
    startGame("Archon/data/levels/mainmenu.t2d");  
+   if (isObject($ResolutionManager))
+      $ResolutionManager.adaptSceneBackground();
+   if (isObject($BoardAudioHud))
+      $BoardAudioHud.show(false);
+   if (isObject($TitleMenuManager))
+      $TitleMenuManager.show(true);
    showVersionWatermark(true);  
 
    if ($bubbleSchedule !$= "")

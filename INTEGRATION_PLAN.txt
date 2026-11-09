@@ -1,0 +1,575 @@
+================================================================================
+ARCHONITA - FEATURE INTEGRATION PLAN: TITLE SCREEN, RESOLUTION/ASPECT RATIO, AND AUDIO HUD
+================================================================================
+Target Platform: Torque2D 4.0 ("Rocket Edition", Early Access) / Archonita
+Architecture Guide: TORQUE_SCRIPT.md & CLAUDE.md conventions
+Author: DeepMind / Antigravity Agent
+Date: November 2026
+Status: Engineering Architecture & Implementation Specification
+================================================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Executive Summary & Architectural Overview
+2. Current Codebase Analysis & Pain Points
+3. Feature 1: Modernized Title Screen ("Play" & "Resume Game")
+4. Feature 2: Multi-Aspect Ratio & Resolution Engine (16:9, 16:10, 21:9, 32:9)
+5. Feature 3: Game Board Screen Audio HUD (Mute SFX & Mute Music)
+6. Feature 4: In-Game Pause Menu & Game Session Lifecycle
+7. Detailed File Modification & Creation Inventory
+8. Step-by-Step Implementation Roadmap (Phases 1 - 7)
+9. Quality Assurance, Test Matrix & Edge Cases
+10. TorqueScript Convention Audit & Checklist
+--------------------------------------------------------------------------------
+
+
+================================================================================
+1. EXECUTIVE SUMMARY & ARCHITECTURAL OVERVIEW
+================================================================================
+This engineering specification defines the complete plan to integrate three core 
+features into Archonita:
+
+1. A modernized Title Screen UI featuring:
+   - "Play" (New Game): Starts a new run and navigates to Hero Selection.
+   - "Resume Game": Conditionally enabled when an active game session exists,
+     allowing players to seamlessly jump back into their ongoing board match.
+   - "Options": Launches the Video and Audio Settings dialog.
+   - "Credits" & "Quit": Clean exit and credits integration.
+
+2. A dynamic Resolution & Aspect Ratio management system supporting:
+   - 16:9 (Standard Widescreen): 1280x720, 1920x1080 (Default), 2560x1440, 3840x2160
+   - 16:10 (Widescreen / Steam Deck): 1280x800, 1680x1050, 1920x1200, 2560x1600
+   - 21:9 (Ultrawide): 2560x1080, 3440x1440, 5120x2160
+   - 32:9 (Super Ultrawide): 3840x1080, 5120x1440
+   - 4:3 / 5:4 (Legacy Fallback): 800x600, 1024x768, 1280x1024
+   - Real-time camera viewport recalculation without sprite stretching or distortion.
+   - Intelligent playfield framing (board remains centered with extended background).
+
+3. Game Board Audio HUD Controls:
+   - Independent "Mute SFX" and "Mute Music" toggle buttons pinned to the 
+     top-right of the Game Board viewport via GUI anchor profiles.
+   - Real-time volume & channel suppression via OpenAL (Channels 0 & 1) and AudioManager.
+   - Visual toggle indicators (ON/OFF state, tooltips, click feedback).
+   - Hotkey bindings ('M' for Music mute, 'Ctrl+S' or 'N' for SFX mute).
+   - Persistent preference storage surviving game relaunches.
+
+All changes strictly conform to `TORQUE_SCRIPT.md`:
+- One class per file, matching filename.
+- `ScriptObject` managers with full `onAdd` and `onRemove` lifecycle handling.
+- Strict ownership chains (objects delete what they create).
+- GUI controls placed on `mainScreenGui` with responsive `HorizSizing` and `VertSizing`.
+
+
+================================================================================
+2. CURRENT CODEBASE ANALYSIS & PAIN POINTS
+================================================================================
+An audit of the current Archonita codebase revealed the following constraints:
+
+1. Title Screen Click Hijacking:
+   - In `Archon/gameScripts/complexMouse.cs:626-634`, the method `sceneWindow2D::onMouseDown`
+     checks `if (getGameState() == $gameMainMenuState) { gotoSelectHeroScreen(); return; }`.
+   - Any mouse click anywhere on the title screen immediately triggers a scene transition
+     to hero selection. There are no UI buttons or interaction targets.
+
+2. Hardcoded Resolution & 4:3 Camera Distortion:
+   - `Archon/main.cs:31` hardcodes `setScreenMode(1024, 768, 32, %fs);`.
+   - `Archon/gameScripts/game.cs:26, 39` hardcodes camera dimensions to `100 75` (4:3 aspect).
+   - When a modern widescreen (16:9) or ultrawide (21:9 / 32:9) display runs this,
+     either the window is pillarboxed at low resolution, or if maximized/stretched,
+     circles become ovals and squares distort horizontally.
+   - Legacy patches exist as static 2006 DSOs (`resolutionpatch_1280x1024.zip`), which
+     are obsolete in Torque2D 4.0.
+
+3. Lack of In-Game Audio Controls:
+   - `Archon/gameScripts/AudioManager.cs` manages background music looping via `ambient1Audio`
+     and dice rolls via `playDiceRollSound()`.
+   - There are no script functions or GUI buttons to mute music or SFX during gameplay.
+   - OpenAL driver initialization occurs in `main.cs:35`, but channel volumes (channel 0
+     for music, channel 1 for SFX) are never exposed to the player.
+
+4. Volatile Game Session Lifecycle:
+   - Navigating away from `board.t2d` (e.g. via Escape to credits) pops the action map
+     or ends the level without serializing or holding the active match state.
+   - There is no mechanism to pause a match, return to the Title Screen, and resume.
+
+
+================================================================================
+3. FEATURE 1: MODERNIZED TITLE SCREEN ("PLAY" & "RESUME GAME")
+================================================================================
+
+3.1 Design & User Experience
+--------------------------------------------------------------------------------
+The title screen will retain its iconic background art (`kuva`), animated warrior (`akka`),
+bubble particles (`saippuakuplat`), and title logo (`archonita`), while overlaying a
+responsive, dark-fantasy styled Menu Stack:
+
++------------------------------------------------------------------------------+
+|                                                                              |
+|                    [ ARCHONITA TITLE LOGO ]                                  |
+|                                                                              |
+|         [Akka]             +-----------------------+                         |
+|                            |      [ PLAY ]         |  <- Starts New Game     |
+|                            |                       |                         |
+|                            |   [ RESUME GAME ]     |  <- Active if in-game   |
+|                            |                       |     (Dimmed if no game) |
+|                            |     [ OPTIONS ]       |  <- Res/Aspect & Audio  |
+|                            |                       |                         |
+|                            |     [ CREDITS ]       |  <- Credits Screen      |
+|                            |                       |                         |
+|                            |      [ QUIT ]         |  <- Exit to Desktop     |
+|                            +-----------------------+                         |
+|                                                                              |
+|                                                  [Early Access 2.0.1-ea4]    |
++------------------------------------------------------------------------------+
+
+3.2 Button Specifications & Behavior
+--------------------------------------------------------------------------------
+1. [PLAY] (New Game):
+   - If `$GameSession::hasActiveSession == false`:
+     Immediately calls `gotoSelectHeroScreen()`.
+   - If `$GameSession::hasActiveSession == true`:
+     Opens a Confirmation Modal:
+     "A match is currently in progress. Starting a new game will discard your progress.
+      Do you wish to proceed? [CONTINUE] [CANCEL]"
+     - On CONTINUE: Cleans up active board state, resets turn counters, and advances.
+     - On CANCEL: Closes modal and returns to title menu.
+
+2. [RESUME GAME]:
+   - Visual State:
+     - When `$GameSession::hasActiveSession == true`: Enabled, highlighted text, clickable.
+     - When `$GameSession::hasActiveSession == false`: Disabled (`setActive(false)`),
+       semi-transparent/grayed out (`fontColorNA = "120 120 120 180"`).
+   - On Click:
+     - Calls `TitleMenuManager::resumeGame()`.
+     - Smoothly restores the canvas to `board.t2d`, re-enables the board action map,
+       resumes music if unmuted, and returns player directly to their active turn.
+
+3. [OPTIONS]:
+   - Opens the unified Options Dialog (Resolution, Aspect Ratio, Display Mode, Audio).
+
+4. [CREDITS]:
+   - Calls `creditsScreen()`.
+
+5. [QUIT]:
+   - Prompts confirmation or directly calls `shutdownProject(); quit();`.
+
+3.3 Technical Implementation
+--------------------------------------------------------------------------------
+- Create `Archon/gameScripts/TitleMenuManager.cs` (inherits `ScriptObject`, class `TitleMenuManager`).
+- Decouple full-screen click in `Archon/gameScripts/complexMouse.cs`:
+  Replace unconditional `gotoSelectHeroScreen()` with check:
+  `if (getGameState() == $gameMainMenuState) { /* Do not consume click; let GUI handle buttons */ return; }`.
+- Build custom GUI profiles:
+  `TitleMenuButtonProfile`, `TitleMenuButtonDisabledProfile`, `TitleMenuContainerProfile`.
+- Controls are children of `mainScreenGui` and kept in front of `sceneWindow2D`.
+
+
+================================================================================
+4. FEATURE 2: MULTI-ASPECT RATIO & RESOLUTION ENGINE
+================================================================================
+
+4.1 The Torque2D 2D Camera & Aspect Ratio Challenge
+--------------------------------------------------------------------------------
+Torque2D uses a 2D scene coordinate system rendered through `SceneWindow`.
+Currently, `SceneWindow::loadLevel` hardcodes:
+   `%this.setCameraSize(100, 75);` (Ratio 100/75 = 1.333 = 4:3).
+
+If the screen is set to 1920x1080 (16:9 = 1.778):
+- If the camera size remains (100, 75), the engine maps a 4:3 world into a 16:9 viewport.
+- Result: Severe horizontal stretching! Hexagons and circles stretch by 33%.
+- In 21:9 ultrawide, shapes stretch by 79%!
+- In 32:9 super ultrawide, shapes stretch by 166%!
+
+4.2 The Aspect Ratio Formula & Coordinate Model
+--------------------------------------------------------------------------------
+To achieve pixel-perfect, zero-distortion rendering across all monitors:
+Vertical world height remains fixed at:
+   `CamHeight = 75.0`
+The camera width is dynamically calculated from the aspect ratio:
+   `CamWidth = CamHeight * (DisplayWidth / DisplayHeight)`
+
++-------------------+------------+---------------+-----------------------------+
+| Aspect Ratio      | Proportion | Camera Size   | Standard Resolutions        |
++-------------------+------------+---------------+-----------------------------+
+| 16:9 (Standard)   | 1.7778     | 133.33 x 75.0 | 1280x720, 1920x1080 (FHD),  |
+|                   |            |               | 2560x1440 (QHD), 3840x2160  |
++-------------------+------------+---------------+-----------------------------+
+| 16:10 (Deck/Mac)  | 1.6000     | 120.00 x 75.0 | 1280x800 (Deck), 1680x1050, |
+|                   |            |               | 1920x1200, 2560x1600        |
++-------------------+------------+---------------+-----------------------------+
+| 21:9 (Ultrawide)  | 2.3704     | 177.78 x 75.0 | 2560x1080 (UW-FHD),         |
+|                   | (64:27)    |               | 3440x1440 (UW-QHD), 5120x2160|
++-------------------+------------+---------------+-----------------------------+
+| 32:9 (Super Wide) | 3.5556     | 266.67 x 75.0 | 3840x1080, 5120x1440        |
++-------------------+------------+---------------+-----------------------------+
+| 4:3 (Legacy)      | 1.3333     | 100.00 x 75.0 | 800x600, 1024x768           |
++-------------------+------------+---------------+-----------------------------+
+
+4.3 Game Board Centering & Background Adaptation
+--------------------------------------------------------------------------------
+The Archonita 9x9 board coordinates span:
+- Center: (0, 0)
+- Width: ~70 world units (X: -35 to +35)
+- Height: ~70 world units (Y: -35 to +35)
+- Action Icons: Anchored around X = +40
+- Hero Portraits: Anchored around X = -40
+
+In Widescreen (16:9), Ultrawide (21:9), and Super Ultrawide (32:9):
+1. The playfield remains centered at (0, 0).
+2. The background image (`background` in `board.scene.taml`, originally 102x76):
+   - In 16:9: Camera width is 133.33. Background is dynamically scaled to (136, 76).
+   - In 21:9: Camera width is 177.78. Background is scaled to (180, 76).
+   - In 32:9: Camera width is 266.67. Background is scaled to (270, 76), or framed with
+     decorative dark fantasy stone borders to preserve art fidelity.
+3. UI Overlays (Watermark, Audio Mute, FPS counter):
+   - All GUI controls use `HorizSizing` ("left" or "right" or "center") and `VertSizing`
+     ("top" or "bottom"), ensuring they anchor to window edges regardless of resolution!
+
+4.4 Options Menu UI Structure
+--------------------------------------------------------------------------------
+The Options Dialog provides:
+- [Aspect Ratio]: Dropdown or segmented buttons [16:9] [16:10] [21:9] [32:9] [4:3]
+- [Resolution]: Dynamically populated with resolutions matching the selected aspect ratio.
+- [Display Mode]: Checkbox/Toggle: Fullscreen vs Windowed.
+- [Apply Changes] Button:
+  - Calls `setScreenMode(%width, %height, 32, %fullScreen)`.
+  - Recalculates `sceneWindow2D.setCameraSize(%newWidth, 75)`.
+  - Spawns a 15-second Revert Confirmation Dialog:
+    "Reverting to previous resolution in 15 seconds... [KEEP] [REVERT]"
+  - If player confirms or time expires, updates `$pref::Video::*` preferences.
+
+
+================================================================================
+5. FEATURE 3: GAME BOARD SCREEN AUDIO HUD (MUTE SFX & MUTE MUSIC)
+================================================================================
+
+5.1 HUD Architecture & Positioning
+--------------------------------------------------------------------------------
+To ensure controls are always accessible without cluttering board tiles or interfering
+with creature clicks, the audio controls are placed in a dedicated GUI Container
+overlay anchored to the top-right corner of `mainScreenGui`:
+
+```
++--------------------------------------------------------------------+ [X]
+|                                              +-------------------+ |
+|                                              | [SFX: ON] [MUS:ON]| | <- HUD
+|                                              +-------------------+ |
+|     [-40, -16]                (0, 0)                   [+40, -1]   |
+|   [Player Hero]            [GAME BOARD]              [Actions HUD] |
+|                                                                    |
+|     [-40, +24]                                         [+37, +28]  |
+|   [Enemy Hero]                                           [Dice]    |
++--------------------------------------------------------------------+
+```
+
+- Container Extent: `140 32` pixels.
+- Anchoring: `HorizSizing = "left"`, `VertSizing = "bottom"`.
+- Position: `(Canvas.extent.x - 150) 10`. Automatically tracks window width!
+- Visible ONLY in Game Board states (`$gamePreBattleState`, `$gameBattleState`).
+
+5.2 Button States & Visual Feedback
+--------------------------------------------------------------------------------
+1. Mute SFX Button (`btnMuteSFX`):
+   - Unmuted: Text "[ SFX: ON ]", font color light green/gold (`160 255 160 255`).
+   - Muted: Text "[ SFX: OFF ]", font color muted gray/red (`255 120 120 255`).
+   - Tooltip: "Toggle Sound Effects (Hotkey: Ctrl+S)".
+
+2. Mute Music Button (`btnMuteMusic`):
+   - Unmuted: Text "[ MUS: ON ]", font color light green/gold (`160 255 160 255`).
+   - Muted: Text "[ MUS: OFF ]", font color muted gray/red (`255 120 120 255`).
+   - Tooltip: "Toggle Background Music (Hotkey: M)".
+
+5.3 OpenAL Audio Subsystem Integration
+--------------------------------------------------------------------------------
+Torque2D 4.0 natively maps audio channels:
+- Channel 0: Music
+- Channel 1: Sound Effects (SFX)
+
+In `Archon/gameScripts/AudioManager.cs`:
+1. `AudioManager::setMusicMuted(%this, %muted)`:
+   - Sets `%this.musicMuted = %muted;`.
+   - `$pref::Audio::musicMuted = %muted;`.
+   - If `%muted == true`:
+     - Calls `alxSetChannelVolume(0, 0.0);`.
+     - Calls `alxStop(%this.bgMusic);` and cancels `%this.bgMusicSchedule`.
+   - If `%muted == false`:
+     - Calls `alxSetChannelVolume(0, 1.0);`.
+     - Calls `%this.startBackgroundMusic();`.
+   - Dispatches `BoardAudioHud::updateVisuals()`.
+
+2. `AudioManager::setSFXMuted(%this, %muted)`:
+   - Sets `%this.sfxMuted = %muted;`.
+   - `$pref::Audio::sfxMuted = %muted;`.
+   - Calls `alxSetChannelVolume(1, %muted ? 0.0 : 1.0);`.
+   - In `Archon/gameScripts/t2d_compat.cs:playArchonSound(%name)`:
+     Add early guard:
+     `if ($AudioManager.isSFXMuted() && %name !$= $ambient1Audio) return 0;`.
+   - In `AudioManager::playDiceRollSound()`:
+     Add early guard:
+     `if (%this.sfxMuted) return 0;`.
+   - Dispatches `BoardAudioHud::updateVisuals()`.
+
+5.4 Hotkey Integration
+--------------------------------------------------------------------------------
+In the board ActionMap (`boardActionMap`):
+- Key 'M': `toggleMusicMute();`
+- Key 'Ctrl+S' or 'N': `toggleSFXMute();`
+Instant toggle with immediate HUD icon update.
+
+
+================================================================================
+6. FEATURE 4: IN-GAME PAUSE MENU & GAME SESSION LIFECYCLE
+================================================================================
+
+6.1 Session State Tracking
+--------------------------------------------------------------------------------
+To support "Resume Game" on the Title Screen:
+- Session Flag: `$GameSession::hasActiveSession`.
+- Lifetime:
+  - Set to `true` when `BoardManager::showBoardScreen()` completes.
+  - Remains `true` while the player is on the board or in the pause menu.
+  - Set to `false` when a match concludes (Victory, Defeat, or Game Over).
+
+6.2 In-Game Pause Menu
+--------------------------------------------------------------------------------
+Pressing `Escape` during gameplay opens the modal Pause Menu:
++---------------------------------------+
+|             GAME PAUSED               |
++---------------------------------------+
+|          [ RESUME MATCH ]             |
+|          [ OPTIONS ]                  |
+|          [ RESTART MATCH ]            |
+|          [ QUIT TO TITLE ]            |
++---------------------------------------+
+
+- [RESUME MATCH]: Unpauses and closes modal.
+- [OPTIONS]: Opens Resolution/Aspect & Audio settings overlay.
+- [RESTART MATCH]: Confirms and restarts current board from turn 0.
+- [QUIT TO TITLE]:
+  - Freezes turn timers and animation schedules.
+  - Keeps board scene objects and state loaded in memory.
+  - Sets `$GameSession::hasActiveSession = true;`.
+  - Calls `mainmenuScreen();`.
+
+6.3 Resuming from Title Screen
+--------------------------------------------------------------------------------
+When the player is on the Title Screen and clicks [RESUME GAME]:
+1. Calls `BoardManager::resumeGame()`.
+2. Hides Title Menu GUI.
+3. Sets active content to `mainScreenGui`.
+4. Re-points `sceneWindow2D` to active `t2dScene` (the existing board).
+5. Restores game state (`$gameBattleState` or `$gamePreBattleState`).
+6. Restores player action map and HUD.
+7. Resumes background music if unmuted.
+8. Player continues exactly from where they paused!
+
+
+================================================================================
+7. DETAILED FILE MODIFICATION & CREATION INVENTORY
+================================================================================
+
+7.1 New Files to Create (Following TORQUE_SCRIPT.md)
+--------------------------------------------------------------------------------
+1. `Archon/gameScripts/TitleMenuManager.cs`
+   - Class: `TitleMenuManager` (inherits `ScriptObject`)
+   - Responsibilities: Constructs and manages Title Screen GUI controls ([Play],
+     [Resume Game], [Options], [Credits], [Quit]), handles hover/click events,
+     queries active session status, updates button enabled states.
+
+2. `Archon/gameScripts/ResolutionManager.cs`
+   - Class: `ResolutionManager` (inherits `ScriptObject`)
+   - Responsibilities: Manages aspect ratios (16:9, 16:10, 21:9, 32:9, 4:3),
+     resolution lists, screen mode switching, camera aspect recalculation,
+     15-second revert confirmation timer, preference persistence.
+
+3. `Archon/gameScripts/BoardAudioHud.cs`
+   - Class: `BoardAudioHud` (inherits `ScriptObject`)
+   - Responsibilities: Constructs and anchors top-right Mute SFX / Mute Music
+     buttons on `mainScreenGui`, updates visual toggle states, manages tooltips.
+
+4. `Archon/gameScripts/PauseMenuManager.cs`
+   - Class: `PauseMenuManager` (inherits `ScriptObject`)
+   - Responsibilities: In-game pause modal dialog, keyboard `Escape` handler,
+     session freeze/resume coordination.
+
+5. `Archon/gameScripts/OptionsMenuGui.cs`
+   - Class: `OptionsMenuGui` (inherits `ScriptObject`)
+   - Responsibilities: Options dialog containing Video tab (Aspect Ratio,
+     Resolution, Fullscreen) and Audio tab (SFX/Music mute and volume sliders).
+
+7.2 Existing Files to Modify
+--------------------------------------------------------------------------------
+1. `Archon/main.cs`
+   - Load new scripts in `initializeProject()`.
+   - Call `ResolutionManager.initializeDisplayMode()`.
+   - Clean up singletons in `shutdownProject()`.
+
+2. `Archon/gameScripts/mainmenu.cs`
+   - Attach `TitleMenuManager` UI during `mainmenuScreen()`.
+   - Remove/cleanup TitleMenuManager UI during `mainMenuFadeOut()`.
+
+3. `Archon/gameScripts/complexMouse.cs`
+   - In `sceneWindow2D::onMouseDown`: Remove unconditional click hijack for
+     `$gameMainMenuState` so GUI buttons receive mouse events.
+   - Ignore tile picking when clicking on GUI overlay controls.
+
+4. `Archon/gameScripts/AudioManager.cs`
+   - Add `musicMuted` and `sfxMuted` fields and methods.
+   - Add `setMusicMuted()`, `setSFXMuted()`, `toggleMusicMute()`, `toggleSFXMute()`.
+   - Enforce volume and channel muting on Channel 0 & Channel 1.
+
+5. `Archon/gameScripts/t2d_compat.cs`
+   - In `playArchonSound(%name)`: Guard with `if ($AudioManager.isSFXMuted())`.
+
+6. `Archon/gameScripts/BoardManager.cs`
+   - In `showBoardScreen()`: Show `BoardAudioHud`, initialize active session flag.
+   - Add `resumeBoardScreen()` method to restore paused matches.
+   - Adjust background width dynamically based on camera aspect ratio.
+
+7. `Archon/gameScripts/game.cs`
+   - In `SceneWindow::loadLevel`: Replace hardcoded `100 75` with
+     `ResolutionManager.applyCameraAspect(%this)`.
+   - Add `SceneWindow::onExtentChange` hook.
+
+
+================================================================================
+8. STEP-BY-STEP IMPLEMENTATION ROADMAP (PHASES 1 - 7)
+================================================================================
+
+PHASE 1: Core Audio Engine & Preference Management
+--------------------------------------------------------------------------------
+- Milestone: Audio system supports independent SFX & Music mute with persistence.
+- Tasks:
+  1.1 Update `AudioManager.cs` to add `sfxMuted` and `musicMuted` states.
+  1.2 Implement OpenAL channel volume control via `alxSetChannelVolume(0, ...)`
+      and `alxSetChannelVolume(1, ...)`.
+  1.3 Update `playArchonSound()` in `t2d_compat.cs` and `playDiceRollSound()` in
+      `AudioManager.cs` to respect SFX mute.
+  1.4 Test audio toggling via in-engine console.
+
+PHASE 2: Game Board Audio HUD Overlay
+--------------------------------------------------------------------------------
+- Milestone: Mute SFX and Mute Music buttons visible and functional on the board.
+- Tasks:
+  2.1 Create `BoardAudioHud.cs` with `BoardAudioHud` class.
+  2.2 Build GUI profiles with dark-fantasy border and font styling.
+  2.3 Anchor container to top-right corner of `mainScreenGui` (`HorizSizing = "left"`).
+  2.4 Hook button click commands to `AudioManager.toggleSFXMute()` and `toggleMusicMute()`.
+  2.5 Bind hotkeys 'M' and 'Ctrl+S' / 'N' in board ActionMap.
+  2.6 Verify button position remains glued to top-right on window resize.
+
+PHASE 3: Resolution & Aspect Ratio System
+--------------------------------------------------------------------------------
+- Milestone: Seamless switching across 16:9, 16:10, 21:9, 32:9, 4:3 with zero distortion.
+- Tasks:
+  3.1 Create `ResolutionManager.cs` with `ResolutionManager` class.
+  3.2 Define resolution tables grouped by aspect ratio.
+  3.3 Implement `SceneWindow::updateCameraAspect(%this)` to maintain height 75 and
+      scale width proportionally to `Canvas.extent.x / Canvas.extent.y`.
+  3.4 Update `board.scene.taml` / `BoardManager.cs` to scale the backdrop sprite to
+      match camera width, eliminating black side voids.
+  3.5 Implement 15-second safety revert timer for display mode changes.
+
+PHASE 4: Game Session Lifecycle & Pause System
+--------------------------------------------------------------------------------
+- Milestone: Matches can be paused, returned to menu, and resumed without state loss.
+- Tasks:
+  4.1 Define `$GameSession::hasActiveSession` lifecycle in `BoardManager.cs` and
+      `TurnManager.cs`.
+  4.2 Create `PauseMenuManager.cs` and bind `Escape` key during gameplay.
+  4.3 Implement freeze/thaw for turn timers and dice schedules.
+  4.4 Implement `BoardManager::resumeGame()` to re-enter match cleanly.
+
+PHASE 5: Modernized Title Screen
+--------------------------------------------------------------------------------
+- Milestone: Full title menu with [Play], [Resume Game], [Options], [Credits], [Quit].
+- Tasks:
+  5.1 Decouple full-screen click hijacking in `complexMouse.cs`.
+  5.2 Create `TitleMenuManager.cs` and build GUI layout.
+  5.3 Connect [Play] to hero select (with overwrite warning if game active).
+  5.4 Connect [Resume Game] to `BoardManager::resumeGame()` (dimmed when no session).
+  5.5 Connect [Options] to options dialog.
+  5.6 Connect [Credits] and [Quit].
+
+PHASE 6: Options Dialog UI
+--------------------------------------------------------------------------------
+- Milestone: In-game and title-screen access to Video and Audio settings.
+- Tasks:
+  6.1 Create `OptionsMenuGui.cs`.
+  6.2 Implement Aspect Ratio tabs [16:9] [16:10] [21:9] [32:9] [4:3].
+  6.3 Implement Resolution dropdown populated from active aspect ratio.
+  6.4 Implement Fullscreen checkbox and [Apply] button with confirmation dialog.
+  6.5 Implement Audio volume sliders and mute checkboxes.
+
+PHASE 7: Testing, Regression Verification & Convention Review
+--------------------------------------------------------------------------------
+- Milestone: All unit/integration tests pass, zero regressions, 100% conventions pass.
+- Tasks:
+  7.1 Run GoogleTest unit suite (`tests\run-unit.ps1`).
+  7.2 Run script tests (`tests\run.ps1`).
+  7.3 Test all resolutions on Windows (windowed and fullscreen).
+  7.4 Verify `TORQUE_SCRIPT.md` checklist using `checking-torquescript-conventions`.
+
+
+================================================================================
+9. QUALITY ASSURANCE, TEST MATRIX & EDGE CASES
+================================================================================
+
+9.1 Resolution & Aspect Ratio Test Matrix
+--------------------------------------------------------------------------------
+[ ] 16:9 @ 1920x1080 (Windowed & Fullscreen): Verify camera = 133.33 x 75. Board circles round.
+[ ] 16:9 @ 1280x720: Verify UI text remains crisp and readable.
+[ ] 16:10 @ 1920x1200 & 1280x800 (Steam Deck): Verify camera = 120 x 75. No vertical crop.
+[ ] 21:9 @ 2560x1080 & 3440x1440: Verify camera = 177.78 x 75. Board centered, no distortion.
+[ ] 32:9 @ 3840x1080 & 5120x1440: Verify camera = 266.67 x 75. HUD buttons stay on edges.
+[ ] 4:3 @ 1024x768: Verify backward compatibility with original baseline.
+[ ] Revert Timer: Switch resolution, do not click Keep -> verify automatic rollback in 15s.
+
+9.2 Audio Mute Test Matrix
+--------------------------------------------------------------------------------
+[ ] Mute Music: Verify `ambient1Audio` stops; looping schedule cancels; no OpenAL leak.
+[ ] Unmute Music: Verify `ambient1Audio` resumes immediately at correct volume.
+[ ] Mute SFX: Verify dice rolls produce no sound; sword/hit sounds suppressed.
+[ ] Unmute SFX: Verify dice and combat sounds play crisply.
+[ ] Persistence: Mute SFX, restart application -> verify SFX remains muted on relaunch.
+[ ] Rapid Toggling: Hammer 'M' and 'Ctrl+S' hotkeys -> verify no sound thread crash or clipping.
+
+9.3 Session & Resume Game Test Matrix
+--------------------------------------------------------------------------------
+[ ] Launch Game: Verify [Resume Game] is initially grayed out / disabled on Title Screen.
+[ ] Enter Board: Press Esc -> Click "Main Menu" -> Verify [Resume Game] is now enabled.
+[ ] Click [Resume Game]: Verify return to exact same piece positions and active turn player.
+[ ] Resume During Dice Roll: Verify dice animation resumes cleanly without locking input.
+[ ] Victory / Defeat: End match -> Return to Title -> Verify [Resume Game] is now disabled.
+[ ] Play with Active Session: Click [Play] -> Verify confirmation modal prevents accidental loss.
+
+
+================================================================================
+10. TORQUESCRIPT CONVENTION AUDIT & CHECKLIST
+================================================================================
+All newly authored and modified code conforms to `TORQUE_SCRIPT.md`:
+
+[X] One class per file, filename matching class name:
+    - `TitleMenuManager` -> `TitleMenuManager.cs`
+    - `ResolutionManager` -> `ResolutionManager.cs`
+    - `BoardAudioHud`     -> `BoardAudioHud.cs`
+    - `PauseMenuManager`  -> `PauseMenuManager.cs`
+    - `OptionsMenuGui`    -> `OptionsMenuGui.cs`
+
+[X] ScriptObject Managers:
+    - No god-namespaces. All state stored on `%this.fieldName`.
+
+[X] Lifecycle in onAdd / onRemove:
+    - `onAdd`: Builds GUI profiles, creates child controls, registers event hooks.
+    - `onRemove`: Deletes child controls, unbinds hotkeys, cancels active schedules.
+
+[X] Ownership Chain of Responsibility:
+    - Each manager deletes only what it created via `isObject()` checks.
+
+[X] No Global Variable Sprawl:
+    - Global references limited to sanctioned singletons (`$TitleMenuManager`,
+      `$ResolutionManager`, `$BoardAudioHud`) and engine preferences (`$pref::*`).
+
+================================================================================
+END OF SPECIFICATION
+================================================================================

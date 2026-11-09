@@ -55,6 +55,28 @@ new SimGroup(HeroGroup)
 };
 
 //---------------------------------------------------------------------------------------------
+// Reset Hero State for New Session
+//---------------------------------------------------------------------------------------------
+function Hero::reset(%this)
+{
+   %this.creaturePoints = 5;
+   %this.olentoPisteet = 5;
+   %this.selectedTile = "-1 -1";
+   %this.selectedTileX = -1;
+   %this.selectedTileY = -1;
+   %this.valittuRuutu = "-1 -1";
+   %this.valittuRuutuX = -1;
+   %this.valittuRuutuY = -1;
+   %this.mana = 0;
+   %this.manaMAX = 0;
+   %this.heroClass = 0;
+   %this.ammatti = 0;
+   %this.pieceCount = 0;
+   %this.nappulatLkm = 0;
+   %this.spellDamageBonus = 0;
+}
+
+//---------------------------------------------------------------------------------------------
 // Creature Points (Recruitment Budget)
 //---------------------------------------------------------------------------------------------
 function Hero::addCreaturePoints(%this, %add)

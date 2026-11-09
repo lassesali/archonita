@@ -617,6 +617,10 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
         if ($inputLocked || (isObject(CombatEngine) && CombatEngine.isInputLocked()))
             return;
 
+        if ((isObject($PauseMenuManager) && $PauseMenuManager.isPaused) ||
+            (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible()))
+            return;
+
         if (getGameState() == $gameIntroState) 
         {
             skipIntro();
@@ -625,11 +629,6 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 
         if (getGameState() == $gameMainMenuState) 
         {
-            if ($introSkipTime !$= "" && (getSimTime() - $introSkipTime) < 350)
-            {
-               return;
-            }
-            gotoSelectHeroScreen();
             return;
         }
         
