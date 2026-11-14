@@ -226,6 +226,10 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    // Play spell resolution SFX upon valid target confirmation
    playSpellCastSound(%spellFrame);
 
+   // Trigger spell particle effect before lethal damage can mark units dead
+   if (isObject(SpellEffectManager))
+      SpellEffectManager.playSpellEffect(%spellFrame, %targetPiece);
+
    %hero = HeroGroup.getObject(0);
 
    switch (%spellFrame)

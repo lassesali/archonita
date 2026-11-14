@@ -1,0 +1,154 @@
+<ParticleAsset
+    AssetName="spell_disease">
+    <ParticleAssetEmitter
+        EmitterName="MiasmaCloud"
+        EmitterType="TORUS"
+        EmitterSize="4 4"
+        FixedForceAngle="90"
+        OldestInFront="1"
+        Image="@asset=Archon:particles4ImageMap"
+        Frame="3">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="10" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="1.05" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="0.25" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="1.6" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="0.8" />
+            </SpeedVariation>
+            <EmissionAngle>
+                <Key Time="0" Value="90" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="360" />
+            </EmissionArc>
+            <FixedForce>
+                <Key Time="0" Value="2.2" />
+            </FixedForce>
+            <RandomMotion>
+                <Key Time="0" Value="5.0" />
+            </RandomMotion>
+            <RandomMotionVariation>
+                <Key Time="0" Value="3.0" />
+            </RandomMotionVariation>
+            <SizeX>
+                <Key Time="0" Value="4.2" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="1.4" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.4" />
+                <Key Time="0.45" Value="1.1" />
+                <Key Time="1" Value="1.4" />
+            </SizeXLife>
+            <SpinVariation>
+                <Key Time="0" Value="180" />
+            </SpinVariation>
+            <AlphaChannel>
+                <Key Time="0" Value="0.0" />
+                <Key Time="0.2" Value="0.65" />
+                <Key Time="0.75" Value="0.45" />
+                <Key Time="1" Value="0.0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="0.55" />
+                <Key Time="0.5" Value="0.42" />
+                <Key Time="1" Value="0.28" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.85" />
+                <Key Time="0.5" Value="0.78" />
+                <Key Time="1" Value="0.55" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.22" />
+                <Key Time="0.5" Value="0.16" />
+                <Key Time="1" Value="0.12" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+    <ParticleAssetEmitter
+        EmitterName="ToxicBubbles"
+        EmitterType="BOX"
+        EmitterSize="5 4"
+        FixedForceAngle="90"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles6ImageMap"
+        Frame="1">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="12" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="0.9" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="0.3" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="3.2" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="1.4" />
+            </SpeedVariation>
+            <EmissionAngle>
+                <Key Time="0" Value="90" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="50" />
+            </EmissionArc>
+            <FixedForce>
+                <Key Time="0" Value="1.5" />
+            </FixedForce>
+            <RandomMotion>
+                <Key Time="0" Value="6.0" />
+            </RandomMotion>
+            <RandomMotionVariation>
+                <Key Time="0" Value="3.0" />
+            </RandomMotionVariation>
+            <SizeX>
+                <Key Time="0" Value="1.8" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="0.8" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.25" />
+                <Key Time="0.25" Value="0.9" />
+                <Key Time="0.85" Value="1.15" />
+                <Key Time="1" Value="0.0" />
+            </SizeXLife>
+            <AlphaChannel>
+                <Key Time="0" Value="0.0" />
+                <Key Time="0.15" Value="0.9" />
+                <Key Time="0.85" Value="0.85" />
+                <Key Time="1" Value="0.0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="0.5" />
+                <Key Time="0.5" Value="0.4" />
+                <Key Time="1" Value="0.25" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="1.0" />
+                <Key Time="0.5" Value="0.95" />
+                <Key Time="1" Value="0.7" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.2" />
+                <Key Time="0.5" Value="0.15" />
+                <Key Time="1" Value="0.1" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+</ParticleAsset>

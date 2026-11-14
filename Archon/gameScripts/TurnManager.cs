@@ -386,6 +386,8 @@ function TurnManager::nextTurn(%this)
             $nappulaSprite[%pieceId].skipNextTurn = 0;
             $nappulaSprite[%pieceId].hasMoved = 1;
             $nappulaSprite[%pieceId].hasDoneAction = 1;
+            if (isObject(SpellEffectManager))
+               SpellEffectManager.spawnEffectOnPiece($nappulaSprite[%pieceId], "Archon:spell_disease");
             sceneWindow2D.setUseWindowMouseEvents(false);
             schedule(800, 0, "doDefence", game.getTurn());
             return;
@@ -417,6 +419,8 @@ function TurnManager::endBattle(%this)
    updateMagicButtonParticleState();
    if (isObject(FloatingTextManager))
       FloatingTextManager.clearAll();
+   if (isObject(SpellEffectManager))
+      SpellEffectManager.clearAll();
    %this.endBattleEvent = schedule(2000, 0, mainmenuScreen);
 }
 
