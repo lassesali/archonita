@@ -356,6 +356,20 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 111 (2.0.3-ea4) — 2026-11-14
+- **Flying Projectiles & Particle Trails System (`Projectile.cs`, `RangedUnit.cs`, `projectile_trail.asset.taml`, `projectile_hit.asset.taml`):**
+  - Added [`projectile_trail.asset.taml`](Archon/data/particles/projectile_trail.asset.taml) (`TrailDustMotes` and `TrailSparklets` emitters) and [`projectile_hit.asset.taml`](Archon/data/particles/projectile_hit.asset.taml) (`HitSparks` and `HitBurst` emitters) `<ParticleAsset>` descriptors.
+  - Defined `ParticleData` (`ProjectileTrailParticleData`, `ProjectileSparkParticleData`, `ProjectileHitParticleData`), `ParticleEmitterData` (`ProjectileTrailEmitterData`, `ProjectileSparkEmitterData`, `ProjectileHitEmitterData`), and `DefaultProjectileTemplate` datablocks in [`Projectile.cs`](Archon/gameScripts/Projectile.cs).
+  - Implemented `TORQUE_SCRIPT.md`-compliant [`Projectile.cs`](Archon/gameScripts/Projectile.cs) and [`RangedUnit.cs`](Archon/gameScripts/RangedUnit.cs) modules with `VectorSub`/`VectorNormalize` trajectory calculation, four-quadrant `mAtan2` orientation (`.setAngle()`), per-frame `schedule` movement loop, trailing `ParticlePlayer` synchronization, and unit-specific visual styles (`arrow`, `fire`, `beam`, `stone`).
+  - Implemented leak-free projectile and trail cleanup on target impact, target invalidation, `maxFlightDuration` timeout, battle end (`TurnManager::endBattle`), and scene teardown (`onRemove`), deferring in-tick self-deletion via `deleteSimObject`.
+- **Ranged Combat & Animation Frame Hooks (`CombatEngine.cs`, `TurnManager.cs`, `nappula.cs`, `t2d_compat.cs`):**
+  - Updated [`CombatEngine::doAttack`](Archon/gameScripts/CombatEngine.cs) so ranged units (`missile == 1`) launch traveling projectiles across the board and trigger `BeenHit` reaction, damage, blood, and turn evaluation on projectile impact.
+  - Implemented `SceneObject::setFrameChangeCallback` / `pollAnimationFrame` and `mAtan2` / `mAtan2Deg` in [`t2d_compat.cs`](Archon/gameScripts/t2d_compat.cs), plus `Piece` / `Nappula` ranged delegation in [`nappula.cs`](Archon/gameScripts/nappula.cs) and registration in [`Archon/main.cs`](Archon/main.cs) and [`Archon/gameScripts/exec.cs`](Archon/gameScripts/exec.cs).
+- **Verification (`tests/test_projectiles.cs`):**
+  - Added automated TorqueScript test suite [`tests/test_projectiles.cs`](tests/test_projectiles.cs) verifying datablocks, `ParticleAsset` emitters, `mAtan2` orientation across all quadrants, per-frame flight, impact damage, target invalidation/timeout cleanup, animation frame hooks, and `CombatEngine` integration.
+- **Version Configuration:**
+  - Incremented build number to `111` (`2.0.3-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
+
 ### Build 110 (2.0.3-ea4) — 2026-11-14
 - **Spell Particle Assets (`Archon/data/particles/*.asset.taml`):**
   - Added 5 `<ParticleAsset>` descriptors covering all 6 playable spell cards (`spellFrame` 3–8):
