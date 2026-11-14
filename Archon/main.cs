@@ -84,6 +84,8 @@ function initializeProject()
    exec("./gameScripts/SpellEffectManager.cs");
    if (!isObject($SpellEffectManager))
       $SpellEffectManager = SpellEffectManager;
+   exec("./gameScripts/Projectile.cs");
+   exec("./gameScripts/RangedUnit.cs");
    exec("./gameScripts/metrics.cs");
    if (!isObject($Metrics))
       $Metrics = Metrics;

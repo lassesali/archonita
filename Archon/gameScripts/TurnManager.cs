@@ -414,7 +414,10 @@ function TurnManager::endBattle(%this)
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(false);
    if (isObject(CombatEngine))
+   {
       CombatEngine.cancelDiceRoll();
+      CombatEngine.cleanupProjectiles();
+   }
    sceneWindow2D.setUseWindowMouseEvents(false);
    updateMagicButtonParticleState();
    if (isObject(FloatingTextManager))

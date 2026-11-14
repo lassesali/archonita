@@ -12,4 +12,6 @@ exec("./AudioManager.cs");
 exec("./versionConfig.cs");
 exec("./FloatingTextManager.cs");
 exec("./SpellEffectManager.cs");
+exec("./Projectile.cs");
+exec("./RangedUnit.cs");
 exec("./metrics.cs");
