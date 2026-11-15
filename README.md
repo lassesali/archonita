@@ -349,6 +349,12 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 112 (2.1.0-ea4) — 2026-11-15
+- **Release Build & Distribution Sync:**
+  - Rebuilt the local release distribution (`dist/`) against the migrated OpenGL 4.6 Core runtime (`make_dist.ps1 -DeployToParentDist:$false`, compiling 47 `.dso` bytecode files and stripping raw `.cs` sources) and verified `dist/Archonita.exe` startup.
+- **Version Configuration:**
+  - Incremented build number to `112` (version `2.1.0-ea4`) in [`version.json`](version.json) and [`version.env`](version.env) across root and `Archon/` module directories.
+
 ### Build 110 (2.1.0-ea4) — 2026-11-15
 - **Engine Upgrade (OpenGL 4.6 Core / OpenGL ES 3.2 & Torque2D-master Sync):**
   - Migrated to the upgraded Torque2D `engine/` C++ source tree, CMake build configuration ([`CMakeLists.txt`](CMakeLists.txt), `cmake/`, `tools/CMake/`), and upstream `development` engine improvements.
