@@ -41,8 +41,10 @@ Torque2D_DEBUG.app
 Torque2D_DEBUG.exe
 Torque2DGame.app
 Torque2DGame_Debug.app
-Torque2D
-Torque2D_DEBUG
+# Root-anchored so Android Java package dir .../com/garagegames/torque2d/ stays tracked.
+/Torque2D
+/Torque2D_DEBUG
+/engine/Link/
 linkmap.txt
 **/.vs/**
 .vscode/

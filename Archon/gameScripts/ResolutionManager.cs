@@ -6,7 +6,10 @@
 
 function ResolutionManager::onAdd(%this)
 {
-   %this.prefFile = "Archon/preferences.cs";
+   if ($platform $= "Android")
+      %this.prefFile = getUserDataDirectory() @ "/preferences.cs";
+   else
+      %this.prefFile = "Archon/preferences.cs";
    %this.baseCameraHeight = 75.0;
 
    // Aspect Ratio Catalog
@@ -37,6 +40,22 @@ function ResolutionManager::onRemove(%this)
    // No owned SimObjects or repeating schedules to tear down
 }
 
+function ResolutionManager::getAndroidScreenResolution(%this)
+{
+   %extent = isObject(Canvas) ? Canvas.getExtent() : "";
+   %w = getWord(%extent, 0);
+   %h = getWord(%extent, 1);
+   if (%w <= 0 || %h <= 0)
+   {
+      %res = GetAndroidResolution();
+      %w = getWord(%res, 0);
+      %h = getWord(%res, 1);
+   }
+   if (%w <= 0 || %h <= 0)
+      return "1280 720";
+   return %w SPC %h;
+}
+
 function ResolutionManager::loadPreferences(%this)
 {
    if (isFile(%this.prefFile))
@@ -54,6 +73,12 @@ function ResolutionManager::loadPreferences(%this)
    // Validate aspect ratio key
    if (%this.resList[%this.currentAspectRatio] $= "")
       %this.currentAspectRatio = "16:9";
+
+   if ($platform $= "Android")
+   {
+      %this.currentResolution = %this.getAndroidScreenResolution();
+      %this.currentFullScreen = true;
+   }
 
    // Sync global prefs
    $pref::Video::AspectRatio = %this.currentAspectRatio;
@@ -83,6 +108,10 @@ function ResolutionManager::getAspectRatioValue(%this, %aspectStr, %resStr)
 {
    %w = getWord(%resStr, 0);
    %h = getWord(%resStr, 1);
+
+   // Android stays locked to the device surface aspect ratio rather than desktop presets.
+   if ($platform $= "Android" && %w > 0 && %h > 0)
+      return %w / %h;
 
    if (%aspectStr $= "16:9")
       return 16.0 / 9.0;
@@ -120,16 +149,24 @@ function ResolutionManager::getCameraWidth(%this)
 
 function ResolutionManager::applyDisplaySettings(%this, %aspectRatio, %resolution, %fullScreen)
 {
-   if (%aspectRatio !$= "" && %this.resList[%aspectRatio] !$= "")
-      %this.currentAspectRatio = %aspectRatio;
-
-   if (%resolution !$= "" && getWordCount(%resolution) >= 2)
-      %this.currentResolution = getWord(%resolution, 0) SPC getWord(%resolution, 1);
+   if ($platform $= "Android")
+   {
+      %this.currentResolution = %this.getAndroidScreenResolution();
+      %this.currentFullScreen = true;
+   }
    else
-      %this.currentResolution = getField(%this.getResolutionsForAspect(%this.currentAspectRatio), 0);
+   {
+      if (%aspectRatio !$= "" && %this.resList[%aspectRatio] !$= "")
+         %this.currentAspectRatio = %aspectRatio;
 
-   if (%fullScreen !$= "")
-      %this.currentFullScreen = (%fullScreen == 1 || %fullScreen $= "true");
+      if (%resolution !$= "" && getWordCount(%resolution) >= 2)
+         %this.currentResolution = getWord(%resolution, 0) SPC getWord(%resolution, 1);
+      else
+         %this.currentResolution = getField(%this.getResolutionsForAspect(%this.currentAspectRatio), 0);
+
+      if (%fullScreen !$= "")
+         %this.currentFullScreen = (%fullScreen == 1 || %fullScreen $= "true");
+   }
 
    $pref::Video::AspectRatio = %this.currentAspectRatio;
    $pref::Video::Resolution = %this.currentResolution;
@@ -140,7 +177,8 @@ function ResolutionManager::applyDisplaySettings(%this, %aspectRatio, %resolutio
 
    if (%w > 0 && %h > 0)
    {
-      setScreenMode(%w, %h, 32, %this.currentFullScreen);
+      if ($platform !$= "Android")
+         setScreenMode(%w, %h, 32, %this.currentFullScreen);
       if (isObject(mainScreenGui))
          mainScreenGui.Extent = %w SPC %h;
       if (isObject(sceneWindow2D))

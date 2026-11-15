@@ -50,28 +50,41 @@ android {
     }
 }
 
-// Copy the Torque scripts/modules into the APK assets (read on device via AAssetManager).
-tasks.register('copyGame', Copy) {
-    description = 'Copy torque scripts and modules into the APK assets'
-    from('../../../../') {
-        include '**'
-        exclude 'engine/**'
-        exclude 'tools/**'
-        exclude 'tutorials/**'
-        exclude 'build/**'
-        exclude '.**'
-        exclude '*.dll'
-        exclude 'preferences.cs'
-        exclude '*.md'
-        exclude '*.app'
-        exclude '*.bat'
-        exclude '*.command'
-        exclude '*.sh'
-        exclude '*.log'
-        exclude '*.torsion'
-    }
+// Copy the Archonita scripts/modules and pre-seeded theme data into APK assets (read via AAssetManager).
+tasks.register('copyGame', Sync) {
+    description = 'Copy Archonita scripts, modules, and runtime themes into the APK assets'
     into 'src/main/game'
     includeEmptyDirs = false
+
+    from('../../../../') {
+        include 'Archon/**'
+        include 'library/AppCore/**'
+        include 'library/Audio/**'
+        include 'library/themes/**'
+        include 'version.json'
+        include 'version.env'
+
+        exclude '**/*.dso'
+        exclude '**/*.bak'
+        exclude '**/*.jbf'
+        exclude '**/Thumbs.db'
+        exclude '**/preferences.cs'
+        exclude 'Archon/**/1280/**'
+        exclude 'Archon/**/800/**'
+        exclude 'Archon/resolutionpatch_*.zip'
+    }
+
+    // Seed read-only root themes/ so AppCore::loadThemes skips pathCopy/TAMLWrite at runtime.
+    from('../../../../library/themes/Base.taml') {
+        into 'themes'
+    }
+    from('../../../../library/AppCore/gui/images/cursors') {
+        include '*.png'
+        into 'themes/cursors/Base'
+    }
+
+    // Package the Android-specific main.cs booting Archonita directly.
+    from('src/main/android_boot/main.cs')
 }
 
 tasks.register('wipeGame', Delete) {
