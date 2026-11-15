@@ -8,7 +8,7 @@
 
 Initially engineered on GarageGames' early 32-bit **Torque Game Builder 1.1** (TGB / TGE2D), the original codebase established the iconic Finnish-language domain architecture that still powers the game under the hood (`sankari`, `nappula`, `olento`, `lisaaUusiNappulaLaudalle`, `sekuntiLaskuri`, `valittuRuutu`).
 
-Twenty years later, this **Migration Update** bridges two decades of engine evolution, porting Archonita from legacy Windows XP-era tech to the modern, open-source, 64-bit **Torque2D 4.0 (EA4)** engine runtime.
+Twenty years later, this **Migration Update** bridges two decades of engine evolution, porting Archonita from legacy Windows XP-era tech to the modern, open-source, 64-bit **Torque2D 4.0 (OpenGL 4.6 Core / ES 3.2)** engine runtime.
 
 ---
 
@@ -95,10 +95,10 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 ## 🚀 Performance Upgrades
 
 ### 1. Rendering & Graphics Pipeline
-| Component | 2006 Legacy (TGB 1.1) | 2026 Migration (Torque2D 4.0 EA4) |
+| Component | 2006 Legacy (TGB 1.1) | 2026 Migration (Torque2D 4.0 OpenGL 4.6 Core) |
 | :--- | :--- | :--- |
 | **Architecture** | 32-bit x86 | Native 64-bit x86_64 |
-| **Graphics API** | Fixed-function legacy OpenGL | Modern OpenGL 4.6 Core / Compatibility |
+| **Graphics API** | Fixed-function legacy OpenGL | Modern OpenGL 4.6 Core Profile (Shader Pipeline) / ES 3.2 |
 | **Resolution Support** | Fixed 4:3 (800x600, 1024x768) | Multi-resolution windowed & widescreen display scaling |
 | **Layer Rendering** | CPU-sorted 32-layer Z-buffer | SceneLayer depth batching ($0$ front to $31$ back) |
 | **Frame Rates** | Clamped VSync / software timer | Smooth vsync uncoupled logic ticks |
@@ -355,6 +355,18 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 ---
 
 ## 📦 Build History & Changelog
+
+### Build 110 (2.1.0-ea4) — 2026-11-15
+- **Engine Upgrade (OpenGL 4.6 Core / OpenGL ES 3.2 & Torque2D-master Sync):**
+  - Migrated to the upgraded Torque2D `engine/` C++ source tree, CMake build configuration ([`CMakeLists.txt`](CMakeLists.txt), `cmake/`, `tools/CMake/`), and upstream `development` engine improvements.
+  - Adopted the programmable GLSL 460 Core / GLSL 320 ES `ShaderManager` & `GLDSA` rendering pipeline, SDL 2 Linux/Web platform support, and Visual Studio 2026 x64 native builds (`Torque2D.exe` / `Torque2D_DEBUG.exe`) with staged `OpenAL32.dll`.
+- **Editor, Runtime Modules & Test Suites:**
+  - Updated `library/`, `PlanetX/`, `toybox/`, `tutorials/`, `editor/` (scripts, rebaked `.uft` font caches, text rotation and GUI layout fixes), and `tests/` (`tests/smoke/`, `tests/shots/`, `tests/run.ps1`, `tests/run-unit.ps1`), preserving all Archonita gameplay modules, Python tools, and custom tests.
+  - Updated [`run_archon.bat`](run_archon.bat), [`run_editor.bat`](run_editor.bat), [`make_dist.ps1`](make_dist.ps1), [`.gitignore`](.gitignore), and [`.gitattributes`](.gitattributes) to use the local OpenGL 4.6 Core runtime directly without legacy EA4 external path dependencies.
+- **Verification:**
+  - Verified Release and Debug GoogleTest C++ unit suites (`406/406` passed), `tests/test_combine_imagemaps.py` (`10/10` passed), 14 non-interactive Torque2D engine smoke suites, live Archonita scene transitions under `OpenGL 4.6.0 Core Profile Context`, and `dist/Archonita.exe` release packaging.
+- **Version Configuration:**
+  - Incremented build number to `110` and version to `2.1.0-ea4` in [`version.json`](version.json) and [`version.env`](version.env) across root and `Archon/` module directories.
 
 ### Build 109 (2.0.3-ea4) — 2026-11-09
 - **Title Menu, Options Dialog & Multi-Resolution Display Subsystems (`TitleMenuManager.cs`, `OptionsMenuGui.cs`, `ResolutionManager.cs`, `PauseMenuManager.cs`, `BoardAudioHud.cs`):**

@@ -1,5 +1,10 @@
 @echo off
-set "T2D_DIR=C:\Users\lkarh\Downloads\Torque2D-4.0-EA4-Windows-x64\Torque2D-4.0-EA4-Windows-x64"
+set "T2D_DIR=%~dp0"
 cd /d "%T2D_DIR%"
-copy /y play_archon.cs _boot.cs >nul
-start "" Torque2D.exe
+(
+echo setLogMode^(2^);
+echo ModuleDatabase.scanModules^("library"^);
+echo ModuleDatabase.scanModules^("Archon"^);
+echo ModuleDatabase.loadExplicit^("AppCore"^);
+) > "_boot.cs"
+start "" "%T2D_DIR%Torque2D.exe" _boot.cs

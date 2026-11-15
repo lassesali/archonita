@@ -1,34 +1,126 @@
 # Build and distribution output
 dist/
 dist_*/
-build/
+/[Bb]uild/
+/[Bb]uild-*/
+/out/
+/cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+/Makefile
+compile_commands.json
 
-# Compiled TorqueScript
+# Dev Files #
+###################
+*.xcworkspace
+*.xcuserdatad
+.LSOverride
+/tmp/*
+/preferences.cs
+/engine/**/preferences.cs
+/PlanetXPrefs.cs
+/console.log
+preferences.cs
 *.dso
 *.edso
+*.user
+*.sdf
+*.suo
+*.dir
+*.opensdf
+*.idea
+*.dSYM
+*.res
+*.cache
+*.exports
+*.opt
+*.tmp
+Torque2D.app
+Torque2D_DEBUG.app
+Torque2D_DEBUG.exe
+Torque2DGame.app
+Torque2DGame_Debug.app
+Torque2D
+Torque2D_DEBUG
+linkmap.txt
+**/.vs/**
+.vscode/
+.idea/
+*.sln
+*.slnx
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.vcxproj.FileListAbsolute.txt
+*.userosscache
+*.sln.docstates
+*.slnx.docstates
+# Root-anchored so tracked engine/source/debug/, engine/lib/openal/win32/, and engine/lib/LeapSDK/lib/x64/ stay unignored.
+/[Dd]ebug/
+/[Rr]elease/
+/[Rr]elWithDebInfo/
+/[Mm]inSizeRel/
+/[Ss]hipping/
+/x64/
+/Win32/
 
-# Logs and runtime dumps
+# Compiled source #
+###################
+*.com
+*.class
+*.o
+*.a
+*.so
+*.obj
+*.lib
+*.dll
+*.exe
+*.recipe
+*.lib.recipe
+*.exe.recipe
+*.idb
+*.pdb
+*.ilk
+*.exp
+*.iobj
+*.ipdb
+*.ipch
+*.lastbuildstate
+*.unsuccessfulbuild
+*.manifest
+*.tlog
+
+# Logs and runtime dumps #
+##########################
 *.log
+*.sql
 console.log
 test_out.txt
 
-# Editor / IDE / OS artifacts
+# Editor / IDE / OS artifacts #
+###############################
 Thumbs.db
 *.jbf
 *.torsion
 skills-lock.json
-preferences.cs
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+*.db
 
-# Screenshots and visual comparison artifacts
+# Screenshots and temporary files #
+###################################
 old*.png
 new*.png
 ohno*.png
 crop_*.png
 logo_*.png
-shots/
+/shots/
 screenshot*.jpg
-
-# Temporary and backup files
 *.bak
 _test_*.cs
 scratch/
@@ -37,14 +129,61 @@ scratch/
 /*_dice_sheet*.png
 /diceroll*.ogg
 
-# Python cache
+# Python cache and scripts
 __pycache__/
 *.pyc
-
-# Python migration and helper scripts in root
 /*.py
 !tools/*.py
 
 # Migration prompts and notes
 archonita_torque2d_4_0_migration_prompt.txt
 Archonita_Architecture_Analysis.txt
+
+# Android project files #
+#########################
+.metadata/
+engine/compilers/android/.settings/org.eclipse.cdt.core.prefs
+engine/compilers/android/bin/
+engine/compilers/android/gen/
+engine/compilers/android/obj/
+engine/compilers/android-studio/.gradle/
+engine/compilers/android-studio/build/
+engine/compilers/android-studio/app/build/
+engine/compilers/android-studio/local.properties
+engine/compilers/android-studio/app/src/main/obj/
+engine/compilers/android-studio/app/src/main/libs/
+engine/compilers/android-studio/app/src/main/game/
+engine/compilers/android-studio/app/.externalNativeBuild/
+engine/compilers/android-studio/app/.cxx/
+
+# Integration test leavings (see tests/README.md) #
+##################################################
+/_boot.cs
+/tests/logs/
+/assetLibrarySmokeProject/
+/assetPickerSmokeProject/
+/borderPaneSmokeProject/
+/borderSmokeProject/
+/colorPopupShotProject/
+/colorPopupSmokeProject/
+/cursorPaneSmokeProject/
+/cursorSlotsSmokeProject/
+/fontShotProject/
+/fontSmokeProject/
+/inspectorTextSmokeProject/
+/inspectorVariantsSmokeProject/
+/profileFormShotProject/
+/profileFormSmokeProject/
+/smokeThemeProject/
+/unsavedSmokeProject/
+/^EditorCore/
+
+# Vendored prebuilt libraries, tools, and tracked root binaries #
+#################################################################
+!Torque2D.exe
+!/OpenAL32.dll
+!engine/lib/**/*.lib
+!engine/lib/**/*.dll
+!engine/lib/**/*.a
+!engine/lib/**/*.so
+!engine/bin/**/*.exe

@@ -1,0 +1,1566 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2013 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+#include "torqueConfig.h"
+#include "console/consoleInternal.h"
+#include "debug/profiler.h"
+#include "graphics/dgl.h"
+#include "platform/event.h"
+#include "platform/platform.h"
+#include "platform/platformInput.h"
+#include "platform/platformVideo.h"
+#include "gui/guiTypes.h"
+#include "gui/guiControl.h"
+#include "gui/guiCanvas.h"
+#include "game/gameInterface.h"
+
+#include "guiCanvas_ScriptBinding.h"
+
+extern int _AndroidGetScreenWidth();
+extern int _AndroidGetScreenHeight();
+
+
+IMPLEMENT_CONOBJECT(GuiCanvas);
+
+GuiCanvas *Canvas = NULL;
+
+GuiCanvas::GuiCanvas()
+{
+#ifdef TORQUE_OS_IOS
+   mBounds.set(0, 0, IOS_DEFAULT_RESOLUTION_X, IOS_DEFAULT_RESOLUTION_Y);
+#elif TORQUE_OS_ANDROID
+   mBounds.set(0, 0, _AndroidGetScreenWidth(), _AndroidGetScreenHeight());
+#else
+   mBounds.set(0, 0, MIN_RESOLUTION_X, MIN_RESOLUTION_Y);
+#endif
+    
+   mAwake = true;
+   mPixelsPerMickey = 1.0f;
+
+   cursorON    = true;
+   mShowCursor = false;
+   mUseNativeCursor = true;
+
+   lastCursorON = false;
+   rLastFrameTime = 0.0f;
+
+   mMouseCapturedControl = NULL;
+   mMouseControl = NULL;
+   mMouseControlClicked = false;
+   mMouseButtonDown = false;
+   mMouseRightButtonDown = false;
+   mMouseMiddleButtonDown = false;
+
+   lastCursor = NULL;
+   lastCursorPt.set(0,0);
+   cursorPt.set(0,0);
+
+    mLastMouseClickCount = 0;
+    mLastMouseDownTime = 0;
+    mPrevMouseTime = 0;
+    defaultCursor = NULL;
+
+   mRenderFront = false;
+
+   hoverControlStart = Platform::getRealMilliseconds();
+   hoverControl = NULL;
+   hoverPosition = getCursorPos();
+   hoverPositionSet = false;
+   hoverLeftControlTime = 0;
+
+   mLeftMouseLast = false;
+   mMiddleMouseLast = false;
+   mRightMouseLast = false;
+
+   mDoubleClickWidth = Input::getDoubleClickWidth();
+   mDoubleClickHeight = Input::getDoubleClickHeight();
+   mDoubleClickTime = Input::getDoubleClickTime();
+
+   mTouchDetectionSize = 100;
+   mPotentialTouchEvent = false;
+   mHideCursorBecauseOfTouch = false;
+
+    /// Background color.
+    mBackgroundColor.set( 0.0f, 0.0f, 0.0f, 0.0f );
+    mUseBackgroundColor = true;
+}
+
+GuiCanvas::~GuiCanvas()
+{
+   if(Canvas == this)
+      Canvas = 0;
+}
+
+
+//-----------------------------------------------------------------------------
+
+void GuiCanvas::initPersistFields()
+{
+    // Call Parent.
+    Parent::initPersistFields();
+
+    // Physics.
+    addField("UseBackgroundColor", TypeBool, Offset(mUseBackgroundColor, GuiCanvas), "" );
+    addField("BackgroundColor", TypeColorF, Offset(mBackgroundColor, GuiCanvas), "" );
+}
+
+//------------------------------------------------------------------------------
+void GuiCanvas::setCursor(GuiCursor *curs)
+{
+   defaultCursor = curs;
+
+   if(mShowCursor)
+   {
+		mUseNativeCursor = false;
+       Input::setCursorState(false);
+   }
+}
+
+void GuiCanvas::setCursorON(bool onOff)
+{
+   cursorON = onOff;
+   if(!cursorON)
+      mMouseControl = NULL;
+}
+
+bool GuiCanvas::getUseNativeCursor(void)
+{
+   return mUseNativeCursor;
+}
+
+void GuiCanvas::useNativeCursor(bool useNative)
+{
+	if(!mUseNativeCursor && useNative)
+	{
+		//We are turning on the native cursor
+		Input::setCursorState(true);
+	}
+	else if(mUseNativeCursor && !useNative)
+	{
+		//We are turning off the native cursor
+		Input::setCursorState(false);
+	}
+
+	mUseNativeCursor = useNative;
+}
+
+void GuiCanvas::setCursorPos(const Point2I &pt)   
+{ 
+   cursorPt.x = F32(pt.x); 
+   cursorPt.y = F32(pt.y); 
+
+   Input::setCursorPos( pt.x, pt.y );
+}
+
+void GuiCanvas::addAcceleratorKey(GuiControl *ctrl, U32 index, U32 keyCode, U32 modifier)
+{
+   if (keyCode > 0 && ctrl)
+   {
+      AccKeyMap newMap;
+      newMap.ctrl = ctrl;
+      newMap.index = index;
+      newMap.keyCode = keyCode;
+      newMap.modifier = modifier;
+      mAcceleratorMap.push_back(newMap);
+   }
+}
+
+bool GuiCanvas::tabNext(void)
+{
+   GuiControl *ctrl = static_cast<GuiControl *>(last());
+   if (ctrl)
+   {
+      //save the old
+      GuiControl *oldResponder = mFirstResponder;
+
+        GuiControl* newResponder = ctrl->findNextTabable(mFirstResponder);
+      if ( !newResponder )
+         newResponder = ctrl->findFirstTabable();
+
+        if ( newResponder && newResponder != oldResponder )
+        {
+            // setFirstResponder tells the old responder it has lost the
+            // keyboard. Telling it again here, after the new one had already
+            // taken it, ran the old field's AltCommand twice and -- the old
+            // field's disable coming last -- turned text input back off: on
+            // SDL, Tab into a text box left it unable to type. Torque3D
+            // took these calls out.
+            newResponder->setFirstResponder();
+         return true;
+        }
+   }
+   return false;
+}
+
+bool GuiCanvas::tabPrev(void)
+{
+   GuiControl *ctrl = static_cast<GuiControl *>(last());
+   if (ctrl)
+   {
+      //save the old
+      GuiControl *oldResponder = mFirstResponder;
+
+        GuiControl* newResponder = ctrl->findPrevTabable(mFirstResponder);
+        if ( !newResponder )
+         newResponder = ctrl->findLastTabable();
+
+        if ( newResponder && newResponder != oldResponder )
+        {
+            // See tabNext: setFirstResponder has told the old responder.
+            newResponder->setFirstResponder();
+         return true;
+        }
+   }
+   return false;
+}
+
+void GuiCanvas::processScreenTouchEvent(const ScreenTouchEvent *event)
+{
+    //copy the cursor point into the event
+    mLastEvent.mousePoint.x = S32(event->xPos);
+    mLastEvent.mousePoint.y = S32(event->yPos);
+    mLastEvent.eventID = event->touchID;
+    mLastEvent.mouseClickCount = event->numTouches;
+    
+    //see if button was pressed
+    if (event->action == SI_MAKE)
+    {
+        U32 curTime = Platform::getVirtualMilliseconds();
+        mNextMouseTime = curTime + mInitialMouseDelay;
+        
+        mLastMouseDownTime = curTime;
+//		mLastEvent.mouseClickCount = mLastMouseClickCount;
+        
+        rootScreenTouchDown(mLastEvent);
+    }
+    else if(event->action == SI_MOVE)
+    {
+        rootScreenTouchMove(mLastEvent);
+    }
+    //else button was released
+    else if(event->action == SI_BREAK)
+    {
+        mNextMouseTime = 0xFFFFFFFF;
+        rootScreenTouchUp(mLastEvent);
+    }
+}
+
+void GuiCanvas::processMouseMoveEvent(const MouseMoveEvent *event)
+{
+   if( cursorON )
+   {
+        //copy the modifier into the new event
+        mLastEvent.modifier = event->modifier;
+
+      cursorPt.x += ( F32(event->xPos - cursorPt.x) * mPixelsPerMickey);
+      cursorPt.y += ( F32(event->yPos - cursorPt.y) * mPixelsPerMickey);
+
+      // clamp the cursor to the window, or not
+      if( ! Con::getBoolVariable( "$pref::Gui::noClampTorqueCursorToWindow", true ))
+      {
+         cursorPt.x =(F32) getMax(0, getMin((S32)cursorPt.x, mBounds.extent.x - 1));
+         cursorPt.y = (F32)getMax(0, getMin((S32)cursorPt.y, mBounds.extent.y - 1));
+      }
+      
+        mLastEvent.mousePoint.x = S32(cursorPt.x);
+        mLastEvent.mousePoint.y = S32(cursorPt.y);
+        mLastEvent.eventID = 0;
+
+      Point2F movement = mMouseDownPoint - cursorPt;
+      if ((mAbs((S32)movement.x) > mDoubleClickWidth) || (mAbs((S32)movement.y) > mDoubleClickHeight))
+      {
+         mLeftMouseLast = false;
+         mMiddleMouseLast = false;
+         mRightMouseLast = false;
+      }
+
+		//should we try to detect a touch event pretending to be a mouse event?
+		if( Con::getBoolVariable( "$pref::Gui::hideCursorWhenTouchEventDetected", false ))
+		{
+			mPotentialTouchEvent = false;
+			Point2F jump = mPrevMouseMovePosition - cursorPt;
+			if ((mAbs((S32)jump.x) > mTouchDetectionSize) || (mAbs((S32)jump.y) > mTouchDetectionSize))
+			{
+				mPotentialTouchEvent = true;
+				mPotentialMouseEventCount = 0;
+			}
+			else if(mHideCursorBecauseOfTouch && !mMouseButtonDown)
+			{
+				if(mPotentialMouseEventCount > 20) 
+				{
+					//This is our 20th small movement with no click or drag so it must be a mouse!
+					mHideCursorBecauseOfTouch = false;
+					mPotentialMouseEventCount = 0;
+				}
+				else 
+				{
+					mPotentialMouseEventCount++;
+				}
+			}
+			mPrevMouseMovePosition.set(cursorPt.x, cursorPt.y);
+		}
+
+        if (mMouseButtonDown)
+            rootMouseDragged(mLastEvent);
+        else if (mMouseRightButtonDown)
+            rootRightMouseDragged(mLastEvent);
+        else if(mMouseMiddleButtonDown)
+            rootMiddleMouseDragged(mLastEvent);
+        else
+            rootMouseMove(mLastEvent);
+    }
+}
+
+bool GuiCanvas::processInputEvent(const InputEvent *event)
+{
+    // A key goes only to a first responder that can take it -- awake, and on
+    // the screen. One that went to sleep or out of sight without letting go
+    // is let go of here, and the key goes on as though nothing had the
+    // keyboard, rather than into a text field nobody can see.
+    if ( event->deviceType == KeyboardDeviceType && mFirstResponder && !mFirstResponder->canTakeKeyboard() )
+        setFirstResponder( NULL );
+
+    // First call the general input handler (on the extremely off-chance that it will be handled):
+    if ( mFirstResponder )
+   {
+      if ( mFirstResponder->onInputEvent( *event ) )
+           return( true );
+   }
+
+   if(event->deviceType == KeyboardDeviceType)
+   {
+      mLastEvent.ascii = event->ascii;
+      mLastEvent.modifier = event->modifier;
+      mLastEvent.keyCode = (U8)event->objInst;
+
+      U32 eventModifier = event->modifier;
+      if(eventModifier & SI_SHIFT)
+         eventModifier |= SI_SHIFT;
+      if(eventModifier & SI_CTRL)
+         eventModifier |= SI_CTRL;
+      if(eventModifier & SI_ALT)
+         eventModifier |= SI_ALT;
+
+      if (event->action == SI_MAKE)
+      {
+         //see if we should tab next/prev
+
+         //see if we should now pass the event to the first responder
+         if (mFirstResponder)
+         {
+            if(mFirstResponder->onKeyDown(mLastEvent))
+               return true;
+         }
+
+         if ( isCursorON() && ( event->objInst == KEY_TAB ) )
+         {
+            if (size() > 0)
+            {
+               if (event->modifier & SI_SHIFT)
+               {
+                  if(tabPrev())
+                     return true;
+               }
+               else if (event->modifier == 0)
+               {
+                  if(tabNext())
+                     return true;
+               }
+            }
+         }
+
+         //if not handled, search for an accelerator
+         for (U32 i = 0; i < (U32)mAcceleratorMap.size(); i++)
+         {
+            if ((U32)mAcceleratorMap[i].IsKeyCodeEqual(event->objInst) && (U32)mAcceleratorMap[i].modifier == eventModifier)
+            {
+               mAcceleratorMap[i].ctrl->acceleratorKeyPress(mAcceleratorMap[i].index);
+               return true;
+            }
+         }
+      }
+      else if(event->action == SI_BREAK)
+      {
+         if(mFirstResponder)
+		 {
+            if(mFirstResponder->onKeyUp(mLastEvent))
+               return true;
+		 }
+
+         //see if there's an accelerator
+         for (U32 i = 0; i < (U32)mAcceleratorMap.size(); i++)
+         {
+            if ((U32)mAcceleratorMap[i].keyCode == (U32)event->objInst && (U32)mAcceleratorMap[i].modifier == eventModifier)
+            {
+               mAcceleratorMap[i].ctrl->acceleratorKeyRelease(mAcceleratorMap[i].index);
+               return true;
+            }
+         }
+      }
+      else if(event->action == SI_REPEAT)
+      {
+		  if (mFirstResponder)
+		  {
+			  if (mFirstResponder->onKeyRepeat(mLastEvent))
+				  return true;
+		  }
+
+         //if not handled, search for an accelerator
+         for (U32 i = 0; i < (U32)mAcceleratorMap.size(); i++)
+         {
+            if ((U32)mAcceleratorMap[i].keyCode == (U32)event->objInst && (U32)mAcceleratorMap[i].modifier == eventModifier)
+            {
+               mAcceleratorMap[i].ctrl->acceleratorKeyPress(mAcceleratorMap[i].index);
+               return true;
+            }
+         }
+      }
+   }
+   else if(event->deviceType == MouseDeviceType && cursorON)
+   {
+      //copy the modifier into the new event
+      mLastEvent.modifier = event->modifier;
+
+      if(event->objType == SI_XAXIS || event->objType == SI_YAXIS)
+      {
+         bool moved = false;
+         Point2I oldpt((S32)cursorPt.x, (S32)cursorPt.y);
+         Point2F pt(cursorPt.x, cursorPt.y);
+
+         if (event->objType == SI_XAXIS)
+         {
+            pt.x += (event->fValues[0] * mPixelsPerMickey);
+            cursorPt.x = (F32)getMax(0, getMin((S32)pt.x, mBounds.extent.x - 1));
+            if (oldpt.x != S32(cursorPt.x))
+               moved = true;
+         }
+         else
+         {
+            pt.y += (event->fValues[0] * mPixelsPerMickey);
+            cursorPt.y = (F32)getMax(0, getMin((S32)pt.y, mBounds.extent.y - 1));
+            if (oldpt.y != S32(cursorPt.y))
+               moved = true;
+         }
+         if (moved)
+         {
+            mLastEvent.mousePoint.x = S32(cursorPt.x);
+            mLastEvent.mousePoint.y = S32(cursorPt.y);
+            mLastEvent.eventID = 0;
+
+#ifdef	TORQUE_ALLOW_JOURNALING
+            // [tom, 9/8/2006] If we're journaling, we need to update the plat cursor
+            if(Game->isJournalReading())
+               Input::setCursorPos((S32)cursorPt.x, (S32)cursorPt.y);
+#endif	//TORQUE_ALLOW_JOURNALING
+
+            if (mMouseButtonDown)
+               rootMouseDragged(mLastEvent);
+            else if (mMouseRightButtonDown)
+               rootRightMouseDragged(mLastEvent);
+            else if(mMouseMiddleButtonDown)
+               rootMiddleMouseDragged(mLastEvent);
+            else
+               rootMouseMove(mLastEvent);
+         }
+         return true;
+      }
+        else if ( event->objType == SI_ZAXIS )
+        {
+         mLastEvent.mousePoint.x = S32( cursorPt.x );
+         mLastEvent.mousePoint.y = S32( cursorPt.y );
+         mLastEvent.eventID = 0;
+
+            if ( event->fValues[0] < 0.0f )
+            rootMouseWheelDown( mLastEvent );
+            else
+            rootMouseWheelUp( mLastEvent );
+      }
+      else if(event->objType == SI_BUTTON)
+      {
+         //copy the cursor point into the event
+         mLastEvent.mousePoint.x = S32(cursorPt.x);
+         mLastEvent.mousePoint.y = S32(cursorPt.y);
+         mLastEvent.eventID = 0;
+         mMouseDownPoint = cursorPt;
+
+         if(event->objInst == KEY_BUTTON0) // left button
+         {
+            //see if button was pressed
+            if (event->action == SI_MAKE)
+            {
+               U32 curTime = Platform::getVirtualMilliseconds();
+               mNextMouseTime = curTime + mInitialMouseDelay;
+
+               //if the last button pressed was the left...
+               if (mLeftMouseLast)
+               {
+                  //if it was within the double click time count the clicks
+                  if ((S32)curTime - mLastMouseDownTime <= mDoubleClickTime)
+                     mLastMouseClickCount++;
+                  else
+                     mLastMouseClickCount = 1;
+               }
+               else
+               {
+                  mLeftMouseLast = true;
+                  mLastMouseClickCount = 1;
+               }
+
+               mLastMouseDownTime = curTime;
+               mLastEvent.mouseClickCount = mLastMouseClickCount;
+
+			   if(mHideCursorBecauseOfTouch)
+			   {
+					mPotentialMouseEventCount = 0;
+				}
+			   if(mPotentialTouchEvent)
+			   {
+					mHideCursorBecauseOfTouch = true;
+			   }
+
+               rootMouseDown(mLastEvent);
+            }
+            //else button was released
+            else
+            {
+               mNextMouseTime = 0xFFFFFFFF;
+               rootMouseUp(mLastEvent);
+            }
+            return true;
+         }
+         else if(event->objInst == KEY_BUTTON1) // right button
+         {
+			mHideCursorBecauseOfTouch = false;
+            if(event->action == SI_MAKE)
+            {
+               U32 curTime = Platform::getVirtualMilliseconds();
+
+               //if the last button pressed was the right...
+               if (mRightMouseLast)
+               {
+                  //if it was within the double click time count the clicks
+                  if ((S32)curTime - mLastMouseDownTime <= mDoubleClickTime)
+                     mLastMouseClickCount++;
+                  else
+                     mLastMouseClickCount = 1;
+               }
+               else
+               {
+                  mRightMouseLast = true;
+                  mLastMouseClickCount = 1;
+               }
+
+               mLastMouseDownTime = curTime;
+               mLastEvent.mouseClickCount = mLastMouseClickCount;
+
+               rootRightMouseDown(mLastEvent);
+            }
+            else // it was a mouse up
+               rootRightMouseUp(mLastEvent);
+            return true;
+         }
+         else if(event->objInst == KEY_BUTTON2) // middle button
+         {
+			 mHideCursorBecauseOfTouch = false;
+            if(event->action == SI_MAKE)
+            {
+               U32 curTime = Platform::getVirtualMilliseconds();
+
+               //if the last button pressed was the right...
+               if (mMiddleMouseLast)
+               {
+                  //if it was within the double click time count the clicks
+                  if ((S32)curTime - mLastMouseDownTime <= mDoubleClickTime)
+                     mLastMouseClickCount++;
+                  else
+                     mLastMouseClickCount = 1;
+               }
+               else
+               {
+                  mMiddleMouseLast = true;
+                  mLastMouseClickCount = 1;
+               }
+
+               mLastMouseDownTime = curTime;
+               mLastEvent.mouseClickCount = mLastMouseClickCount;
+
+               rootMiddleMouseDown(mLastEvent);
+            }
+            else // it was a mouse up
+               rootMiddleMouseUp(mLastEvent);
+            return true;
+         }
+      }
+   }
+   return false;
+}
+
+void GuiCanvas::rootMouseDown(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseButtonDown = true;
+
+   //pass the event to the mouse locked control
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onTouchDown(event);
+
+   //else pass it to whoever is underneath the cursor
+   else
+   {
+      handleTouchDown(event, event.mousePoint);
+   }
+   if (bool(mMouseControl))
+      mMouseControlClicked = true;
+}
+
+void GuiCanvas::findMouseControl(const GuiEvent &event)
+{
+   if(size() == 0)
+   {
+      mMouseControl = NULL;
+      return;
+   }
+   GuiControl* leavingStack = static_cast<GuiControl*>(mMouseControl);
+   GuiControl* controlHit = findHitControl(event.mousePoint);
+   GuiControl* enteringStack = controlHit;
+   if(leavingStack != enteringStack)
+   {
+      if (bool(mMouseControl))
+      {
+          hoverControlStart = Platform::getRealMilliseconds();
+          hoverPositionSet = false;
+
+          //figure out how much of the leaving stack we are leaving.
+          while (!DoesControlStackContainControl(enteringStack, leavingStack))
+          {
+              leavingStack->onTouchLeave(event);
+              leavingStack = leavingStack->getParent();
+              if (!leavingStack)
+                  break;
+          }
+      }
+
+      //figure out how much of the entering stack we are entering.
+      if (leavingStack)
+      {
+          while (!DoesControlStackContainControl(leavingStack, enteringStack))
+          {
+              enteringStack->onTouchEnter(event);
+              enteringStack = enteringStack->getParent();
+              if(!enteringStack)
+                  break;
+          }
+      }
+
+      mMouseControl = controlHit;
+      mMouseControl->onTouchEnter(event);
+   }
+}
+
+bool GuiCanvas::DoesControlStackContainControl(GuiControl* stack, const GuiControl* ctrl)
+{
+    GuiControl* pen = stack;
+    do
+    {
+        if (pen)
+        {
+            if (pen == ctrl)
+            {
+                return true;
+            }
+            pen = pen->getParent();
+        }
+        else
+        {
+            return false;
+        }
+    } while (pen);
+    return false;
+}
+
+//Luma: Some fixes from the forums, Dave Calabrese
+//http://www.garagegames.com/community/forums/viewthread/93467/1#comment-669559
+void GuiCanvas::rootScreenTouchDown(const GuiEvent &event)
+{
+    mPrevMouseTime = Platform::getVirtualMilliseconds();  
+    mMouseButtonDown = true;  
+  
+    iterator i;  
+    i = end();  
+    while (i != begin())  
+    {  
+        i--;  
+        GuiControl *ctrl = static_cast<GuiControl *>(*i);  
+        if (ctrl->mUseInput)
+        {
+            GuiControl* controlHit = ctrl->findHitControl(event.mousePoint);
+
+            //If the control we hit is not the same one that is locked,  
+            // then unlock the existing control.  
+            if (bool(mMouseCapturedControl) && mMouseCapturedControl->isMouseLocked() && mMouseCapturedControl != controlHit)
+            {
+                mMouseCapturedControl->onTouchLeave(event);
+            }
+
+            //Regardless of what the control does, it has the user's focus.
+            controlHit->onFocus(false);
+
+            if (controlHit->mUseInput)
+            {
+				controlHit->mPassEventThru = false;//If true after the call then pass the event to the next control below it.
+				controlHit->onTouchDown(event);
+				if (!controlHit->mPassEventThru)
+				{
+					break;
+				}
+            }
+        }
+    }
+      
+    if (bool(mMouseControl))  
+        mMouseControlClicked = true;  
+}
+
+void GuiCanvas::rootScreenTouchUp(const GuiEvent &event)
+{
+    mPrevMouseTime = Platform::getVirtualMilliseconds();
+    mMouseButtonDown = false;
+
+    // A control that captured the touch on down (e.g. a button calls mouseLock() in
+    // onTouchDown) MUST receive the matching up — even if the release lands outside
+    // its bounds — or it stays locked and "depressed" with no way to release. The
+    // desktop rootMouseUp routes to the captured control first; the touch path did
+    // NOT, so on iOS a press could stick (no exact re-hit of the control on release,
+    // especially in the simulator). Mirror rootMouseUp here.
+    if (bool(mMouseCapturedControl))
+    {
+        mMouseCapturedControl->onTouchUp(event);
+        return;
+    }
+
+    iterator i;
+    i = end();
+    while (i != begin())
+    {
+        i--;    
+        GuiControl *ctrl = static_cast<GuiControl *>(*i);
+        if (ctrl->mUseInput)
+        {
+            GuiControl* controlHit = ctrl->findHitControl(event.mousePoint);
+
+            if (controlHit->mActive && controlHit->mUseInput)
+            {
+				controlHit->mPassEventThru = false;//If true after the call then pass the event to the next control below it.
+				controlHit->onTouchUp(event);
+				if (!controlHit->mPassEventThru)
+				{
+					break;
+				}
+            }
+        }
+    }
+}
+
+void GuiCanvas::rootScreenTouchMove(const GuiEvent &event)
+{
+    //pass the event to the mouse locked control
+   if (bool(mMouseCapturedControl))
+   {
+      checkLockMouseMove(event);
+      if(!mMouseCapturedControl.isNull())
+            mMouseCapturedControl->onTouchDragged(event);
+   }
+   else
+   {
+      findMouseControl(event);
+      if(bool(mMouseControl))
+      {
+          mMouseControl->onTouchDragged(event);		  
+      }
+   }
+}
+void GuiCanvas::refreshMouseControl()
+{
+   GuiEvent evt;
+   evt.mousePoint.x = S32(cursorPt.x);
+   evt.mousePoint.y = S32(cursorPt.y);
+   findMouseControl(evt);
+}
+
+void GuiCanvas::rootMouseUp(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseButtonDown = false;
+
+   //pass the event to the mouse locked control
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onTouchUp(event);
+   else
+   {
+		findMouseControl(event);
+		if (bool(mMouseControl))
+		{
+			handleTouchUp(event, event.mousePoint);
+		}
+   }
+}
+
+void GuiCanvas::checkLockMouseMove(const GuiEvent &event)
+{
+    GuiControl *controlHit = findHitControl(event.mousePoint);
+   if(controlHit != mMouseControl)
+   {
+      if(mMouseControl == mMouseCapturedControl)
+         mMouseCapturedControl->onTouchLeave(event);
+      else if(controlHit == mMouseCapturedControl)
+         mMouseCapturedControl->onTouchEnter(event);
+      mMouseControl = controlHit;
+   }
+}
+
+void GuiCanvas::rootMouseDragged(const GuiEvent &event)
+{
+   //pass the event to the mouse locked control
+   if (bool(mMouseCapturedControl))
+   {
+      checkLockMouseMove(event);
+      if(!mMouseCapturedControl.isNull())
+            mMouseCapturedControl->onTouchDragged(event);
+       //Luma: Mouse dragged calls mouse Moved on iPhone
+#if defined(TORQUE_OS_IOS) || defined(TORQUE_OS_ANDROID)
+       mMouseCapturedControl->onTouchMove(event);
+#endif //TORQUE_OS_IOS
+   }
+   else
+   {
+      findMouseControl(event);
+      if(bool(mMouseControl))
+      {
+          mMouseControl->onTouchDragged(event);
+#if defined(TORQUE_OS_IOS) || defined(TORQUE_OS_ANDROID)
+          mMouseControl->onTouchMove(event);
+#endif //TORQUE_OS_IOS
+          
+      }
+   }
+}
+
+void GuiCanvas::rootMouseMove(const GuiEvent &event)
+{
+   if(mMouseCapturedControl != NULL)
+   {
+      checkLockMouseMove(event);
+      if(mMouseCapturedControl != NULL)
+        mMouseCapturedControl->onTouchMove(event);
+   }
+   else
+   {
+		findMouseControl(event);
+		if (bool(mMouseControl))
+		{
+			handleTouchMove(event, event.mousePoint);
+		}
+   }
+}
+
+void GuiCanvas::rootRightMouseDown(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseRightButtonDown = true;
+
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onRightMouseDown(event);
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+      {
+         mMouseControl->onRightMouseDown(event);
+      }
+   }
+}
+
+void GuiCanvas::rootRightMouseUp(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseRightButtonDown = false;
+
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onRightMouseUp(event);
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+         mMouseControl->onRightMouseUp(event);
+   }
+}
+
+void GuiCanvas::rootRightMouseDragged(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+
+   if (bool(mMouseCapturedControl))
+   {
+      checkLockMouseMove(event);
+      mMouseCapturedControl->onRightMouseDragged(event);
+   }
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+         mMouseControl->onRightMouseDragged(event);
+   }
+}
+
+void GuiCanvas::rootMiddleMouseDown(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseMiddleButtonDown = true;
+
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onMiddleMouseDown(event);
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+      {
+         mMouseControl->onMiddleMouseDown(event);
+      }
+   }
+}
+
+void GuiCanvas::rootMiddleMouseUp(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+   mMouseMiddleButtonDown = false;
+
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onMiddleMouseUp(event);
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+         mMouseControl->onMiddleMouseUp(event);
+   }
+}
+
+void GuiCanvas::rootMiddleMouseDragged(const GuiEvent &event)
+{
+   mPrevMouseTime = Platform::getVirtualMilliseconds();
+
+   if (bool(mMouseCapturedControl))
+   {
+      checkLockMouseMove(event);
+      mMouseCapturedControl->onMiddleMouseDragged(event);
+   }
+   else
+   {
+      findMouseControl(event);
+
+      if(bool(mMouseControl))
+         mMouseControl->onMiddleMouseDragged(event);
+   }
+}
+
+void GuiCanvas::rootMouseWheelUp(const GuiEvent &event)
+{
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onMouseWheelUp(event);
+   else
+   {
+      findMouseControl(event);
+
+      if (bool(mMouseControl))
+         mMouseControl->onMouseWheelUp(event);
+   }
+}
+
+void GuiCanvas::rootMouseWheelDown(const GuiEvent &event)
+{
+   if (bool(mMouseCapturedControl))
+      mMouseCapturedControl->onMouseWheelDown(event);
+   else
+   {
+      findMouseControl(event);
+
+      if (bool(mMouseControl))
+         mMouseControl->onMouseWheelDown(event);
+   }
+}
+
+void GuiCanvas::setContentControl(GuiControl *gui)
+{
+   if(!gui)
+      return;
+
+   // If we're setting the same content, don't do anything
+   if( gui == at(0) )
+      return;
+
+   //remove all dialogs on layer 0
+   U32 index = 0;
+   while ((U32)size() > index)
+   {
+      GuiControl *ctrl = static_cast<GuiControl*>((*this)[index]);
+      if (ctrl == gui || ctrl->mLayer != 0)
+         index++;
+
+      removeObject(ctrl);
+      Sim::getGuiGroup()->addObject(ctrl);
+   }
+
+   // lose the first responder from the old GUI
+   GuiControl* responder = gui->findFirstTabable();
+   if(responder)
+      responder->setFirstResponder();
+
+   //add the gui to the front
+   if(!size() || gui != (*this)[0])
+   {
+      // automatically wakes objects in GuiControl::onWake
+      addObject(gui);
+      if (size() >= 2)
+         reOrder(gui, *begin());
+   }
+   //refresh the entire gui
+   resetUpdateRegions();
+
+   //rebuild the accelerator map
+   //
+   // Deliberately NOT rebuildAcceleratorMap(): this walks down from the top until
+   // it reaches a control that takes input, so a new content control that lets
+   // input through leaves whatever is under it still able to answer a shortcut.
+   // The dialog paths take the topmost control and nothing else, which is what
+   // stops a menu's dropdown from leaving the editor's own accelerators live
+   // underneath it. The two are the same in every ordinary case - mUseInput
+   // defaults to true, so this loop almost always stops on its first pass - but
+   // they are not the same rule, and sharing one would quietly change the other.
+   mAcceleratorMap.clear();
+
+   for(iterator i = end(); i != begin() ; )
+   {
+      i--;
+      GuiControl *ctrl = static_cast<GuiControl *>(*i);
+      ctrl->buildAcceleratorMap();
+
+	  if (ctrl->mUseInput)
+	  {
+		  break;
+	  }
+   }
+   refreshMouseControl();
+
+   // Force the canvas to update the sizing of the new content control
+   maintainSizing();
+}
+
+GuiControl *GuiCanvas::getContentControl()
+{
+   if(size() > 0)
+      return (GuiControl *) first();
+   return NULL;
+}
+
+void GuiCanvas::rebuildAcceleratorMap()
+{
+   mAcceleratorMap.clear();
+   if (size() > 0)
+   {
+      GuiControl *ctrl = static_cast<GuiControl*>(last());
+      ctrl->buildAcceleratorMap();
+   }
+}
+
+void GuiCanvas::pushDialogControl(GuiControl *gui, S32 layer)
+{
+   //add the gui
+   gui->mLayer = layer;
+
+   // GuiControl::addObject wakes the object
+   addObject(gui);
+
+   //reorder it to the correct layer
+   iterator i;
+   for (i = begin(); i != end(); i++)
+   {
+      GuiControl *ctrl = static_cast<GuiControl*>(*i);
+      if (ctrl->mLayer > gui->mLayer)
+      {
+         reOrder(gui, ctrl);
+         break;
+      }
+   }
+
+   //call the dialog push method
+   gui->onDialogPush();
+
+   //find the top most dialog
+
+   //find the first responder
+   GuiControl* responder = gui->findFirstTabable();
+   if(responder)
+      responder->setFirstResponder();
+
+   // call the 'onWake' method?
+   //if(wakedGui)
+   //   Con::executef(gui, 1, "onWake");
+
+   //refresh the entire gui
+   resetUpdateRegions();
+
+   //rebuild the accelerator map
+   rebuildAcceleratorMap();
+   refreshMouseControl();
+}
+
+void GuiCanvas::popDialogControl(GuiControl *gui)
+{
+   if (size() < 1)
+      return;
+
+   //first, find the dialog, and call the "onDialogPop()" method
+   GuiControl *ctrl = NULL;
+   if (gui)
+   {
+      //make sure the gui really exists on the stack
+      iterator i;
+      bool found = false;
+      for(i = begin(); i != end(); i++)
+      {
+         GuiControl *check = static_cast<GuiControl *>(*i);
+         if (check == gui)
+         {
+            ctrl = check;
+            found = true;
+         }
+      }
+      if (! found)
+         return;
+   }
+   else
+      ctrl = static_cast<GuiControl*>(last());
+
+   //call the "on pop" function
+   ctrl->onDialogPop();
+
+   // sleep the object
+
+   //now pop the last child (will sleep if awake)
+   removeObject(ctrl);
+
+   // Save the old responder:
+
+   Sim::getGuiGroup()->addObject(ctrl);
+
+   if (size() > 0)
+   {
+      GuiControl *ctrl = static_cast<GuiControl *>(last());
+      if(ctrl->mFirstResponder)
+         ctrl->mFirstResponder->setFirstResponder();
+   }
+   else
+   {
+      setFirstResponder(NULL);
+   }
+
+   //refresh the entire gui
+   resetUpdateRegions();
+
+   //rebuild the accelerator map
+   rebuildAcceleratorMap();
+   refreshMouseControl();
+}
+
+void GuiCanvas::popDialogControl(S32 layer)
+{
+   if (size() < 1)
+      return;
+
+   GuiControl *ctrl = NULL;
+   iterator i = end(); // find in z order (last to first)
+   while (i != begin())
+   {
+      i--;
+      ctrl = static_cast<GuiControl*>(*i);
+      if (ctrl->mLayer == layer)
+         break;
+   }
+   if (ctrl)
+      popDialogControl(ctrl);
+}
+
+void GuiCanvas::mouseLock(GuiControl *lockingControl)
+{
+   if (bool(mMouseCapturedControl))
+      return;
+   mMouseCapturedControl = lockingControl;
+   if(mMouseControl && mMouseControl != mMouseCapturedControl)
+   {
+      GuiEvent evt;
+      evt.mousePoint.x = S32(cursorPt.x);
+      evt.mousePoint.y = S32(cursorPt.y);
+
+      mMouseControl->onTouchLeave(evt);
+   }
+}
+
+void GuiCanvas::mouseUnlock(GuiControl *lockingControl)
+{
+   if (static_cast<GuiControl*>(mMouseCapturedControl) != lockingControl)
+      return;
+
+   GuiEvent evt;
+   evt.mousePoint.x = S32(cursorPt.x);
+   evt.mousePoint.y = S32(cursorPt.y);
+
+   GuiControl * controlHit = findHitControl(evt.mousePoint);
+   if(controlHit != mMouseCapturedControl)
+   {
+      mMouseControl = controlHit;
+      mMouseControlClicked = false;
+      if(bool(mMouseControl))
+         mMouseControl->onTouchEnter(evt);
+   }
+   mMouseCapturedControl = NULL;
+}
+
+void GuiCanvas::paint()
+{
+   resetUpdateRegions();
+
+   // inhibit explicit refreshes in the case we're swapped out
+   if (TextureManager::mDGLRender)
+      renderFrame(false);
+}
+
+void GuiCanvas::maintainSizing()
+{
+   Point2I size = Platform::getWindowSize();
+
+   if(size.x == 0 || size.y == 0)
+      return;
+
+   RectI screenRect(0, 0, size.x, size.y);
+   mBounds = screenRect;
+
+   //all bottom level controls should be the same dimensions as the canvas
+   //this is necessary for passing mouse events accurately
+   iterator i;
+   for (i = begin(); i != end(); i++)
+   {
+      AssertFatal(static_cast<GuiControl*>((*i))->isAwake(), "GuiCanvas::renderFrame: ctrl is not awake");
+      GuiControl *ctrl = static_cast<GuiControl*>(*i);
+      Point2I ext = ctrl->getExtent();
+      Point2I pos = ctrl->getPosition();
+
+      if(pos != screenRect.point || ext != screenRect.extent)
+      {
+         ctrl->resize(screenRect.point, screenRect.extent);
+         resetUpdateRegions();
+      }
+   }
+
+}
+
+void GuiCanvas::renderFrame(bool preRenderOnly, bool bufferSwap /* = true */)
+{
+   PROFILE_START(CanvasPreRender);
+
+#if !defined TORQUE_OS_IOS && !defined TORQUE_OS_ANDROID && !defined TORQUE_OS_EMSCRIPTEN
+    
+   if(mRenderFront)
+      glDrawBuffer(GL_FRONT);
+   else
+      glDrawBuffer(GL_BACK);
+#endif
+
+   // Make sure the root control is the size of the canvas.
+   Point2I size = Platform::getWindowSize();
+
+   if(size.x == 0 || size.y == 0)
+   {
+       //Luma: Fixed missing PROFILE_END()
+       PROFILE_END();
+       return;
+   }
+
+   RectI screenRect(0, 0, size.x, size.y);
+
+   maintainSizing();
+
+   //preRender (recursive) all controls
+   preRender();
+   PROFILE_END();
+   if(preRenderOnly)
+      return;
+
+   // for now, just always reset the update regions - this is a
+   // fix for FSAA on ATI cards
+   resetUpdateRegions();
+
+// Moved this below object integration for performance reasons. -JDD
+//   // finish the gl render so we don't get too far ahead of ourselves
+//#if defined(TORQUE_OS_WIN32)
+//   PROFILE_START(glFinish);
+//   glFinish();
+//   PROFILE_END();
+//#endif
+
+   //draw the mouse, but not using tags...
+   PROFILE_START(CanvasRenderControls);
+
+   GuiCursor *mouseCursor = NULL;
+   bool cursorVisible = true;
+
+   if(bool(mMouseCapturedControl))
+      mMouseCapturedControl->getCursor(mouseCursor, cursorVisible, mLastEvent);
+   else if(bool(mMouseControl))
+      mMouseControl->getCursor(mouseCursor, cursorVisible, mLastEvent);
+
+   Point2I cursorPos((S32)cursorPt.x, (S32)cursorPt.y);
+   if(!mouseCursor)
+      mouseCursor = defaultCursor;
+
+   if(lastCursorON && lastCursor)
+   {
+      Point2I spot = lastCursor->getHotSpot();
+      Point2I cext = lastCursor->getExtent();
+      Point2I pos = lastCursorPt - spot;
+      addUpdateRegion(pos - Point2I(2, 2), Point2I(cext.x + 4, cext.y + 4));
+   }
+   if(cursorVisible && mouseCursor)
+   {
+      Point2I spot = mouseCursor->getHotSpot();
+      Point2I cext = mouseCursor->getExtent();
+      Point2I pos = cursorPos - spot;
+
+      addUpdateRegion(pos - Point2I(2, 2), Point2I(cext.x + 4, cext.y + 4));
+   }
+
+    lastCursorON = cursorVisible;
+    lastCursor = mouseCursor;
+    lastCursorPt = cursorPos;
+
+   RectI updateUnion;
+   buildUpdateUnion(&updateUnion);
+   if (updateUnion.intersect(screenRect))
+   {
+    // Clear the background color if requested.
+    if ( mUseBackgroundColor )
+    {
+        glClearColor( mBackgroundColor.red, mBackgroundColor.green, mBackgroundColor.blue, mBackgroundColor.alpha );
+        glClear(GL_COLOR_BUFFER_BIT);	
+    }
+
+      //render the dialogs
+      iterator i;
+      for(i = begin(); i != end(); i++)
+      {
+         GuiControl *contentCtrl = static_cast<GuiControl*>(*i);
+         if (contentCtrl->isVisible())
+         {
+             dglSetClipRect(updateUnion);
+             glDisable(GL_CULL_FACE);
+             contentCtrl->onRender(contentCtrl->getPosition(), updateUnion);
+         }
+      }
+
+      // Tooltip resource
+      if(bool(mMouseControl))
+      {
+         U32 curTime = Platform::getRealMilliseconds();
+         if(hoverControl == mMouseControl)
+         {
+            if(hoverPositionSet || (curTime - hoverControlStart) >= (U32)hoverControl->mTipHoverTime || (curTime - hoverLeftControlTime) <= (U32)hoverControl->mTipHoverTime)
+            {
+// MM: Controls whether the tooltip tracks the mouse cursor or not.
+#if 0
+               if(!hoverPositionSet)
+               {
+                  hoverPosition = cursorPos;
+               }
+#else
+               hoverPosition = cursorPos;
+#endif
+               hoverPositionSet = mMouseControl->renderTooltip(hoverPosition);
+            }
+
+         } else
+         {
+            if(hoverPositionSet)
+            {
+               hoverLeftControlTime = curTime;
+               hoverPositionSet = false;
+            }
+            hoverControl = mMouseControl;
+            hoverControlStart = curTime;
+         }
+      }
+      //end tooltip
+
+      dglSetClipRect(updateUnion);
+
+      //temp draw the mouse
+      if (cursorON && mShowCursor && !mouseCursor && Canvas->getUseNativeCursor())
+      {
+         dglDrawRectFill(RectI((S32)cursorPt.x, (S32)cursorPt.y, 2, 2), ColorI(255, 0, 0, 255));
+      }
+       
+      //DEBUG
+      //draw the help ctrl
+      //if (helpCtrl)
+      //{
+      //   helpCtrl->render(srf);
+      //}
+
+      if (cursorON && mouseCursor && mShowCursor && !mHideCursorBecauseOfTouch)
+      {
+         Point2I pos((S32)cursorPt.x, (S32)cursorPt.y);
+         Point2I spot = mouseCursor->getHotSpot();
+
+         pos -= spot;
+         mouseCursor->render(pos);
+      }
+   }
+
+   PROFILE_END();
+
+
+   if( bufferSwap )
+      swapBuffers();
+    
+//#if defined(TORQUE_OS_WIN32)
+//   PROFILE_START(glFinish);
+//   glFinish(); // This was changed to work with the D3D layer -pw
+//   PROFILE_END();
+//#endif
+
+}
+
+void GuiCanvas::swapBuffers()
+{
+   PROFILE_START(SwapBuffers);
+   //flip the surface
+   if(!mRenderFront)
+      Video::swapBuffers();
+   PROFILE_END();
+}
+
+void GuiCanvas::buildUpdateUnion(RectI *updateUnion)
+{
+   *updateUnion = mOldUpdateRects[0];
+
+   //the update region should encompass the oldUpdateRects, and the curUpdateRect
+   Point2I upperL;
+   Point2I lowerR;
+
+   upperL.x = getMin(mOldUpdateRects[0].point.x, mOldUpdateRects[1].point.x);
+   upperL.x = getMin(upperL.x, mCurUpdateRect.point.x);
+
+   upperL.y = getMin(mOldUpdateRects[0].point.y, mOldUpdateRects[1].point.y);
+   upperL.y = getMin(upperL.y, mCurUpdateRect.point.y);
+
+   lowerR.x = getMax(mOldUpdateRects[0].point.x + mOldUpdateRects[0].extent.x, mOldUpdateRects[1].point.x + mOldUpdateRects[1].extent.x);
+   lowerR.x = getMax(lowerR.x, mCurUpdateRect.point.x + mCurUpdateRect.extent.x);
+
+   lowerR.y = getMax(mOldUpdateRects[0].point.y + mOldUpdateRects[0].extent.y, mOldUpdateRects[1].point.y + mOldUpdateRects[1].extent.y);
+   lowerR.y = getMax(lowerR.y, mCurUpdateRect.point.y + mCurUpdateRect.extent.y);
+
+   updateUnion->point = upperL;
+   updateUnion->extent = lowerR - upperL;
+
+   //shift the oldUpdateRects
+   mOldUpdateRects[0] = mOldUpdateRects[1];
+   mOldUpdateRects[1] = mCurUpdateRect;
+
+   mCurUpdateRect.point.set(0,0);
+   mCurUpdateRect.extent.set(0,0);
+}
+
+void GuiCanvas::addUpdateRegion(Point2I pos, Point2I ext)
+{
+   if(mCurUpdateRect.extent.x == 0)
+   {
+      mCurUpdateRect.point = pos;
+      mCurUpdateRect.extent = ext;
+   }
+   else
+   {
+      Point2I upperL;
+      upperL.x = getMin(mCurUpdateRect.point.x, pos.x);
+      upperL.y = getMin(mCurUpdateRect.point.y, pos.y);
+      Point2I lowerR;
+      lowerR.x = getMax(mCurUpdateRect.point.x + mCurUpdateRect.extent.x, pos.x + ext.x);
+      lowerR.y = getMax(mCurUpdateRect.point.y + mCurUpdateRect.extent.y, pos.y + ext.y);
+      mCurUpdateRect.point = upperL;
+      mCurUpdateRect.extent = lowerR - upperL;
+   }
+}
+
+void GuiCanvas::resetUpdateRegions()
+{
+   //DEBUG - get surface width and height
+   mOldUpdateRects[0].set(mBounds.point, mBounds.extent);
+   mOldUpdateRects[1] = mOldUpdateRects[0];
+   mCurUpdateRect = mOldUpdateRects[0];
+}
+
+void GuiCanvas::onFocus(bool foundFirstResponder)
+{
+	if (!foundFirstResponder && mFirstResponder)
+	{
+		// Let go first and then say so, as setFirstResponder does. The callback
+		// can hide or deactivate the control, and a control that still had the
+		// keyboard then would be told a second time.
+		GuiControl* oldResponder = mFirstResponder;
+		mFirstResponder = NULL;
+		oldResponder->onLoseFirstResponder();
+	}
+}
+
+void GuiCanvas::setFirstResponder( GuiControl* newResponder )
+{
+    GuiControl* oldResponder = mFirstResponder;
+    Parent::setFirstResponder( newResponder );
+
+    // GuiControl::setFirstResponder takes no NULL -- below the canvas a
+    // pointer is cleared by clearFirstResponder -- so the canvas lets go here.
+    // It never did: setFirstResponder(NULL), which popDialog calls when the
+    // last dialog goes, left the old responder in place and still sent it keys.
+    if ( newResponder == NULL )
+        mFirstResponder = NULL;
+
+    if ( oldResponder && ( oldResponder != mFirstResponder ) )
+        oldResponder->onLoseFirstResponder();
+}
+
+bool GuiCanvas::isEditMode()
+{
+	//If we've walked up the chain all the way to canvas and haven't found the 
+	//editor then we are not in edit mode.
+	return false;
+}

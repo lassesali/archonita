@@ -1,0 +1,434 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2013 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+#ifndef _GUITYPES_H_
+#define _GUITYPES_H_
+
+#ifndef _ASSET_FIELD_TYPES_H_
+#include "assets/assetFieldTypes.h"
+#endif
+
+#ifndef _ASSET_PTR_H_
+#include "assets/assetPtr.h"
+#endif
+
+#ifndef _COLOR_H_
+#include "graphics/gColor.h"
+#endif
+
+#ifndef _FLUID_H_
+#include "math/mFluid.h"
+#endif
+
+#ifndef _SIMBASE_H_
+#include "sim/simBase.h"
+#endif
+#ifndef _GUI_PROFILE_THEME_H_
+#include "gui/guiProfileTheme.h"
+#endif
+
+#ifndef _TEXTURE_MANAGER_H_
+#include "graphics/TextureManager.h"
+#endif
+
+#ifndef _PLATFORMAUDIO_H_
+#include "platform/platformAudio.h"
+#endif
+
+#ifndef _AUDIO_ASSET_H_
+#include "audio/AudioAsset.h"
+#endif
+
+#ifndef _IMAGE_ASSET_H_
+#include "2d/assets/ImageAsset.h"
+#endif
+
+#include "graphics/gFont.h"
+
+#ifndef _HASHTABLE_H_
+#include "collection/hashTable.h"
+#endif
+
+class GBitmap;
+
+/// Represents a single GUI event.
+///
+/// This is passed around to all the relevant controls so they know what's going on.
+struct GuiEvent
+{
+   U16      ascii;             ///< ascii character code 'a', 'A', 'b', '*', etc (if device==keyboard) - possibly a uchar or something
+   U8       modifier;          ///< SI_LSHIFT, etc
+   U8       keyCode;           ///< for unprintables, 'tab', 'return', ...
+   Point2I  mousePoint;        ///< for mouse events
+   U8       mouseClickCount;   ///< to determine double clicks, etc...
+   S32		eventID;		   ///< assigns mouse or touch ID to the event
+};
+
+enum GuiControlState
+{
+	NormalState = 0,				//Control renders with default look
+	HighlightState,				//Control is highlighted
+	SelectedState,				//Control has been selected
+	DisabledState,				//Control cannot be used
+	NormalStateOn,				//Used by controls like checkboxes to denote the normal state while checked
+	HighlightStateOn,			//The highlight state while on
+	SelectedStateOn,			//The selected state while on
+	DisabledStateOn,			//The disabled state while on
+	StateCount					//Not an actual state! Should always be at the end of the list.
+};
+
+enum class GuiDirection
+{
+	Up,				
+	Down,				
+	Left,				
+	Right,
+	Center
+};
+
+enum Corner
+{
+	TopLeft,
+	TopRight,
+	BottomLeft,
+	BottomRight
+};
+
+enum AlignmentType
+{
+	LeftAlign,
+	RightAlign,
+	CenterAlign,
+	DefaultAlign
+};
+
+enum VertAlignmentType
+{
+	TopVAlign,
+	BottomVAlign,
+	MiddleVAlign,
+	DefaultVAlign
+};
+
+/// The pointer the canvas draws. A control names one through a TypeGuiCursor
+/// field (a text edit's editCursor, a window's resize cursors); anything that
+/// names none falls back to the canonical name for its kind - "EditCursor",
+/// "LeftRightCursor" and the rest - which is what a GuiProfileTheme's cursor
+/// members are installed under. See GuiProfileTheme::smCursorCategories.
+class GuiCursor : public SimObject
+{
+private:
+   typedef SimObject Parent;
+   StringTableEntry mBitmapName;
+
+   Point2I mHotSpot;
+   Point2F mRenderOffset;
+   Point2I mExtent;
+   TextureHandle mTextureHandle;
+
+   GuiThemeMembership mThemeMembership;   ///< Theme membership and per-field override tracking.
+
+public:
+   /// Multiplied into the bitmap as it is drawn. The stock art is grayscale -
+   /// black outline, white body - so a tint colors the body and leaves the
+   /// outline alone, which is what lets a theme skin the stock cursors without
+   /// anyone drawing new ones. White is the identity (dglClearBitmapModulation
+   /// is exactly white), so a cursor that never sets this renders as it always did.
+   ColorI mColor;
+
+   StringTableEntry mCategory;            ///< The theme category this cursor belongs to. See GuiProfileTheme.
+
+   Point2I getHotSpot() { return mHotSpot; }
+   Point2I getExtent() { return mExtent; }
+   Point2F getRenderOffset() { return mRenderOffset; }
+
+   // Used by GuiProfileTheme when it creates a member from the cursor table,
+   // and by the hot-spot editor. Neither is derived from the theme's values, so
+   // neither goes through the stamping path.
+   void setHotSpot(const Point2I& hotSpot) { mHotSpot = hotSpot; }
+   void setRenderOffset(const Point2F& renderOffset) { mRenderOffset = renderOffset; }
+   inline StringTableEntry getBitmapName() const { return mBitmapName; }
+
+   DECLARE_CONOBJECT(GuiCursor);
+   GuiCursor(void);
+   ~GuiCursor(void);
+   static void initPersistFields();
+
+   bool onAdd(void);
+   void onRemove();
+   void render(const Point2I &pos);
+
+   /// Load the bitmap now and answer its real size. render() does this on its
+   /// first pass, so until a cursor has been drawn once its extent is (1,1) -
+   /// no use to an editor that has to lay out and measure before drawing.
+   const Point2I& resolve();
+
+   /// The bitmap path as it should be written down: relative to the game root
+   /// when it points inside the game, and unchanged when it does not. As with
+   /// GuiControlProfile's bitmap, mBitmapName itself is always absolute -
+   /// TypeFilename expands whatever it is given the moment it is set - and an
+   /// absolute path in a saved theme names a folder on one machine only.
+   StringTableEntry getRelativeBitmapName( void ) const;
+
+   // Theme membership. A cursor stamped by a GuiProfileTheme tracks which
+   // fields were explicitly overridden; standalone cursors are unaffected.
+   // preserveOverrides keeps an override set loaded before attachment (Taml).
+   void setTheme(GuiProfileTheme* theme, bool preserveOverrides = false);
+   inline GuiProfileTheme* getTheme() const { return mThemeMembership.mTheme; }
+   bool isThemeFieldOverridden(StringTableEntry field) const { return mThemeMembership.isOverridden(field); }
+   void clearThemeFieldOverride(StringTableEntry field) { mThemeMembership.clearOverride(field); }
+   void clearAllThemeOverrides() { mThemeMembership.clearAll(); }
+
+   virtual void onStaticModified(const char* slotName, const char* newValue = NULL);
+   virtual bool writeField(StringTableEntry fieldname, const char* value);
+   virtual void onDeleteNotify(SimObject* object);
+
+protected:
+   static bool setThemeOverrides(void* obj, const char* data) { static_cast<GuiCursor*>(obj)->mThemeMembership.parseOverrideList(data); return false; }
+   static const char* getThemeOverrides(void* obj, const char* data) { return static_cast<GuiCursor*>(obj)->mThemeMembership.formatOverrideList(); }
+
+   // Set is left to TypeFilename, which expands the path; only the read-back is
+   // ours, so that what gets written stays portable.
+   static const char* getBitmapName(void* obj, const char* data) { return static_cast<GuiCursor*>(obj)->getRelativeBitmapName(); }
+};
+DefineConsoleType(TypeGuiCursor)
+
+/// A GuiBorderProfile holds on the information needed for a single border of a GuiControl.
+/// GuiBorderProfiles can be assigned to a GuiControlProfile to cover one or all of the borders.
+class GuiBorderProfile : public SimObject
+{
+private:
+	typedef SimObject Parent;
+	inline U8 getStateIndex(const GuiControlState state) { return state >= 4 ? state - 4 : state; }
+
+	GuiThemeMembership mThemeMembership;				//Theme membership and per-field override tracking.
+
+public:
+	S32 mMargin[static_cast<S32>(4)];					//The distance between the edge and the start of the border. Margin is outside of the control.
+	S32 mBorder[static_cast<S32>(4)];					//Width of the border.
+	ColorI mBorderColor[static_cast<S32>(4)];			//The color of the border.
+	S32 mPadding[static_cast<S32>(4)];					//The distance between the border and content of the control.
+	bool mUnderfill;									//True if the control's fill color should appear under the border.
+	StringTableEntry mCategory;							//The theme category this border belongs to. See GuiProfileTheme.
+	bool mIsCustom;								//True for a single-use user-authored border owned by a theme as an extra (not a category member).
+public:
+	DECLARE_CONOBJECT(GuiBorderProfile);
+	GuiBorderProfile();
+	~GuiBorderProfile();
+	static void initPersistFields();
+	bool onAdd();
+	void onRemove();
+
+	// Theme membership. A border stamped by a GuiProfileTheme tracks which
+	// fields were explicitly overridden; standalone borders are unaffected.
+	// preserveOverrides keeps an override set loaded before attachment (Taml).
+	void setTheme(GuiProfileTheme* theme, bool preserveOverrides = false);
+	inline GuiProfileTheme* getTheme() const { return mThemeMembership.mTheme; }
+	bool isThemeFieldOverridden(StringTableEntry field) const { return mThemeMembership.isOverridden(field); }
+	void clearThemeFieldOverride(StringTableEntry field) { mThemeMembership.clearOverride(field); }
+	void clearAllThemeOverrides() { mThemeMembership.clearAll(); }
+
+	virtual void onStaticModified(const char* slotName, const char* newValue = NULL);
+	virtual bool writeField(StringTableEntry fieldname, const char* value);
+	virtual void onDeleteNotify(SimObject* object);
+
+protected:
+	static bool setThemeOverrides(void* obj, const char* data) { static_cast<GuiBorderProfile*>(obj)->mThemeMembership.parseOverrideList(data); return false; }
+	static const char* getThemeOverrides(void* obj, const char* data) { return static_cast<GuiBorderProfile*>(obj)->mThemeMembership.formatOverrideList(); }
+
+public:
+	S32 getMargin(const GuiControlState state); //Returns the margin based on the control's state.
+	S32 getBorder(const GuiControlState state); //Returns the size of the border based on the control's state.
+	const ColorI& getBorderColor(const GuiControlState state); //Returns the correct border color based on the control's state.
+	S32 getPadding(const GuiControlState state); //Returns the padding based on the control's state.
+};
+DefineConsoleType(TypeGuiBorderProfile)
+/// A GuiControlProfile is used by every GuiObject and is akin to a
+/// datablock. It is used to control information that does not change
+/// or is unlikely to change during execution of a program. It is also
+/// a level of abstraction between script and GUI control so that you can
+/// use the same control, say a button, and have it look completly different
+/// just with a different profile.
+class GuiControlProfile : public SimObject
+{
+private:
+   typedef SimObject Parent;
+
+   GuiThemeMembership mThemeMembership;            ///< Theme membership and per-field override tracking.
+
+public:
+   S32  mRefCount;                                 ///< Used to determine if any controls are using this profile
+   bool mTabable;                                  ///< True if this object is accessable from using the tab key
+   bool mCanKeyFocus;                              ///< True if the object can be given keyboard focus (in other words, made a first responder @see GuiControl)
+
+   ColorI mFillColor; //Normal fill color used to fill the control area inside (and possibly under) the border.
+   ColorI mFillColorHL; //The highlight fill color used when the cursor enters the control.
+   ColorI mFillColorSL;	//Color used when the control is selected.
+   ColorI mFillColorNA; //Used if the object is not active or disabled.
+   ColorI mFillColorTextSL; //Background color used when text is selected.
+
+   GuiBorderProfile* mBorderDefault;					//The default border settings.
+   // top profile
+   StringTableEntry mTopProfileName;
+   GuiBorderProfile* mBorderTop;
+   // Bottom profile
+   StringTableEntry mBottomProfileName;
+   GuiBorderProfile* mBorderBottom;
+   // Left profile
+   StringTableEntry mLeftProfileName;
+   GuiBorderProfile* mBorderLeft;
+   // Left profile
+   StringTableEntry mRightProfileName;
+   GuiBorderProfile* mBorderRight;
+
+   // font members
+   StringTableEntry  mFontType;
+   StringTableEntry  mFontDirectory;                    ///< Font face name for the control
+   S32               mFontSize;                    ///< Font size for the control
+   enum {
+      BaseColor = 0,
+      ColorHL,
+      ColorNA,
+      ColorSL,
+      ColorLink,
+      ColorLinkHL,
+      ColorTextSL,
+      ColorUser0,
+      ColorUser1,
+      ColorUser2,
+   };
+   ColorI  mFontColors[10];                        ///< Array of font colors used for drawText with escape characters for changing color mid-string
+   ColorI& mFontColor;                             ///< Main font color
+   ColorI& mFontColorHL;                           ///< Highlited font color
+   ColorI& mFontColorNA;                           ///< Font color when object is not active/disabled
+   ColorI& mFontColorSL;                          ///< Font color when object/text is selected
+   ColorI& mFontColorLink;
+   ColorI& mFontColorLinkHL;
+   ColorI& mFontColorTextSL;
+   FontCharset mFontCharset;                       ///< Font character set
+
+   GFont* getFont(F32 fontAdjust = 1.0);
+   
+   AlignmentType mAlignment;                       ///< Horizontal text alignment
+   VertAlignmentType mVAlignment;				   ///< Vertical text alignment
+                             
+   ColorI mCursorColor;                            ///< Color for the blinking cursor in text fields (for example)
+
+   Point2I mTextOffset;                            ///< Text offset for the control
+   StringTableEntry  mCategory;                    ///< Category for control in editors.
+
+   // imageAsset members
+   StringTableEntry mImageAssetID;
+   AssetPtr<ImageAsset> mImageAsset;
+   void setImageAsset( const char* pImageAssetID );
+   inline StringTableEntry getImageAsset( void ) const { return mImageAssetID; }
+
+   /// The bitmap path as it should be written down: relative to the game root
+   /// when it points inside the game, and unchanged when it does not.
+   ///
+   /// mBitmapName itself is always absolute - TypeFilename expands whatever it
+   /// is given the moment it is set - and an absolute path in a saved profile
+   /// names a folder on one developer's machine and nowhere else.
+   StringTableEntry getRelativeBitmapName( void ) const;
+
+private:
+	HashMap<S32, GFont*> mFontMap;
+	S32 getFontSize(F32 fontAdjust);
+	void addFont(S32 fontSize);
+
+protected:
+	static bool setImageAsset(void* obj, const char* data) { static_cast<GuiControlProfile*>(obj)->setImageAsset(data); return false; }
+	static const char* getImageAsset(void* obj, const char* data) { return static_cast<GuiControlProfile*>(obj)->getImageAsset(); }
+
+	// Set is left to TypeFilename, which expands the path; only the read-back is
+	// ours, so that what gets written stays portable.
+	static const char* getBitmapName(void* obj, const char* data) { return static_cast<GuiControlProfile*>(obj)->getRelativeBitmapName(); }
+
+	static bool setThemeOverrides(void* obj, const char* data) { static_cast<GuiControlProfile*>(obj)->mThemeMembership.parseOverrideList(data); return false; }
+	static const char* getThemeOverrides(void* obj, const char* data) { return static_cast<GuiControlProfile*>(obj)->mThemeMembership.formatOverrideList(); }
+
+public:
+   // bitmap members
+   StringTableEntry mBitmapName;                   ///< Bitmap file name for the bitmap of the control
+   TextureHandle mTextureHandle;                   ///< Texture handle for the control
+   Vector<RectI> mBitmapArrayRects;                ///< Used for controls which use an array of bitmaps such as checkboxes
+
+   DECLARE_CONOBJECT(GuiControlProfile);
+   GuiControlProfile();
+   ~GuiControlProfile();
+   static void initPersistFields();
+   bool onAdd();
+
+   /// Creates GuiDefaultProfile and the GuiDefaultBorderProfile it wears. Called
+   /// once at start-up, right after Sim::init(), so the one name the GUI cannot
+   /// run without always resolves. See the definition for why the engine owns it.
+   static void createDefaultProfile();
+
+   GuiBorderProfile* getLeftProfile();
+   void setLeftProfile(GuiBorderProfile* prof);
+
+   GuiBorderProfile* getRightProfile();
+   void setRightProfile(GuiBorderProfile* prof);
+
+   GuiBorderProfile* getTopProfile();
+   void setTopProfile(GuiBorderProfile* prof);
+
+   GuiBorderProfile* getBottomProfile();
+   void setBottomProfile(GuiBorderProfile* prof);
+
+   /// This method creates an array of bitmaps from one single bitmap with
+   /// seperator color. The seperator color is whatever color is in pixel 0,0
+   /// of the bitmap. For an example see darkWindow.png and some of the other
+   /// UI textures. It returns the number of bitmaps in the array it created
+   /// It also stores the sizes in the mBitmapArrayRects vector.
+   S32 constructBitmapArray();
+
+   void incRefCount(F32 fontAdjust = 1.0);
+   void decRefCount();
+
+   // Theme membership. A profile stamped by a GuiProfileTheme tracks which
+   // fields were explicitly overridden; standalone profiles are unaffected.
+   // preserveOverrides keeps an override set loaded before attachment (Taml).
+   void setTheme(GuiProfileTheme* theme, bool preserveOverrides = false);
+   inline GuiProfileTheme* getTheme() const { return mThemeMembership.mTheme; }
+   bool isThemeFieldOverridden(StringTableEntry field) const { return mThemeMembership.isOverridden(field); }
+   void clearThemeFieldOverride(StringTableEntry field) { mThemeMembership.clearOverride(field); }
+   void clearAllThemeOverrides() { mThemeMembership.clearAll(); }
+
+   virtual void onStaticModified(const char* slotName, const char* newValue = NULL);
+   virtual bool writeField(StringTableEntry fieldname, const char* value);
+   virtual void onDeleteNotify(SimObject* object);
+
+   const ColorI& getFillColor(const GuiControlState state); //Returns the fill color based on the state.
+   const ColorI& getFontColor(const GuiControlState state); //Returns the font color based on the state.
+   bool usesAssetRendering(const GuiControlState state);
+   bool usesBitmapRendering(const GuiControlState state);
+   bool usesDefaultRendering(const GuiControlState state);
+
+   GuiBorderProfile* getLeftBorder() { return mBorderLeft; }
+   GuiBorderProfile* getRightBorder() { return mBorderRight; }
+   GuiBorderProfile* getTopBorder() { return mBorderTop; }
+   GuiBorderProfile* getBottomBorder() { return mBorderBottom; }
+};
+DefineConsoleType( TypeGuiProfile)
+
+#endif //_GUITYPES_H
