@@ -356,6 +356,40 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 111 (2.0.3-ea4) — 2026-11-14
+- **Flying Projectiles & Particle Trails System (`Projectile.cs`, `RangedUnit.cs`, `projectile_trail.asset.taml`, `projectile_hit.asset.taml`):**
+  - Added [`projectile_trail.asset.taml`](Archon/data/particles/projectile_trail.asset.taml) (`TrailDustMotes` and `TrailSparklets` emitters) and [`projectile_hit.asset.taml`](Archon/data/particles/projectile_hit.asset.taml) (`HitSparks` and `HitBurst` emitters) `<ParticleAsset>` descriptors.
+  - Defined `ParticleData` (`ProjectileTrailParticleData`, `ProjectileSparkParticleData`, `ProjectileHitParticleData`), `ParticleEmitterData` (`ProjectileTrailEmitterData`, `ProjectileSparkEmitterData`, `ProjectileHitEmitterData`), and `DefaultProjectileTemplate` datablocks in [`Projectile.cs`](Archon/gameScripts/Projectile.cs).
+  - Implemented `TORQUE_SCRIPT.md`-compliant [`Projectile.cs`](Archon/gameScripts/Projectile.cs) and [`RangedUnit.cs`](Archon/gameScripts/RangedUnit.cs) modules with `VectorSub`/`VectorNormalize` trajectory calculation, four-quadrant `mAtan2` orientation (`.setAngle()`), per-frame `schedule` movement loop, trailing `ParticlePlayer` synchronization, and unit-specific visual styles (`arrow`, `fire`, `beam`, `stone`).
+  - Implemented leak-free projectile and trail cleanup on target impact, target invalidation, `maxFlightDuration` timeout, battle end (`TurnManager::endBattle`), and scene teardown (`onRemove`), deferring in-tick self-deletion via `deleteSimObject`.
+- **Ranged Combat & Animation Frame Hooks (`CombatEngine.cs`, `TurnManager.cs`, `nappula.cs`, `t2d_compat.cs`):**
+  - Updated [`CombatEngine::doAttack`](Archon/gameScripts/CombatEngine.cs) so ranged units (`missile == 1`) launch traveling projectiles across the board and trigger `BeenHit` reaction, damage, blood, and turn evaluation on projectile impact.
+  - Implemented `SceneObject::setFrameChangeCallback` / `pollAnimationFrame` and `mAtan2` / `mAtan2Deg` in [`t2d_compat.cs`](Archon/gameScripts/t2d_compat.cs), plus `Piece` / `Nappula` ranged delegation in [`nappula.cs`](Archon/gameScripts/nappula.cs) and registration in [`Archon/main.cs`](Archon/main.cs) and [`Archon/gameScripts/exec.cs`](Archon/gameScripts/exec.cs).
+- **Verification (`tests/test_projectiles.cs`):**
+  - Added automated TorqueScript test suite [`tests/test_projectiles.cs`](tests/test_projectiles.cs) verifying datablocks, `ParticleAsset` emitters, `mAtan2` orientation across all quadrants, per-frame flight, impact damage, target invalidation/timeout cleanup, animation frame hooks, and `CombatEngine` integration.
+- **Version Configuration:**
+  - Incremented build number to `111` (`2.0.3-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
+
+### Build 110 (2.0.3-ea4) — 2026-11-14
+- **Spell Particle Assets (`Archon/data/particles/*.asset.taml`):**
+  - Added 5 `<ParticleAsset>` descriptors covering all 6 playable spell cards (`spellFrame` 3–8):
+    - *Taikamakkara* (Frame 3 — [`spell_shield.asset.taml`](Archon/data/particles/spell_shield.asset.taml)): Cyan/gold hexagon ward and sparkles (`WardHexagons`, `ShieldSparkles`) spawned on all living friendly units (`groupid == 0`, Layer `1`).
+    - *Taikahattu* & *Voikukan juuri* (Frames 4 & 7 — [`spell_mana.asset.taml`](Archon/data/particles/spell_mana.asset.taml)): Arcane blue energy swirl and orbs (`ManaSwirl`, `ManaOrbs`) spawned over the hero avatar (`heroicon`, Layer `28`).
+    - *Taikatikkari* (Frame 5 — [`spell_power.asset.taml`](Archon/data/particles/spell_power.asset.taml)): Golden 5-point stars and amber nova sparks (`GoldenStars`, `NovaSparks`) spawned over the hero avatar (`heroicon`, Layer `28`).
+    - *Tulivuori* (Frame 6 — [`spell_volcano.asset.taml`](Archon/data/particles/spell_volcano.asset.taml)): Multi-emitter volcanic eruption (`LavaFlames`, `VolcanicSmoke`, `LavaEmbers`) spawned on all living enemy units (`groupid == 1`, Layer `1`).
+    - *Vatsatauti* (Frame 8 — [`spell_disease.asset.taml`](Archon/data/particles/spell_disease.asset.taml)): Sickly green toxic miasma cloud and bubbles (`MiasmaCloud`, `ToxicBubbles`) spawned on the afflicted unit (Layer `1`).
+- **Managed Spell Effect Playback (`SpellEffectManager.cs`, `exec.cs`, `main.cs`):**
+  - Implemented [`SpellEffectManager.cs`](Archon/gameScripts/SpellEffectManager.cs) (`$SpellEffectManager`) as a `TORQUE_SCRIPT.md`-compliant `ScriptObject` subsystem, registered in [`Archon/gameScripts/exec.cs`](Archon/gameScripts/exec.cs) and managed in [`Archon/main.cs`](Archon/main.cs).
+  - Preloads all 5 `Archon:spell_*` particle assets via `AssetDatabase.acquireAsset` in `init()` and releases them in `onRemove()`.
+  - Tracks spawned `ParticlePlayer` instances in an `activeEffects` `SimSet`, smoothly halting emission via `%effect.stop(true, false)` after `defaultEmitDurationMs` (`650` ms, pause-aware via `pauseRetryDelayMs`) and deleting expired instances after `defaultCleanupDelayMs` (`1900` ms) or via `clearAll()`.
+- **Gameplay & Turn Hooks (`CombatEngine.cs`, `TurnManager.cs`):**
+  - Invoked `SpellEffectManager.playSpellEffect(%spellFrame, %targetPiece)` in [`CombatEngine::castRevealedSpell`](Archon/gameScripts/CombatEngine.cs) before `switch (%spellFrame)` so lethal *Tulivuori* casts trigger volcano effects before targets are marked dead.
+  - Triggered `Archon:spell_disease` playback in [`TurnManager::nextTurn`](Archon/gameScripts/TurnManager.cs) when `skipNextTurn == 1` activates, and hooked `SpellEffectManager.clearAll()` into `TurnManager::endBattle`.
+- **Verification (`tests/test_spell_particles.cs`):**
+  - Added automated TorqueScript integration test suite [`tests/test_spell_particles.cs`](tests/test_spell_particles.cs) verifying asset loading, emitter counts, target/layer placement, pause-aware lifecycle scheduling, and `CombatEngine` / `TurnManager` hooks in `Torque2D.exe`.
+- **Version Configuration:**
+  - Incremented build number to `110` (`2.0.3-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
+
 ### Build 109 (2.0.3-ea4) — 2026-11-09
 - **Title Menu, Options Dialog & Multi-Resolution Display Subsystems (`TitleMenuManager.cs`, `OptionsMenuGui.cs`, `ResolutionManager.cs`, `PauseMenuManager.cs`, `BoardAudioHud.cs`):**
   - Integrated keyboard-navigable Title Menu ([`TitleMenuManager.cs`](file:///M:/Archonita/src/Archon/gameScripts/TitleMenuManager.cs)) with New Game, Options, Help, Credits, and Quit options, button hover sound effects, and clean Escape key transitions.
