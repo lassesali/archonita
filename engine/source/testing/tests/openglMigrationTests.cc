@@ -50,6 +50,30 @@ TEST(OpenGLMigrationShaderTest, BuildPreprocessedSourceDesktopGL46Core)
    EXPECT_NE(dStrstr(buffer, body), (const char*)NULL);
 }
 
+TEST(OpenGLMigrationShaderTest, BuildPreprocessedSourceDesktopGL41Core)
+{
+   const char* body = "void main() { gl_Position = vec4(0.0); }";
+   char buffer[1024];
+   dMemset(buffer, 0, sizeof(buffer));
+
+   ASSERT_TRUE(ShaderManager::buildPreprocessedSource(body, false, 4, 1, buffer, sizeof(buffer)));
+   EXPECT_EQ(dStrstr(buffer, "#version 410 core\n"), buffer);
+   EXPECT_EQ(dStrstr(buffer, "precision highp float;"), (const char*)NULL);
+   EXPECT_NE(dStrstr(buffer, body), (const char*)NULL);
+}
+
+TEST(OpenGLMigrationShaderTest, BuildPreprocessedSourceMobileGLES30)
+{
+   const char* body = "void main() { gl_Position = vec4(0.0); }";
+   char buffer[1024];
+   dMemset(buffer, 0, sizeof(buffer));
+
+   ASSERT_TRUE(ShaderManager::buildPreprocessedSource(body, true, 3, 0, buffer, sizeof(buffer)));
+   EXPECT_EQ(dStrstr(buffer, "#version 300 es\n"), buffer);
+   EXPECT_NE(dStrstr(buffer, "precision highp float;\n"), (const char*)NULL);
+   EXPECT_NE(dStrstr(buffer, body), (const char*)NULL);
+}
+
 TEST(OpenGLMigrationShaderTest, BuildPreprocessedSourceMobileGLES32)
 {
    const char* body = "void main() { gl_Position = vec4(0.0); }";
@@ -173,6 +197,10 @@ TEST(OpenGLMigrationMatrixTest, OrthoAndCombinedMVPTransform)
 
 TEST(OpenGLMigrationConstantsTest, CoreSizedFormatsAndSwizzleEnumsDefined)
 {
+   EXPECT_EQ((U32)GL_RED, (U32)0x1903);
+   EXPECT_EQ((U32)GL_GREEN, (U32)0x1904);
+   EXPECT_EQ((U32)GL_BLUE, (U32)0x1905);
+   EXPECT_EQ((U32)GL_ALPHA, (U32)0x1906);
    EXPECT_EQ((U32)GL_R8, (U32)0x8229);
    EXPECT_EQ((U32)GL_RG8, (U32)0x822B);
    EXPECT_EQ((U32)GL_RGB8, (U32)0x8051);

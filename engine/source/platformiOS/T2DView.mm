@@ -63,7 +63,7 @@ void ConvertToRetina(CGPoint *p)
 
 -(void)swapBuffers {
 	if( self.isLayedOut == true ) {
-		[self.context presentRenderbuffer:GL_RENDERBUFFER_OES];
+		[self.context presentRenderbuffer:GL_RENDERBUFFER];
 	}
 }
 

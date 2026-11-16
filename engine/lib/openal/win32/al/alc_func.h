@@ -1,5 +1,5 @@
 
-//AL_FUNCTION(ALCubyte*,   alcGetString, (ALCdevice *device,ALCenum param), return NULL; )
+AL_FUNCTION(const ALCchar*, alcGetString, (ALCdevice *device, ALCenum param), return NULL; )
 //AL_FUNCTION(ALCvoid,     alcGetIntegerv, (ALCdevice * device,ALCenum param,ALCsizei size,ALCint *data), return; )
 
 AL_FUNCTION(ALCvoid*,	 alcOpenDevice, (const ALCchar *deviceName), return NULL; )

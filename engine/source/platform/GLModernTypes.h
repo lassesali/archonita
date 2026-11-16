@@ -152,6 +152,15 @@ typedef ptrdiff_t GLsizeiptr;
 #ifndef GL_RED
 #define GL_RED                                  0x1903
 #endif
+#ifndef GL_GREEN
+#define GL_GREEN                                0x1904
+#endif
+#ifndef GL_BLUE
+#define GL_BLUE                                 0x1905
+#endif
+#ifndef GL_ALPHA
+#define GL_ALPHA                                0x1906
+#endif
 #ifndef GL_RG
 #define GL_RG                                   0x8227
 #endif
@@ -210,6 +219,9 @@ typedef ptrdiff_t GLsizeiptr;
 #endif
 #ifndef GL_PROJECTION
 #define GL_PROJECTION                           0x1701
+#endif
+#ifndef GL_TEXTURE
+#define GL_TEXTURE                              0x1702
 #endif
 #ifndef GL_MODELVIEW_MATRIX
 #define GL_MODELVIEW_MATRIX                     0x0BA6

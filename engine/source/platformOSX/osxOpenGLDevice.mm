@@ -244,9 +244,22 @@ NSOpenGLPixelFormat* osxOpenGLDevice::generateValidPixelFormat(bool fullscreen, 
         attr[i++] = (NSOpenGLPixelFormatAttribute)samples;
     }
 
+    int profileValueIdx = i + 1;
+    attr[i++] = NSOpenGLPFAOpenGLProfile;
+    attr[i++] = NSOpenGLProfileVersion4_1Core;
     attr[i++] = 0;
 
     NSOpenGLPixelFormat* format = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attr] autorelease];
+    if (!format)
+    {
+        attr[profileValueIdx] = NSOpenGLProfileVersion3_2Core;
+        format = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attr] autorelease];
+    }
+    if (!format)
+    {
+        attr[profileValueIdx - 1] = 0;
+        format = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attr] autorelease];
+    }
 
     return format;
 }
@@ -395,12 +408,29 @@ const char* osxOpenGLDevice::getDriverInfo()
     const char* vendorString   = (const char*) glGetString( GL_VENDOR );
     const char* rendererString = (const char*) glGetString( GL_RENDERER );
     const char* versionString  = (const char*) glGetString( GL_VERSION );
-    const char* extensionsString = (const char*) glGetString( GL_EXTENSIONS );
+
+    const char* extensionsString = NULL;
+    U32 coreExtLen = 0;
+    GLint numExt = 0;
+    if (gGLState.glMajorVersion < 3)
+    {
+        extensionsString = (const char*) glGetString( GL_EXTENSIONS );
+    }
+    else
+    {
+        glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+        for (GLint i = 0; i < numExt; ++i)
+        {
+            const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+            if (ext)
+                coreExtLen += dStrlen(ext) + 1;
+        }
+    }
 
     U32 bufferLen = ( vendorString ? dStrlen( vendorString ) : 0 )
     + ( rendererString ? dStrlen( rendererString ) : 0 )
     + ( versionString  ? dStrlen( versionString ) : 0 )
-    + ( extensionsString ? dStrlen( extensionsString ) : 0 )
+    + ( extensionsString ? dStrlen( extensionsString ) : coreExtLen )
     + 4;
 
     char* returnString = Con::getReturnBuffer( bufferLen );
@@ -409,6 +439,25 @@ const char* osxOpenGLDevice::getDriverInfo()
              ( rendererString ? rendererString : "" ),
              ( versionString ? versionString : "" ),
              ( extensionsString ? extensionsString : "" ) );
+
+    if (gGLState.glMajorVersion >= 3 && numExt > 0)
+    {
+        U32 offset = dStrlen(returnString);
+        for (GLint i = 0; i < numExt; ++i)
+        {
+            const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+            if (!ext)
+                continue;
+            U32 len = dStrlen(ext);
+            if (offset + len + 2 > bufferLen)
+                break;
+            if (i > 0)
+                returnString[offset++] = ' ';
+            dMemcpy(returnString + offset, ext, len);
+            offset += len;
+        }
+        returnString[offset] = '\0';
+    }
 
     return( returnString );
 }

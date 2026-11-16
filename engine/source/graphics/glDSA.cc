@@ -90,7 +90,7 @@ GLuint createVertexArray()
       return vao;
    }
    glGenVertexArrays(1, &vao);
-#elif defined(TORQUE_OS_ANDROID)
+#elif defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS) || defined(TORQUE_OS_OSX)
    glGenVertexArrays(1, &vao);
 #endif
    return vao;
@@ -98,7 +98,7 @@ GLuint createVertexArray()
 
 void deleteVertexArray(GLuint vao)
 {
-#if defined(TORQUE_OS_WIN) || defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_ANDROID)
+#if defined(TORQUE_OS_WIN) || defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS) || defined(TORQUE_OS_OSX)
    if (vao != 0)
       glDeleteVertexArrays(1, &vao);
 #endif
@@ -135,7 +135,7 @@ void textureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLs
    }
    glBindTexture(GL_TEXTURE_2D, texture);
    glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
-#elif defined(TORQUE_OS_ANDROID)
+#elif defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS)
    glBindTexture(GL_TEXTURE_2D, texture);
    glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
 #endif
