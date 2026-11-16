@@ -41,18 +41,105 @@
 
 #define USE_DEPTH_BUFFER 0
 
-extern bool createMouseMoveEvent(S32 i, S32 x, S32 y, S32 lastX, S32 lastY);
+extern bool createMouseMoveEvent(S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY);
 extern bool createMouseDownEvent(S32 touchNumber, S32 x, S32 y, U32 numTouches);
 extern bool createMouseUpEvent(S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY, U32 numTouches); //EFM
 extern void createMouseTapEvent( S32 nbrTaps, S32 x, S32 y );
 
 bool retinaEnabled;
 
+#define MAX_RAW_TOUCH_POINTERS 10
+
+struct RawTouchEntry
+{
+    const void* touchPtr;
+    S32 touchId;
+    Point2I lastPoint;
+};
+
+static RawTouchEntry gRawTouches[MAX_RAW_TOUCH_POINTERS];
+static S32 gNextRawTouchId = 1;
+
+static int findRawTouchSlot(const void* touchPtr)
+{
+    if (!touchPtr)
+        return -1;
+
+    for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+    {
+        if (gRawTouches[i].touchPtr == touchPtr)
+            return i;
+    }
+    return -1;
+}
+
+static S32 allocRawTouchId()
+{
+    for (int attempt = 0; attempt < MAX_RAW_TOUCH_POINTERS + 1; attempt++)
+    {
+        S32 candidate = gNextRawTouchId;
+        gNextRawTouchId = (gNextRawTouchId < 0x7FFFFFFF) ? (gNextRawTouchId + 1) : 1;
+
+        bool inUse = false;
+        for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+        {
+            if (gRawTouches[i].touchPtr != NULL && gRawTouches[i].touchId == candidate)
+            {
+                inUse = true;
+                break;
+            }
+        }
+        if (!inUse)
+            return candidate;
+    }
+    return 1;
+}
+
+static int allocRawTouchSlot(const void* touchPtr)
+{
+    int slot = findRawTouchSlot(touchPtr);
+    if (slot != -1)
+        return slot;
+
+    for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+    {
+        if (gRawTouches[i].touchPtr == NULL)
+        {
+            gRawTouches[i].touchPtr = touchPtr;
+            gRawTouches[i].touchId = allocRawTouchId();
+            return i;
+        }
+    }
+    return -1;
+}
+
+void iOSClearRawTouches(void)
+{
+    for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+    {
+        gRawTouches[i].touchPtr = NULL;
+        gRawTouches[i].touchId = -1;
+        gRawTouches[i].lastPoint.set(0, 0);
+    }
+}
+
 void ConvertToRetina(CGPoint *p)
 {
     CGFloat screenScale = [[UIScreen mainScreen] scale];
     p->x *= screenScale;
     p->y *= screenScale;
+}
+
+static Point2I extractTouchPoint(UITouch* touch, UIView* view, bool previous)
+{
+    // locationInView: already reports coordinates in the view's own space on iOS 8+.
+    // Do not apply _iOSGetPortraitTouchoffset() here: physical tilt notifications
+    // update _iOSGameGetOrientation() even when the UI stays locked to landscape.
+    CGPoint point = previous ? [touch previousLocationInView:view] : [touch locationInView:view];
+    if (retinaEnabled)
+        ConvertToRetina(&point);
+
+    return Point2I((S32)point.x, (S32)point.y);
 }
 
 @implementation T2DView
@@ -93,99 +180,71 @@ void ConvertToRetina(CGPoint *p)
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
-    NSUInteger touchCount = 0;
-    // Enumerates through all touch objects
+    // Track each UITouch pointer across phases rather than passing the unordered
+    // NSSet enumeration index (which resets to 0 on every callback).
     for (UITouch *touch in touches)
     {
-        CGPoint point = [touch locationInView:self];
-        
-        if (retinaEnabled)
-        {
-            ConvertToRetina(&point);
-        }
-        
-        S32 orientation = _iOSGameGetOrientation();
-        if (UIDeviceOrientationIsPortrait((UIDeviceOrientation)orientation))
-        {
-            point.y -= _iOSGetPortraitTouchoffset();
-        }
-        
-        int numTouches = [touch tapCount];
-        createMouseDownEvent(touchCount, point.x, point.y, numTouches);
-        touchCount++;
+        const void* touchPtr = (__bridge const void*)touch;
+        Point2I point = extractTouchPoint(touch, self, false);
+        int slot = allocRawTouchSlot(touchPtr);
+        S32 touchId = (slot != -1) ? gRawTouches[slot].touchId : -1;
+        if (slot != -1)
+            gRawTouches[slot].lastPoint = point;
+
+        int numTouches = (int)[touch tapCount];
+        createMouseDownEvent(touchId, point.x, point.y, numTouches);
     }
 }
 
-
-extern Vector<Event *> TouchMoveEvents;
-
-
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
-    NSUInteger touchCount = 0;
-    // Enumerates through all touch objects
     for (UITouch *touch in touches)
     {
-        CGPoint point = [touch locationInView:self];
-        CGPoint prevPoint = [touch previousLocationInView:self]; //EFM
-        
-        if (retinaEnabled)
-        {
-            ConvertToRetina(&point);
-            ConvertToRetina(&prevPoint);
-        }
-        
-        S32 orientation = _iOSGameGetOrientation();
-        if (UIDeviceOrientationIsPortrait((UIDeviceOrientation)orientation))
-        {
-            point.y -= _iOSGetPortraitTouchoffset();
-            prevPoint.y -= _iOSGetPortraitTouchoffset();
-        }
-        
-        createMouseMoveEvent(touchCount, point.x, point.y, prevPoint.x, prevPoint.y);
-        touchCount++;
+        const void* touchPtr = (__bridge const void*)touch;
+        Point2I point = extractTouchPoint(touch, self, false);
+        int slot = findRawTouchSlot(touchPtr);
+        Point2I prevPoint = (slot != -1) ? gRawTouches[slot].lastPoint : extractTouchPoint(touch, self, true);
+        if (slot == -1)
+            slot = allocRawTouchSlot(touchPtr);
+
+        S32 touchId = (slot != -1) ? gRawTouches[slot].touchId : -1;
+        createMouseMoveEvent(touchId, point.x, point.y, prevPoint.x, prevPoint.y);
+
+        if (slot != -1)
+            gRawTouches[slot].lastPoint = point;
     }
-    
+}
+
+- (void)handleTouchesEnded:(NSSet *)touches isCancelled:(BOOL)cancelled
+{
+    for (UITouch *touch in touches)
+    {
+        const void* touchPtr = (__bridge const void*)touch;
+        Point2I point = extractTouchPoint(touch, self, false);
+        int slot = findRawTouchSlot(touchPtr);
+        Point2I prevPoint = (slot != -1) ? gRawTouches[slot].lastPoint : extractTouchPoint(touch, self, true);
+        S32 touchId = (slot != -1) ? gRawTouches[slot].touchId : -1;
+        if (slot != -1)
+        {
+            gRawTouches[slot].touchPtr = NULL;
+            gRawTouches[slot].touchId = -1;
+        }
+
+        int tc = (int)[touch tapCount];
+        createMouseUpEvent(touchId, point.x, point.y, prevPoint.x, prevPoint.y, tc);
+
+        //Luma: Tap support
+        if (!cancelled && tc > 0)
+        {
+            // this was a tap, so create a tap event
+            createMouseTapEvent(tc, point.x, point.y);
+        }
+    }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    
-    NSUInteger touchCount = 0;
-    // Enumerates through all touch objects
-    for (UITouch *touch in touches)
-    {
-        CGPoint point = [touch locationInView:self];
-        CGPoint prevPoint = [touch previousLocationInView:self]; //EFM
-        
-        if (retinaEnabled)
-        {
-            ConvertToRetina(&point);
-            ConvertToRetina(&prevPoint);
-        }
-        
-        S32 orientation = _iOSGameGetOrientation();
-        if (UIDeviceOrientationIsPortrait((UIDeviceOrientation)orientation))
-        {
-            point.y -= _iOSGetPortraitTouchoffset();
-            prevPoint.y -= _iOSGetPortraitTouchoffset();
-        }
-        
-        int tc = [touch tapCount];
-        createMouseUpEvent(touchCount, point.x, point.y, prevPoint.x, prevPoint.y, tc);
-        touchCount++;
-        
-        //Luma: Tap support
-        
-        if (tc > 0)
-        {
-            // this was a tap, so create a tap event
-            createMouseTapEvent(tc, (int) point.x, (int) point.y);
-        }
-    }
-    
+    [self handleTouchesEnded:touches isCancelled:NO];
 }
 
 - (void)touchesChangedWithEvent:(UIEvent *)event
@@ -195,7 +254,7 @@ extern Vector<Event *> TouchMoveEvents;
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self touchesEnded:touches withEvent:event];
+    [self handleTouchesEnded:touches isCancelled:YES];
 }
 
 bool gScreenAutoRotate = false;

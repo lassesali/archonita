@@ -21,6 +21,7 @@
 //-----------------------------------------------------------------------------
 
 
+#include <stdio.h>
 #include "platformiOS/platformiOS.h"
 #include "platformiOS/iOSUtil.h"
 #include "platform/platformInput.h"
@@ -94,6 +95,7 @@ touchTracker CombinedTouchEvents[MAX_TOUCH_EVENTS];
 struct touchCorrelation {
 	S32 lastX;
 	S32 lastY;
+	S32 touchNumber;
 };
 
 touchCorrelation lastTouches[MAX_TOUCH_EVENTS];
@@ -103,6 +105,30 @@ touchCorrelation lastTouches[MAX_TOUCH_EVENTS];
 //Luma: Tap support
 Vector<touchEvent> TouchTapEvents;
 int processMultipleTouches();
+extern void iOSClearRawTouches(void);
+
+static void clearTouchSlot(S32 slot)
+{
+	if (slot >= 0 && slot < MAX_TOUCH_EVENTS)
+	{
+		lastTouches[slot].lastX = -1;
+		lastTouches[slot].lastY = -1;
+		lastTouches[slot].touchNumber = -1;
+	}
+}
+
+static S32 findTouchSlotByNumber(S32 touchNumber)
+{
+	if (touchNumber < 0)
+		return -1;
+
+	for (int i = 0; i < MAX_TOUCH_EVENTS; i++)
+	{
+		if (lastTouches[i].lastX != -1 && lastTouches[i].touchNumber == touchNumber)
+			return i;
+	}
+	return -1;
+}
 
 
 //------------------------------------------------------------------------------
@@ -192,10 +218,8 @@ void Input::init()
 	
 	
 	for(int i = 0 ; i < MAX_TOUCH_EVENTS; i++ )
-	{
-		lastTouches[i].lastX = -1;
-		lastTouches[i].lastY = -1;
-	}
+		clearTouchSlot(i);
+	iOSClearRawTouches();
 	
 	
    
@@ -918,189 +942,64 @@ void Input::setCursorPos(S32 x, S32 y)
 	//this gets called from GuiCanvas to set the game mouse cursor
 }
 
+static void appendTouchToken(char* dst, dsize_t dstSize, S32 value)
+{
+	char temp[16];
+	int written = snprintf(temp, sizeof(temp), "%d ", value);
+	if (written <= 0 || (dsize_t)written >= sizeof(temp))
+		return;
+
+	dsize_t curLen = dStrlen(dst);
+	if (curLen + (dsize_t)written < dstSize)
+		dStrcat(dst, temp);
+}
+
+static int drainTouchEventQueue(Vector<touchEvent>& events, U16 objType)
+{
+	char posX[256], posY[256], touchNums[256];
+	dMemset(posX, 0, sizeof(posX));
+	dMemset(posY, 0, sizeof(posY));
+	dMemset(touchNums, 0, sizeof(touchNums));
+
+	const int numEvents = events.size();
+	while (events.size() > 0)
+	{
+		const touchEvent& currentEvent = events.last();
+		appendTouchToken(posX, sizeof(posX), currentEvent.x);
+		appendTouchToken(posY, sizeof(posY), currentEvent.y);
+		appendTouchToken(touchNums, sizeof(touchNums), currentEvent.number);
+		events.pop_back();
+	}
+
+	if (numEvents > 0)
+	{
+		InputEvent touchEvt;
+		touchEvt.deviceInst = 0;
+		touchEvt.objInst = objType;
+		touchEvt.deviceType = ScreenTouchDeviceType;
+		touchEvt.action = SI_TOUCH;
+		touchEvt.objType = objType;
+		dStrcpy(touchEvt.fingersX, posX);
+		dStrcpy(touchEvt.fingersY, posY);
+		dStrcpy(touchEvt.fingerIDs, touchNums);
+		touchEvt.modifier = 0;
+		Game->postEvent(touchEvt);
+	}
+
+	return numEvents;
+}
+
 int processMultipleTouches()
 {	
-	char posX[256], posY[256], temp[10], touchNums[256];
-    
-	dMemset(posX, 0, sizeof(posX));
-    dMemset(posY, 0, sizeof(posY));
-    dMemset(touchNums, 0, sizeof(touchNums));
+	// Down, move, and up events (lastTouches is already freed immediately in
+	// createMouseUpEvent so a same-frame reuse of a slot is not clobbered here).
+	int numTouchDownEvents = drainTouchEventQueue(TouchDownEvents, SI_TOUCHDOWN);
+	int numTouchMoveEvents = drainTouchEventQueue(TouchMoveEvents, SI_TOUCHMOVE);
+	int numTouchUpEvents   = drainTouchEventQueue(TouchUpEvents, SI_TOUCHUP);
 
-	touchEvent *currentEvent;
-	
-	//Down Events
-	int numTouchDownEvents = TouchDownEvents.size();
-	while( TouchDownEvents.size() > 0 )
-    {
-		currentEvent = &TouchDownEvents.last();
-		dItoa( currentEvent->x, temp );
-		dStrcat( posX, temp );
-		dStrcat( posX, " " );
-		
-		dItoa( currentEvent->y, temp );
-		dStrcat( posY, temp );
-		dStrcat( posY, " " );
-		
-		dItoa( currentEvent->number, temp );
-		dStrcat( touchNums, temp );
-		dStrcat( touchNums, " " );
-		
-		TouchDownEvents.pop_back();
-	}
-	dItoa( numTouchDownEvents, temp );
-    
-    if( numTouchDownEvents > 0 )
-    {
-        InputEvent touchEvent;
-        
-        touchEvent.deviceInst = 0;
-        touchEvent.objInst = SI_TOUCHDOWN;
-        
-        touchEvent.deviceType = ScreenTouchDeviceType;
-        touchEvent.action = SI_TOUCH;
-        touchEvent.objType = SI_TOUCHDOWN;
-        
-        dStrcpy(touchEvent.fingersX, posX);
-        dStrcpy(touchEvent.fingersY, posY);
-        dStrcpy(touchEvent.fingerIDs, touchNums);
-        
-        touchEvent.modifier = 0;
-        
-        Game->postEvent(touchEvent);        
-    }
-    
-    // Deprecated in 1.5
-	//if( numTouchDownEvents > 0 )
-    //    Con::executef( 4, "oniOSTouchDown", touchNums , posX, posY );
-
-	//Move events
-	int numTouchMoveEvents = TouchMoveEvents.size();
-	while( TouchMoveEvents.size() > 0 ) 
-    {
-		currentEvent = &TouchMoveEvents.last();
-		dItoa( currentEvent->x, temp );
-		dStrcat( posX, temp );
-		dStrcat( posX, " " );
-		
-		dItoa( currentEvent->y, temp );
-		dStrcat( posY, temp );
-		dStrcat( posY, " " );
-		
-		dItoa( currentEvent->number, temp );
-		dStrcat( touchNums, temp );
-		dStrcat( touchNums, " " );		
-		
-		TouchMoveEvents.pop_back();
-	}
-	dItoa( numTouchMoveEvents, temp );
-    
-    if( numTouchMoveEvents > 0 )
-    {
-        InputEvent touchEvent;
-        
-        touchEvent.deviceInst = 0;
-        touchEvent.objInst = SI_TOUCHMOVE;
-        
-        touchEvent.deviceType = ScreenTouchDeviceType;
-        touchEvent.action = SI_TOUCH;
-        touchEvent.objType = SI_TOUCHMOVE;
-        
-        dStrcpy(touchEvent.fingersX, posX);
-        dStrcpy(touchEvent.fingersY, posY);
-        dStrcpy(touchEvent.fingerIDs, touchNums);
-        
-        touchEvent.modifier = 0;
-        
-        Game->postEvent(touchEvent);        
-    }
-    
-    // Deprecated in 1.5 -MP
-	//if( numTouchMoveEvents > 0 )
-    //    Con::executef( 4, "oniOSTouchMove", touchNums , posX, posY );
-	
-	//Up events
-	int numTouchUpEvents = TouchUpEvents.size();
-    
-    dMemset(posX, 0, sizeof(posX));
-    dMemset(posY, 0, sizeof(posY));
-    dMemset(touchNums, 0, sizeof(touchNums));
-    
-	while( TouchUpEvents.size() > 0 ) 
-    {
-		currentEvent = &TouchUpEvents.last();
-		dItoa( currentEvent->x, temp );
-		dStrcat( posX, temp );
-		dStrcat( posX, " " );
-		
-		dItoa( currentEvent->y, temp );
-		dStrcat( posY, temp );
-		dStrcat( posY, " " );
-		
-		dItoa( currentEvent->number, temp );
-		dStrcat( touchNums, temp );
-		dStrcat( touchNums, " " );		
-		
-		lastTouches[currentEvent->number].lastX = -1;
-		lastTouches[currentEvent->number].lastY	 = -1;
-		
-        int x;
-        x = -1;
-        
-        lastTouches[currentEvent->number].lastX = -1;
-		lastTouches[currentEvent->number].lastY	 = -1;
-        
-		TouchUpEvents.pop_back();
-	}
-    
-	dItoa( numTouchUpEvents, temp );
-	
-    if( numTouchUpEvents > 0 )
-    {
-        InputEvent touchEvent;
-        
-        touchEvent.deviceInst = 0;
-        touchEvent.objInst = SI_TOUCHUP;
-        
-        touchEvent.deviceType = ScreenTouchDeviceType;
-        touchEvent.action = SI_TOUCH;
-        touchEvent.objType = SI_TOUCHUP;
-        
-        dStrcpy(touchEvent.fingersX, posX);
-        dStrcpy(touchEvent.fingersY, posY);
-        dStrcpy(touchEvent.fingerIDs, touchNums);
-        
-        touchEvent.modifier = 0;
-        
-        Game->postEvent(touchEvent);        
-    }
-    
-    // Deprecated in 1.5 -MP
-    //if( numTouchUpEvents > 0 )
-    //    Con::executef( 4, "oniOSTouchUp", touchNums , posX, posY );
-	
 	//Luma: Tap support
-	posX[0] = '\0';
-	posY[0] = '\0';
-    
-	int numTapEvents = TouchTapEvents.size();
-	
-    while( TouchTapEvents.size() > 0 ) 
-    {
-		currentEvent = &TouchTapEvents.last();
-		sprintf( temp, "%d ", currentEvent->x );
-		dStrcat( posX, temp );
-		
-		sprintf( temp, "%d ", currentEvent->y );
-		dStrcat( posY, temp );
-		
-		TouchTapEvents.pop_back();
-	}
-    
-	sprintf( temp, "%d", numTapEvents );
-    
-	//if( numTapEvents > 0 )
-    //    Con::executef( 4, "oniOSTouchTap", temp , posX, posY );
-	
+	TouchTapEvents.clear();
+
 	return numTouchDownEvents + numTouchMoveEvents + numTouchUpEvents;
 }
 
@@ -1109,11 +1008,15 @@ int processMultipleTouches()
 //we want these to only be called once per frame!!
 bool createMouseMoveEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY ) //EFM
 {	
-	S32 currentSlot = -1;
-	
+	if (Canvas == NULL)
+		return false;
+
+	S32 currentSlot = findTouchSlotByNumber(touchNumber);
+
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
 	{
-		if( (lastX == lastTouches[i].lastX ) &&
+		if( (touchNumber < 0 || lastTouches[i].touchNumber < 0) &&
+		   (lastX == lastTouches[i].lastX ) &&
 		   (lastY == lastTouches[i].lastY ) )
 		{
 			currentSlot = i;
@@ -1132,11 +1035,9 @@ bool createMouseMoveEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY )
 	//Luma: Mouse not moving (no hover for mouse fingers!)
 	Canvas->setCursorPos( Point2I( x, y ) );  
 
-	if( currentSlot != -1 )
-	{
-		lastTouches[currentSlot].lastX = x;
-		lastTouches[currentSlot].lastY = y;
-	}		
+	lastTouches[currentSlot].lastX = x;
+	lastTouches[currentSlot].lastY = y;
+	lastTouches[currentSlot].touchNumber = touchNumber;
 	
 	TouchMoveEvents.push_back( touchEvent( currentSlot, x, y ) );	
 	Game->postEvent(event);
@@ -1147,8 +1048,11 @@ bool createMouseMoveEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY )
 
 bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches ) 
 {
-	S32 vacantSlot = -1;
-	
+	if (Canvas == NULL)
+		return false;
+
+	S32 vacantSlot = findTouchSlotByNumber(touchNumber);
+
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (vacantSlot == -1) ; i++ )
 	{
 		if( lastTouches[i].lastX == -1 )
@@ -1170,11 +1074,9 @@ bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches )
 	//Luma: Update position
 	Canvas->setCursorPos( Point2I( x, y ) );  		
 	
-	if( vacantSlot != -1 )
-	{
-		lastTouches[vacantSlot].lastX = x;
-		lastTouches[vacantSlot].lastY = y;
-	}	
+	lastTouches[vacantSlot].lastX = x;
+	lastTouches[vacantSlot].lastY = y;
+	lastTouches[vacantSlot].touchNumber = touchNumber;
 
 	TouchDownEvents.push_back( touchEvent( vacantSlot, x, y ) );
 	Game->postEvent(event);
@@ -1184,49 +1086,47 @@ bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches )
 
 bool createMouseUpEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY, U32 numTouches ) //EFM
 {	
-	S32 currentSlot = -1;
+	if (Canvas == NULL)
+		return false;
+
+	S32 currentSlot = findTouchSlotByNumber(touchNumber);
 
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
 	{
-		if(( (x == lastTouches[i].lastX) && (y == lastTouches[i].lastY )) ||
-		   ( (lastX == lastTouches[i].lastX ) && (lastY == lastTouches[i].lastY )))
+		if( (touchNumber < 0 || lastTouches[i].touchNumber < 0) &&
+		   (( (x == lastTouches[i].lastX) && (y == lastTouches[i].lastY )) ||
+		   ( (lastX == lastTouches[i].lastX ) && (lastY == lastTouches[i].lastY ))) )
 		{
 			currentSlot = i;
 		}
 	}
 
-	// Fallback: no exact coordinate match. The release can land a pixel off the
-	// last move/down (notably the simulator's mouse-up), and on a touchscreen that
-	// otherwise left the press STUCK with no way to release it (the click never
-	// "let go"). Release the first occupied slot instead of dropping the event.
+	// Fallback: no exact coordinate match. Only fall back to an occupied slot when
+	// the touch has no active ID binding; if all slots are empty (e.g. cleared on
+	// resume), still post SI_BREAK so captured GUI controls never stay stuck.
 	if( currentSlot == -1 )
 	{
 		for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
-			if( lastTouches[i].lastX != -1 )
+			if( lastTouches[i].lastX != -1 && (touchNumber < 0 || lastTouches[i].touchNumber < 0) )
 				currentSlot = i;
 	}
 
-	if( currentSlot == -1 )
-        return false;
+	S32 eventSlot = (currentSlot != -1) ? currentSlot : 0;
 
 	//Luma: keep the cursor at the release point so the GUI registers the up there
 	Canvas->setCursorPos( Point2I( x, y ) );
+
+	// Free the slot so the next press can reuse it.
+	clearTouchSlot(currentSlot);
 
 	ScreenTouchEvent event;
 	event.xPos = x;
 	event.yPos = y;
 	event.action = SI_BREAK;
-	event.touchID = currentSlot;
+	event.touchID = eventSlot;
 	event.numTouches = numTouches;
 
-	// Free the slot so the next press can reuse it. createMouseDownEvent claims a
-	// slot where lastX == -1; the up handler never released it, so after
-	// MAX_TOUCH_EVENTS presses every slot was occupied and no further mouse-downs
-	// registered. (move/down set lastTouches; only up clears it.)
-	lastTouches[currentSlot].lastX = -1;
-	lastTouches[currentSlot].lastY = -1;
-
-	TouchUpEvents.push_back( touchEvent( currentSlot, x, y ) );
+	TouchUpEvents.push_back( touchEvent( eventSlot, x, y ) );
 
 	Game->postEvent(event);
 
@@ -1236,14 +1136,14 @@ bool createMouseUpEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY, U3
 void clearPendingMultitouchEvents( void ) //EFM
 {	
     for( int i = 0 ; i < MAX_TOUCH_EVENTS ; i++ )
-	{
-		lastTouches[i].lastX = -1;
-		lastTouches[i].lastY = -1;
-	}
+		clearTouchSlot(i);
+
+	iOSClearRawTouches();
 
 	TouchMoveEvents.clear();
 	TouchDownEvents.clear();
 	TouchUpEvents.clear();
+	TouchTapEvents.clear();
 }
 
 
