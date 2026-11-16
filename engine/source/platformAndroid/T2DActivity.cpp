@@ -1342,12 +1342,16 @@ void android_main(struct android_app* state) {
         // Read all pending events.
         int ident;
         int events;
-        struct android_poll_source* source;
+        struct android_poll_source* source = NULL;
 
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
+        // NDK r27 removed ALooper_pollAll because it could swallow wakes; exit
+        // the poll loop on any < 0 return (including WAKE/CALLBACK) so
+        // destroyRequested is checked and engine_update_frame only runs while
+        // animating.
+        while ((ident = ALooper_pollOnce(engine.animating ? 0 : -1, NULL, &events,
                 (void**)&source)) >= 0) {
 
             // Process this event.
@@ -1387,9 +1391,18 @@ void android_main(struct android_app* state) {
                 engine_term_display(&engine, true);
                 return;
             }
+
+            source = NULL;
         }
 
-        engine_update_frame(&engine);
+        if (state->destroyRequested != 0) {
+            engine_term_display(&engine, true);
+            return;
+        }
+
+        if (engine.animating) {
+            engine_update_frame(&engine);
+        }
 
         /*if (engine.animating) {
 

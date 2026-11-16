@@ -19,6 +19,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -314,14 +315,14 @@ SLresult alc_opensles_init_extradata(ALCdevice *pDevice)
     if (!devState) {
         return SL_RESULT_MEMORY_FAILURE;
     }
-    bzero(devState, sizeof(opesles_data_t));
+    memset(devState, 0, sizeof(opesles_data_t));
     devState->outputBuffers = (outputBuffer_t*) malloc(sizeof(outputBuffer_t)*bufferCount);
     if (!devState->outputBuffers) {
         free(devState);
         return SL_RESULT_MEMORY_FAILURE;
     }
     pDevice->ExtraData = devState;
-    bzero(devState->outputBuffers, sizeof(outputBuffer_t)*bufferCount);
+    memset(devState->outputBuffers, 0, sizeof(outputBuffer_t)*bufferCount);
     devState->lastBufferEnqueued = -1;
     devState->lastBufferMixed = -1;
     for (i = 0; i < bufferCount; i++) {
