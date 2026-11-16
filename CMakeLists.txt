@@ -569,20 +569,15 @@ if(EMSCRIPTEN)
 
     # Script/asset trees packaged into the MEMFS virtual filesystem by the emcc file
     # packager (--preload-file SRC@DST -> a .data sidecar). The engine runs from cwd
-    # "/" in the browser, so main.cs lands at /main.cs and the trees under /editor,
-    # /library, /toybox, /PlanetX, /Archon. Everything a web build can touch must be
-    # preloaded (there's no host FS to lazy-load from), so the runtime content trees
-    # are all bundled.
-    # NOTE: tools/ is deliberately EXCLUDED — unlike the iOS bundle it is not shipped,
-    # because it is build-time-only tooling (TexturePacker, and ~90 MB of generated
-    # doxygen HTML under tools/doxygen/output) that the engine never loads at runtime.
+    # "/" in the browser, so main.cs lands at /main.cs and the runtime trees under
+    # /library and /Archon. Everything the Archon web build touches must be preloaded
+    # (there's no host FS to lazy-load from); editor/, toybox/, PlanetX/, and tools/
+    # are excluded because main.cs boots Archon directly on Emscripten and excluding
+    # unused trees keeps Torque2D.data under GitHub's 100 MB limit.
     # (SHELL: keeps each option+path pair together and unde-duplicated by CMake.)
     set(_emPreload
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/main.cs@/main.cs"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/editor@/editor"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/library@/library"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/toybox@/toybox"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/PlanetX@/PlanetX"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Archon@/Archon")
 
     target_link_options(Torque2D PRIVATE
