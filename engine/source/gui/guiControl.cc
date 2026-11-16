@@ -161,6 +161,11 @@ GuiControl::~GuiControl()
 {
 }
 
+void GuiControl::setDefaultProfileField(const char* fieldName, const char* preferredProfile)
+{
+   setField(fieldName, Sim::findObject(preferredProfile) ? preferredProfile : "GuiDefaultProfile");
+}
+
 bool GuiControl::onAdd()
 {
    // Let Parent Do Work.

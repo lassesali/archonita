@@ -44,7 +44,7 @@ static const char* CanvasId = "#canvas";
 extern "C" EMSCRIPTEN_KEEPALIVE void Torque2D_onCanvasResized(S32 width, S32 height)
 {
    SDL_Window* window = gPlatState.sdlWindow;
-   if (window == NULL || width <= 0 || height <= 0)
+   if (window == NULL || !gPlatState.windowCreated || width <= 0 || height <= 0)
       return;
 
    S32 winW = 0, winH = 0;
@@ -53,7 +53,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void Torque2D_onCanvasResized(S32 width, S32 hei
       SDL_SetWindowSize(window, width, height);
 
    OpenGLDevice::followWindow();
-   if (Game)
+   if (Game && Game->isRunning())
       Game->refreshWindow();
 }
 

@@ -773,9 +773,10 @@ void GuiCanvas::rootScreenTouchUp(const GuiEvent &event)
 
             if (controlHit->mUseInput)
             {
+				SimObjectPtr<GuiControl> hitCtrl(controlHit);
 				controlHit->mPassEventThru = false;//If true after the call then pass the event to the next control below it.
 				controlHit->onTouchUp(event);
-				if (!controlHit->mPassEventThru)
+				if (!hitCtrl || !hitCtrl->mPassEventThru)
 				{
 					break;
 				}

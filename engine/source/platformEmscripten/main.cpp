@@ -37,6 +37,7 @@ S32 gLastStart = 0;
 EmscriptenPlatState gPlatState;
 
 bool appIsRunning = true;
+static bool gHasShutdown = false;
 
 int _EmscriptenRunTorqueMain()
 {
@@ -55,9 +56,24 @@ int _EmscriptenRunTorqueMain()
 }
 
 
+static void _EmscriptenShutdownOnce()
+{
+   if (gHasShutdown)
+      return;
+
+   gHasShutdown = true;
+   appIsRunning = false;
+#ifndef DUMMY_PLATFORM
+   // Cancel the browser rAF main loop before tearing down the engine so
+   // MainLoop_runner cannot re-enter mainShutdown when -sEXIT_RUNTIME=0.
+   emscripten_cancel_main_loop();
+#endif
+   Game->mainShutdown();
+}
+
 void _EmscriptenGameInnerLoop()
 {
-   if (!appIsRunning)
+   if (gHasShutdown || !appIsRunning)
    {
       return;
    }
@@ -68,19 +84,18 @@ void _EmscriptenGameInnerLoop()
       Game->mainLoop();
          
       gLastStart = start;
-      
    }
    else
    {
-     Game->mainShutdown();
-      
-     // Need to actually exit the application now
-     exit(0);
+      _EmscriptenShutdownOnce();
    }
 }
 
 void _EmscriptenGameResignActive()
 {
+   if (gHasShutdown)
+      return;
+
    if ( Con::isFunction("onEmscriptenResignActive") )
       Con::executef( 1, "onEmscriptenResignActive" );
    
@@ -89,6 +104,9 @@ void _EmscriptenGameResignActive()
 
 void _EmscriptenGameBecomeActive()
 {
+   if (gHasShutdown)
+      return;
+
    if ( Con::isFunction("onEmscriptenBecomeActive") )
       Con::executef( 1, "onEmscriptenBecomeActive" );
    
@@ -97,12 +115,13 @@ void _EmscriptenGameBecomeActive()
 
 void _EmscriptenGameWillTerminate()
 {
+   if (gHasShutdown)
+      return;
+
    if ( Con::isFunction("onEmscriptenWillTerminate") )
       Con::executef( 1, "onEmscriptenWillTerminate" );
-   
-   Con::executef( 1, "onExit" );
-   
-   Game->mainShutdown();
+
+   _EmscriptenShutdownOnce();
 }
 
 static void _EmscriptenGetTxtFileArgs(int &argc, char** argv, int maxargc)

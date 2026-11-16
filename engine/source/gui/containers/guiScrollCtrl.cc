@@ -79,10 +79,10 @@ GuiScrollCtrl::GuiScrollCtrl()
    mHorizSizing = horizResizeFill;
    mVertSizing = vertResizeFill;
 
-   setField("thumbProfile", "GuiScrollThumbProfile");
-   setField("arrowProfile", "GuiScrollArrowProfile");
-   setField("trackProfile", "GuiScrollTrackProfile");
-   setField("profile", "GuiScrollProfile");
+   setDefaultProfileField("thumbProfile", "GuiScrollThumbProfile");
+   setDefaultProfileField("arrowProfile", "GuiScrollArrowProfile");
+   setDefaultProfileField("trackProfile", "GuiScrollTrackProfile");
+   setDefaultProfileField("profile", "GuiScrollProfile");
 
    mEventBubbled = false;
    mCalcGuard = false;

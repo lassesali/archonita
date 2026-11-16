@@ -980,6 +980,10 @@ public:
 
 	virtual void setDataField(StringTableEntry slotName, const char* array, const char* value);
 
+	/// Assigns preferredProfile when registered, falling back silently to GuiDefaultProfile
+	/// so standalone builds without editor profiles do not warn during construction.
+	void setDefaultProfileField(const char* fieldName, const char* preferredProfile);
+
 	/// Where a block of text starts, given how tall it is and how tall the room
 	/// is. Static and public because it reads nothing off the control, and
 	/// because it is the step that turns a line count into a position -- which is

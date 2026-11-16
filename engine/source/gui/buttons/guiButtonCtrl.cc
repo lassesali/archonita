@@ -48,7 +48,7 @@ GuiButtonCtrl::GuiButtonCtrl()
 	mProfile = NULL;
 	mIsContainer = false;
 
-	setField("profile", "GuiButtonProfile");
+	setDefaultProfileField("profile", "GuiButtonProfile");
 }
 
 void GuiButtonCtrl::initPersistFields()
@@ -178,11 +178,16 @@ void GuiButtonCtrl::onTouchUp(const GuiEvent &event)
 	if (!mActive)
 		return;
 
+	SimObjectPtr<GuiButtonCtrl> self(this);
 	mouseUnlock();
 
 	//if we released the mouse within this control, perform the action
 	if (mDepressed)
+	{
 		onAction();
+		if (!self)
+			return;
+	}
 
 	// Execute callback
 	char buf[3][32];
@@ -190,6 +195,8 @@ void GuiButtonCtrl::onTouchUp(const GuiEvent &event)
 	dSprintf(buf[1], 32, "%d %d", event.mousePoint.x, event.mousePoint.y);
 	dSprintf(buf[2], 32, "%d", event.mouseClickCount);
 	Con::executef(this, 4, "onTouchUp", buf[0], buf[1], buf[2]);
+	if (!self)
+		return;
 
 	mDepressed = false;
 
@@ -247,10 +254,15 @@ void GuiButtonCtrl::onAction()
 	if (!mActive)
 		return;
 
+	SimObjectPtr<GuiButtonCtrl> self(this);
 	setUpdate();
 
 	if (isMethod("onClick"))
+	{
 		Con::executef(this, 2, "onClick");
+		if (!self)
+			return;
+	}
 
 	Parent::onAction();
 }

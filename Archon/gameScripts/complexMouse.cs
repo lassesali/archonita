@@ -687,7 +687,7 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
            for (%i = 0; %i < %objCount; %i++)
            {
               %picked = getWord(%objList, %i);
-              if (%picked == heroicon || %picked == heroicongrid || %picked.getName() $= "heroicon" || %picked.getName() $= "heroicongrid")
+              if (isObject(%picked) && (%picked.getName() $= "heroicon" || %picked.getName() $= "heroicongrid"))
               {
                  if (CombatEngine.castRevealedSpell("avatar", %picked))
                  {
