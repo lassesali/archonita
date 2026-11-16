@@ -189,13 +189,13 @@ S32 EditorToySceneWindow::getDirNutHit(const Point2I & pt, SceneObject * obj)
    F32 ang = obj->getAngle();
 
    // right
-   Vector2 right = right.getVecFromAng(pos, ang, (size.x*0.5f));
+   Vector2 right = Vector2::getVecFromAng(pos, ang, (size.x*0.5f));
    // top
-   Vector2 top = top.getVecFromAng(pos, ang + mDegToRad(90.0f), (size.y*0.5f));
+   Vector2 top = Vector2::getVecFromAng(pos, ang + mDegToRad(90.0f), (size.y*0.5f));
    // left
-   Vector2 left = left.getVecFromAng(pos, ang - mDegToRad(180.0f), (size.x*0.5f));
+   Vector2 left = Vector2::getVecFromAng(pos, ang - mDegToRad(180.0f), (size.x*0.5f));
    // bottom
-   Vector2 bottom = bottom.getVecFromAng(pos, ang - mDegToRad(90.0f), (size.y*0.5f));
+   Vector2 bottom = Vector2::getVecFromAng(pos, ang - mDegToRad(90.0f), (size.y*0.5f));
 
    // cardinal
    Vector2 r;
@@ -278,17 +278,17 @@ void EditorToySceneWindow::drawSizingNuts(SceneObject* obj, ColorI &outlineColor
    F32 ang = obj->getAngle();
 
    // right
-   Vector2 right = right.getVecFromAng(pos, ang, (size.x*0.5f));
-   Vector2 topRight = topRight.getVecFromAng(right, (ang + 1.5708f), (size.y*0.5f));
+   Vector2 right = Vector2::getVecFromAng(pos, ang, (size.x*0.5f));
+   Vector2 topRight = Vector2::getVecFromAng(right, (ang + 1.5708f), (size.y*0.5f));
    // top
-   Vector2 top = top.getVecFromAng(pos, (ang + 1.5708f), (size.y*0.5f));
-   Vector2 topLeft = topLeft.getVecFromAng(top, ((ang + 1.5708f) + 1.5708f), (size.x*0.5f));
+   Vector2 top = Vector2::getVecFromAng(pos, (ang + 1.5708f), (size.y*0.5f));
+   Vector2 topLeft = Vector2::getVecFromAng(top, ((ang + 1.5708f) + 1.5708f), (size.x*0.5f));
    // left
-   Vector2 left = left.getVecFromAng(pos, ang + 3.14159f, (size.x*0.5f));
-   Vector2 bottomLeft = bottomLeft.getVecFromAng(left, (ang - 1.5708f), (size.y*0.5f));
+   Vector2 left = Vector2::getVecFromAng(pos, ang + 3.14159f, (size.x*0.5f));
+   Vector2 bottomLeft = Vector2::getVecFromAng(left, (ang - 1.5708f), (size.y*0.5f));
    // bottom
-   Vector2 bottom = bottom.getVecFromAng(pos, ang - 1.5708f, (size.y*0.5f));
-   Vector2 bottomRight = bottomRight.getVecFromAng(bottom, ang, (size.x*0.5f));
+   Vector2 bottom = Vector2::getVecFromAng(pos, ang - 1.5708f, (size.y*0.5f));
+   Vector2 bottomRight = Vector2::getVecFromAng(bottom, ang, (size.x*0.5f));
 
    // cardinal
    Vector2 r;
@@ -332,8 +332,8 @@ bool EditorToySceneWindow::getRotateNutHit(const Point2I & pt, SceneObject* obj)
    F32 ang = obj->getAngle();
 
    // right
-   Vector2 edge = edge.getVecFromAng(pos, ang, (size.x*0.5f));
-   Vector2 rotate = rotate.getVecFromAng(edge, ang, (size.x*0.5f));
+   Vector2 edge = Vector2::getVecFromAng(pos, ang, (size.x*0.5f));
+   Vector2 rotate = Vector2::getVecFromAng(edge, ang, (size.x*0.5f));
 
    Vector2 r;
 
@@ -352,8 +352,8 @@ void EditorToySceneWindow::drawRotateNuts(SceneObject* obj, ColorI &outlineColor
    F32 ang = obj->getAngle();
 
    // right
-   Vector2 edge = edge.getVecFromAng(pos,ang,(size.x*0.5f));
-   Vector2 rotate = rotate.getVecFromAng(edge,ang,(size.x*0.5f));
+   Vector2 edge = Vector2::getVecFromAng(pos,ang,(size.x*0.5f));
+   Vector2 rotate = Vector2::getVecFromAng(edge,ang,(size.x*0.5f));
 
    Vector2 e;
    Vector2 r;

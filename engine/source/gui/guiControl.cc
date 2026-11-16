@@ -2943,7 +2943,7 @@ S32 GuiControl::getTextVerticalOffset(S32 textHeight, S32 totalHeight, VertAlign
 
 void GuiControl::getCursor(GuiCursor *&cursor, bool &showCursor, const GuiEvent &lastGuiEvent)
 {
-   lastGuiEvent;
+   (void)lastGuiEvent;
 
    if(GuiControl::smCursorChanged != -1 && !isMouseLocked())
    {

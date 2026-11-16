@@ -273,7 +273,7 @@ function AssetWindow::onExtentChange(%this, %d)
 	// animation every time a divider moved -- and while it is putting its split up
 	// or taking it down it answers for the resizes that causes, which are its own
 	// and not a reason to rebuild anything.
-	if(AssetAdmin.animationStage.absorbResize())
+	if(isObject(AssetAdmin.animationStage) && AssetAdmin.animationStage.absorbResize())
 	{
 		return;
 	}

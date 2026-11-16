@@ -396,9 +396,16 @@ void TextureManager::getSourceDestByteFormat(GBitmap *pBitmap, U32 *sourceFormat
     switch(pBitmap->getFormat())
     {
     case GBitmap::Intensity:
+#if defined(TORQUE_OS_EMSCRIPTEN)
+        // WebGL 2 lacks GL_TEXTURE_SWIZZLE_*; expand Intensity to RGBA8 (I, I, I, I).
+        *sourceFormat = GL_RGBA;
+        *destFormat   = GL_RGBA8;
+        byteSize      = 4;
+#else
         *sourceFormat = GL_RED;
         *destFormat   = GL_R8;
         byteSize      = 1;
+#endif
         break;
     case GBitmap::Palettized:
         AssertFatal( 0, "GBitmap::Palettized format not supported in Core OpenGL / GLES 3.2" );
@@ -407,14 +414,28 @@ void TextureManager::getSourceDestByteFormat(GBitmap *pBitmap, U32 *sourceFormat
         byteSize      = 4;
         break;
     case GBitmap::Luminance:
+#if defined(TORQUE_OS_EMSCRIPTEN)
+        // WebGL 2 supports GL_LUMINANCE (L, L, L, 1) natively without texture swizzle.
+        *sourceFormat = GL_LUMINANCE;
+        *destFormat   = GL_LUMINANCE;
+        byteSize      = 1;
+#else
         *sourceFormat = GL_RED;
         *destFormat   = GL_R8;
         byteSize      = 1;
+#endif
         break;
     case GBitmap::LuminanceAlpha:
+#if defined(TORQUE_OS_EMSCRIPTEN)
+        // WebGL 2 supports GL_LUMINANCE_ALPHA (L, L, L, A) natively without texture swizzle.
+        *sourceFormat = GL_LUMINANCE_ALPHA;
+        *destFormat   = GL_LUMINANCE_ALPHA;
+        byteSize      = 2;
+#else
         *sourceFormat = GL_RG;
         *destFormat   = GL_RG8;
         byteSize      = 2;
+#endif
         break;
     case GBitmap::RGB:
         *sourceFormat = GL_RGB;
@@ -427,9 +448,17 @@ void TextureManager::getSourceDestByteFormat(GBitmap *pBitmap, U32 *sourceFormat
         byteSize      = 4;
         break;
     case GBitmap::Alpha:
+#if defined(TORQUE_OS_EMSCRIPTEN)
+        // WebGL 2 lacks GL_TEXTURE_SWIZZLE_* and samples GL_ALPHA as (0,0,0,A), whereas the
+        // shader pipeline expects (1,1,1,A); expand 1-bpp Alpha textures to RGBA8.
+        *sourceFormat = GL_RGBA;
+        *destFormat   = GL_RGBA8;
+        byteSize      = 4;
+#else
         *sourceFormat = GL_RED;
         *destFormat   = GL_R8;
         byteSize      = 1;
+#endif
         break;
     case GBitmap::RGB565:
         *sourceFormat = GL_RGB;
@@ -623,6 +652,36 @@ void TextureManager::refresh( TextureObject* pTextureObject )
     }
     else
     {
+#if defined(TORQUE_OS_EMSCRIPTEN)
+        if (pNewBitmap->getFormat() == GBitmap::Alpha || pNewBitmap->getFormat() == GBitmap::Intensity)
+        {
+            const U32 pixelCount = pNewBitmap->getWidth() * pNewBitmap->getHeight();
+            lumBits = new U8[pixelCount * 4];
+            const U8* src = (const U8*)pNewBitmap->getBits();
+            if (pNewBitmap->getFormat() == GBitmap::Alpha)
+            {
+                for (U32 i = 0; i < pixelCount; ++i)
+                {
+                    lumBits[i * 4 + 0] = 255;
+                    lumBits[i * 4 + 1] = 255;
+                    lumBits[i * 4 + 2] = 255;
+                    lumBits[i * 4 + 3] = src[i];
+                }
+            }
+            else
+            {
+                for (U32 i = 0; i < pixelCount; ++i)
+                {
+                    const U8 v = src[i];
+                    lumBits[i * 4 + 0] = v;
+                    lumBits[i * 4 + 1] = v;
+                    lumBits[i * 4 + 2] = v;
+                    lumBits[i * 4 + 3] = v;
+                }
+            }
+            bits = lumBits;
+        }
+#endif
         // Upload texture image via DSA abstraction layer.
         GLDSA::textureImage2D(pTextureObject->mGLTextureName,
                               0,
@@ -634,6 +693,7 @@ void TextureManager::refresh( TextureObject* pTextureObject )
                               bits);
     }
 
+#if !defined(TORQUE_OS_EMSCRIPTEN)
     // Configure channel swizzles for legacy single/dual-channel formats removed in Core/GLES 3.2.
     switch (pSourceBitmap->getFormat())
     {
@@ -653,6 +713,7 @@ void TextureManager::refresh( TextureObject* pTextureObject )
         GLDSA::setTextureSwizzle(pTextureObject->mGLTextureName, GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA);
         break;
     }
+#endif
 
     const GLuint filter = pTextureObject->getFilter();
     GLDSA::textureParameteri(pTextureObject->mGLTextureName, GL_TEXTURE_MAG_FILTER, filter);

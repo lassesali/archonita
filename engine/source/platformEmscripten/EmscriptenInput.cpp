@@ -85,7 +85,8 @@ void Input::init()
 //------------------------------------------------------------------------------
 ConsoleFunction( isJoystickDetected, bool, 1, 1, "isJoystickDetected()" )
 {
-   argc; argv;
+   (void)argc;
+   (void)argv;
    UInputManager* manager = dynamic_cast<UInputManager*>(Input::getManager());
    if (manager)
       return manager->joystickDetected();
@@ -96,7 +97,7 @@ ConsoleFunction( isJoystickDetected, bool, 1, 1, "isJoystickDetected()" )
 //------------------------------------------------------------------------------
 ConsoleFunction( getJoystickAxes, const char*, 2, 2, "getJoystickAxes( instance )" )
 {
-   argc; argv;
+   (void)argc;
    UInputManager* manager = dynamic_cast<UInputManager*>(Input::getManager());
    if (manager)
       return manager->getJoystickAxesString(dAtoi(argv[1]));

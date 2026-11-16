@@ -31,11 +31,59 @@
 #include "platformEmscripten/EmscriptenOGLVideo.h"
 
 #include <SDL.h>
+#include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 
 // The canvas the SDL 2 port draws into and reads input from: it always uses
 // the page element with this id.
 static const char* CanvasId = "#canvas";
+
+// Sync a browser-driven canvas resize (such as Module.requestFullscreen with
+// "Resize canvas" enabled) back into SDL so SDL_HandleResize does not snap
+// the canvas back to its windowed size on the accompanying window resize event.
+extern "C" EMSCRIPTEN_KEEPALIVE void Torque2D_onCanvasResized(S32 width, S32 height)
+{
+   SDL_Window* window = gPlatState.sdlWindow;
+   if (window == NULL || width <= 0 || height <= 0)
+      return;
+
+   S32 winW = 0, winH = 0;
+   SDL_GetWindowSize(window, &winW, &winH);
+   if (winW != width || winH != height)
+      SDL_SetWindowSize(window, width, height);
+
+   OpenGLDevice::followWindow();
+   if (Game)
+      Game->refreshWindow();
+}
+
+// Keep Emscripten's Browser fullscreen helper aware of the SDL canvas's
+// windowed pixel dimensions. SDL2 updates #canvas via
+// emscripten_set_canvas_element_size without setting canvas.widthNative /
+// heightNative, so clicking the HTML Fullscreen button otherwise sets
+// canvas.width/height to undefined (0 -> 1x1 WebGL buffer) while glViewport
+// stays 1024x768.
+static void SyncBrowserCanvasSize(U32 width, U32 height)
+{
+   EM_ASM({
+      var c = Module['canvas'] || document.getElementById('canvas');
+      if (!c) return;
+      var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!inFs && $0 > 0 && $1 > 0) {
+         c.widthNative = $0;
+         c.heightNative = $1;
+      }
+      if (!Module['_t2dResizeHooked'] && typeof Browser !== 'undefined' && Array.isArray(Browser.resizeListeners)) {
+         Module['_t2dResizeHooked'] = true;
+         Browser.resizeListeners.push(function(w, h) {
+            if (typeof _Torque2D_onCanvasResized === 'function')
+               _Torque2D_onCanvasResized(w, h);
+            else if (typeof Module['_Torque2D_onCanvasResized'] === 'function')
+               Module['_Torque2D_onCanvasResized'](w, h);
+         });
+      }
+   }, width, height);
+}
 
 //------------------------------------------------------------------------------
 bool InitOpenGL()
@@ -197,18 +245,6 @@ bool OpenGLDevice::activate( U32 width, U32 height, U32 bpp, bool fullScreen )
       return false;
    }
 
-   // Output some driver info to the console
-   const char* vendorString   = (const char*) glGetString( GL_VENDOR );
-   const char* rendererString = (const char*) glGetString( GL_RENDERER );
-   const char* versionString  = (const char*) glGetString( GL_VERSION );
-   Con::printf( "OpenGL driver information:" );
-   if ( vendorString )
-      Con::printf( "  Vendor: %s", vendorString );
-   if ( rendererString )
-      Con::printf( "  Renderer: %s", rendererString );
-   if ( versionString )
-      Con::printf( "  Version: %s", versionString );
-
    getGLCapabilities();
 
    Con::setVariable( "$pref::Video::displayDevice", mDeviceName );
@@ -273,10 +309,12 @@ static bool PageSizesCanvas()
 // Make the window and its GL context: once, for the first setScreenMode.
 static bool CreateGLWindow( U32 width, U32 height )
 {
-   // The GL attributes are read when the context is made. No context version
-   // or profile is asked for: SDL 2's Emscripten driver then makes a WebGL 1
-   // context (GLES 2.0), the only kind LEGACY_GL_EMULATION can draw the
-   // fixed-function renderer through.
+   // Request a WebGL 2 (OpenGL ES 3.0) context for the programmable shader
+   // pipeline (ShaderManager / GLDSA), matching -sMIN_WEBGL_VERSION=2 /
+   // -sMAX_WEBGL_VERSION=2 in CMakeLists.txt.
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 
@@ -432,6 +470,7 @@ bool OpenGLDevice::setScreenMode( U32 width, U32 height, U32 bpp,
 
    smCurrentRes = Resolution( windowWidth, windowHeight, bpp );
    Platform::setWindowSize( windowWidth, windowHeight );
+   SyncBrowserCanvasSize( windowWidth, windowHeight );
    smIsFullScreen = isWindowFullScreen();
    Con::setBoolVariable( "$pref::Video::fullScreen", smIsFullScreen );
    char tempBuf[32];
@@ -453,8 +492,19 @@ void OpenGLDevice::followWindow()
    if ( window == NULL )
       return;
 
-   S32 width, height;
+   S32 width = 0, height = 0;
    SDL_GetWindowSize( window, &width, &height );
+
+   // Prefer the live DOM canvas buffer size when it differs from SDL's cached
+   // size so glViewport never exceeds the WebGL destination drawing buffer.
+   int canvasW = 0, canvasH = 0;
+   if ( emscripten_get_canvas_element_size( CanvasId, &canvasW, &canvasH ) == EMSCRIPTEN_RESULT_SUCCESS
+        && canvasW > 0 && canvasH > 0 )
+   {
+      width = canvasW;
+      height = canvasH;
+   }
+
    const bool fullScreen = isWindowFullScreen();
 
    if ( width == smCurrentRes.w && height == smCurrentRes.h && fullScreen == smIsFullScreen )
@@ -469,6 +519,7 @@ void OpenGLDevice::followWindow()
    smCurrentRes.w = width;
    smCurrentRes.h = height;
    Platform::setWindowSize( width, height );
+   SyncBrowserCanvasSize( width, height );
 
    smIsFullScreen = fullScreen;
    Con::setBoolVariable( "$pref::Video::fullScreen", smIsFullScreen );
@@ -480,15 +531,23 @@ void OpenGLDevice::followWindow()
 }
 
 //------------------------------------------------------------------------------
-// SDL's flags are right here, unlike on X11: SDL makes every change itself,
-// and hears from the browser when the player leaves fullscreen with Esc.
+// Check both SDL's fullscreen flag and the DOM fullscreen state, since the HTML
+// shell's Fullscreen button enters fullscreen via canvasContainer rather than
+// SDL_SetWindowFullscreen.
 bool OpenGLDevice::isWindowFullScreen()
 {
    SDL_Window* window = gPlatState.sdlWindow;
    if ( window == NULL )
       return false;
 
-   return ( SDL_GetWindowFlags( window ) & SDL_WINDOW_FULLSCREEN ) != 0;
+   if ( ( SDL_GetWindowFlags( window ) & SDL_WINDOW_FULLSCREEN ) != 0 )
+      return true;
+
+   EmscriptenFullscreenChangeEvent fsStatus;
+   if ( emscripten_get_fullscreen_status( &fsStatus ) == EMSCRIPTEN_RESULT_SUCCESS )
+      return fsStatus.isFullscreen != 0;
+
+   return false;
 }
 
 //------------------------------------------------------------------------------
@@ -505,12 +564,29 @@ const char* OpenGLDevice::getDriverInfo()
    const char* vendorString   = (const char*) glGetString( GL_VENDOR );
    const char* rendererString = (const char*) glGetString( GL_RENDERER );
    const char* versionString  = (const char*) glGetString( GL_VERSION );
-   const char* extensionsString = (const char*) glGetString( GL_EXTENSIONS );
+
+   const char* extensionsString = NULL;
+   U32 coreExtLen = 0;
+   GLint numExt = 0;
+   if (gGLState.glMajorVersion < 3)
+   {
+      extensionsString = (const char*) glGetString( GL_EXTENSIONS );
+   }
+   else
+   {
+      glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+      for (GLint i = 0; i < numExt; ++i)
+      {
+         const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+         if (ext)
+            coreExtLen += dStrlen(ext) + 1;
+      }
+   }
 
    U32 bufferLen = ( vendorString ? dStrlen( vendorString ) : 0 )
                  + ( rendererString ? dStrlen( rendererString ) : 0 )
                  + ( versionString  ? dStrlen( versionString ) : 0 )
-                 + ( extensionsString ? dStrlen( extensionsString ) : 0 )
+                 + ( extensionsString ? dStrlen( extensionsString ) : coreExtLen )
                  + 4;
 
    char* returnString = Con::getReturnBuffer( bufferLen );
@@ -519,6 +595,25 @@ const char* OpenGLDevice::getDriverInfo()
       ( rendererString ? rendererString : "" ),
       ( versionString ? versionString : "" ),
       ( extensionsString ? extensionsString : "" ) );
+
+   if (gGLState.glMajorVersion >= 3 && numExt > 0)
+   {
+      U32 offset = dStrlen(returnString);
+      for (GLint i = 0; i < numExt; ++i)
+      {
+         const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+         if (!ext)
+            continue;
+         U32 len = dStrlen(ext);
+         if (offset + len + 2 > bufferLen)
+            break;
+         if (i > 0)
+            returnString[offset++] = ' ';
+         dMemcpy(returnString + offset, ext, len);
+         offset += len;
+      }
+      returnString[offset] = '\0';
+   }
 
    return( returnString );
 }

@@ -8,7 +8,7 @@
 # programs that live in these trees (e.g. ljpeg/extras, cjpeg/djpeg, pngtest,
 # vorbis barkmel/tone) are intentionally excluded.
 #
-# Warnings in third-party C are silenced (/W0) and CRT-secure warnings disabled.
+# Warnings in third-party C are silenced (/W0 on MSVC, -w on Clang/GCC) and CRT-secure warnings disabled.
 # The MSVC runtime (static /MT) is inherited from CMAKE_MSVC_RUNTIME_LIBRARY set
 # by the root CMakeLists before this directory is added.
 # -----------------------------------------------------------------------------
@@ -17,6 +17,8 @@ function(torque_thirdparty_lib name)
     if(MSVC)
         target_compile_options(${name} PRIVATE /W0)
         target_compile_definitions(${name} PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_SECURE_NO_DEPRECATE)
+    elseif(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${name} PRIVATE -w)
     endif()
     set_target_properties(${name} PROPERTIES FOLDER "ThirdParty")
 endfunction()
@@ -303,9 +305,6 @@ if(ANDROID)
         MAX_SOURCES_START=8
         MAX_SOURCES_HIGH=64
     )
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-        target_compile_options(openal PRIVATE -w)
-    endif()
     target_link_libraries(openal PRIVATE OpenSLES log dl m)
     torque_thirdparty_lib(openal)
 endif()

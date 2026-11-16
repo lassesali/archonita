@@ -348,33 +348,61 @@ void CodeBlock::calcBreakList()
        pRemoteDebugger->addCodeBlock( this );
 }
 
-bool CodeBlock::read(StringTableEntry fileName, Stream &st)
+static StringTableEntry stripCodeBlockPrefix(StringTableEntry fileName, StringTableEntry basePath)
 {
+   if (!basePath || !*basePath)
+      return NULL;
+
+   const U32 baseLen = dStrlen(basePath);
+   if (dStrnicmp(basePath, fileName, baseLen) != 0)
+      return NULL;
+
+   // When basePath already ends with '/' (e.g. "/" on Emscripten/Android),
+   // baseLen already includes the separator; blindly adding +1 strips the first char.
+   U32 offset = baseLen;
+   if (basePath[baseLen - 1] != '/')
+   {
+      if (fileName[baseLen] != '/')
+         return NULL;
+      ++offset;
+   }
+   while (fileName[offset] == '/')
+      ++offset;
+
+   return StringTable->insert(fileName + offset, true);
+}
+
+static void resolveCodeBlockPaths(StringTableEntry fileName, StringTableEntry &name, StringTableEntry &fullPath, StringTableEntry &modPath)
+{
+   name = fileName;
+   if (!fileName)
+      return;
+
    const StringTableEntry exePath = Platform::getMainDotCsDir();
    const StringTableEntry cwd = Platform::getCurrentDirectory();
 
-   name = fileName;
+   fullPath = NULL;
+   if (Platform::isFullPath(fileName))
+      fullPath = fileName;
 
-   if(fileName)
+   StringTableEntry stripped = stripCodeBlockPrefix(fileName, exePath);
+   if (!stripped)
+      stripped = stripCodeBlockPrefix(fileName, cwd);
+   if (stripped)
+      name = stripped;
+
+   if (fullPath == NULL)
    {
-      fullPath = NULL;
-
-      if(Platform::isFullPath(fileName))
-         fullPath = fileName;
-
-      if(dStrnicmp(exePath, fileName, dStrlen(exePath)) == 0)
-         name = StringTable->insert(fileName + dStrlen(exePath) + 1, true);
-      else if(dStrnicmp(cwd, fileName, dStrlen(cwd)) == 0)
-         name = StringTable->insert(fileName + dStrlen(cwd) + 1, true);
-
-      if(fullPath == NULL)
-      {
-         char buf[1024];
-         fullPath = StringTable->insert(Platform::makeFullPathName(fileName, buf, sizeof(buf)), true);
-      }
-
-      modPath = Con::getModNameFromPath(fileName);
+      char buf[1024];
+      fullPath = StringTable->insert(Platform::makeFullPathName(fileName, buf, sizeof(buf)), true);
    }
+
+   modPath = Con::getModNameFromPath(fileName);
+}
+
+bool CodeBlock::read(StringTableEntry fileName, Stream &st)
+{
+   resolveCodeBlockPaths(fileName, name, fullPath, modPath);
    
    //
    if (name)
@@ -574,31 +602,7 @@ const char *CodeBlock::compileExec(StringTableEntry fileName, const char *string
    STEtoCode = evalSTEtoCode;
    consoleAllocReset();
 
-   name = fileName;
-
-   if(fileName)
-   {
-      const StringTableEntry exePath = Platform::getMainDotCsDir();
-      const StringTableEntry cwd = Platform::getCurrentDirectory();
-
-      fullPath = NULL;
-      
-      if(Platform::isFullPath(fileName))
-         fullPath = fileName;
-
-      if(dStrnicmp(exePath, fileName, dStrlen(exePath)) == 0)
-         name = StringTable->insert(fileName + dStrlen(exePath) + 1, true);
-      else if(dStrnicmp(cwd, fileName, dStrlen(cwd)) == 0)
-         name = StringTable->insert(fileName + dStrlen(cwd) + 1, true);
-
-      if(fullPath == NULL)
-      {
-         char buf[1024];
-         fullPath = StringTable->insert(Platform::makeFullPathName(fileName, buf, sizeof(buf)), true);
-      }
-
-      modPath = Con::getModNameFromPath(fileName);
-   }
+   resolveCodeBlockPaths(fileName, name, fullPath, modPath);
 
    if(name)
       addToCodeList();

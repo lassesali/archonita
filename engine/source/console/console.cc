@@ -534,6 +534,9 @@ static void _outputDebugString(char* pString)
 
 static void _printf(ConsoleLogEntry::Level level, ConsoleLogEntry::Type type, const char* fmt)
 {
+   // Preserve Con::active rather than hardcoding true on exit, so pre-init logging
+   // before Con::init() cannot trip Con::init's single-initialization assert.
+   const bool wasActive = Con::active;
    Con::active = false; 
 
    char buffer[4096];
@@ -584,7 +587,7 @@ static void _printf(ConsoleLogEntry::Level level, ConsoleLogEntry::Type type, co
       }
    }
 
-   Con::active = true;
+   Con::active = wasActive;
 
 #if defined( _MSC_VER )  
    _outputDebugString( buffer );  

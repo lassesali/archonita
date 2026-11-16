@@ -108,54 +108,52 @@ void _EmscriptenGameWillTerminate()
 static void _EmscriptenGetTxtFileArgs(int &argc, char** argv, int maxargc)
 {
    argc = 0;
-   
+
+   // Avoid noisy pre-init IO error logs when the optional command-line file is absent.
+   if (!Platform::isFile("EmscriptenCmdLine.txt") && !Platform::isFile("/.data/EmscriptenCmdLine.txt"))
+      return;
+
    const U32 kMaxTextLen = 2048;
-   
-   U32 textLen;
-   
-   char* text = new char[kMaxTextLen];
-   
-   // Open the file, kick out if we can't
+
+   U32 textLen = 0;
+
+   // Keep storage static because argv entries point into this buffer after return.
+   static char text[kMaxTextLen];
+
    File cmdfile;
-   
+
    File::Status err = cmdfile.open("EmscriptenCmdLine.txt", cmdfile.Read);
-   
-   // Re-organise function to handle memory deletion better
+
    if (err == File::Ok)
    {
       // read in the first kMaxTextLen bytes, kick out if we get errors or no data
-      err = cmdfile.read(kMaxTextLen-1, text, &textLen);
-      
-      if (((err == File::Ok || err == File::EOS) || textLen > 0))
+      err = cmdfile.read(kMaxTextLen - 1, text, &textLen);
+
+      if ((err == File::Ok || err == File::EOS) && textLen > 0)
       {
          // Null terminate
          text[textLen++] = '\0';
-         
+
          // Truncate to the 1st line of the file
-         for(int i = 0; i < textLen; i++)
+         for (int i = 0; i < (int)textLen; i++)
          {
-            if( text[i] == '\n' || text[i] == '\r' )
+            if (text[i] == '\n' || text[i] == '\r')
             {
                text[i] = '\0';
-               textLen = i+1;
+               textLen = i + 1;
                break;
             }
          }
-         
+
          // Tokenize the args with nulls, save them in argv, count them in argc
          char* tok;
-         
-         for(tok = dStrtok(text, " "); tok && argc < maxargc; tok = dStrtok(NULL, " "))
+
+         for (tok = dStrtok(text, " "); tok && argc < maxargc; tok = dStrtok(NULL, " "))
             argv[argc++] = tok;
-     }
+      }
    }
-   
-   // Close file and delete memory before returning
+
    cmdfile.close();
-   
-   delete[] text;
-   
-   text = NULL;
 }
 
 int main(int argc, char **argv)
@@ -187,7 +185,8 @@ int main(int argc, char **argv)
    if (_EmscriptenRunTorqueMain() > 0)
    {
 #ifndef DUMMY_PLATFORM
-      emscripten_set_main_loop(_EmscriptenGameInnerLoop, 60, false);
+      // Pass 0 for fps so Emscripten drives the loop via requestAnimationFrame.
+      emscripten_set_main_loop(_EmscriptenGameInnerLoop, 0, false);
 #endif
       return 0;
    }

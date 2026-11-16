@@ -45,32 +45,33 @@ float gOpenGLGammaCorrection   = 0.5;
 bool gOpenGLNoDrawArraysAlpha  = false;
 
 // Find out which extensions are available for this renderer. 
+static bool hasGLExtension(const char* pExtString, const char* extName)
+{
+   if (gGLState.glMajorVersion >= 3)
+   {
+      GLint numExt = 0;
+      glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+      for (GLint i = 0; i < numExt; ++i)
+      {
+         const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+         if (ext && dStrcmp(ext, extName) == 0)
+            return true;
+      }
+      return false;
+   }
+   return (pExtString && dStrstr(pExtString, extName) != NULL);
+}
+
 void getGLCapabilities( )
 {
    // (No per-monitor GL context to guard on here: the web build renders into a
    // single WebGL canvas. The macOS-derived platState.engine check was stale —
    // EmscriptenPlatState has no such member — so it's dropped.)
 
-   // silently create an opengl context on the current display,
-   // so that we can get valid renderer and capability info.
-   // we save off the current context so that we can silently restore it.
-   // the user should not be aware of this little shuffle.
-   //CGLContextObj curr_ctx = CGLGetCurrentContext ();
-   //CGLContextObj temp_ctx =  getContextForCapsCheck();
-   /*
-   if(!temp_ctx)
-   {
-      Con::errorf("OpenGL may not be set up correctly!");
-      return;
-   }
-   */
-   //CGLSetCurrentContext(temp_ctx);
-
    // Get the OpenGL info strings we'll need
    const char* pVendString    = (const char*) glGetString( GL_VENDOR );
    const char* pRendString    = (const char*) glGetString( GL_RENDERER );
    const char* pVersString    = (const char*) glGetString( GL_VERSION );
-   const char* pExtString     = (const char*) glGetString( GL_EXTENSIONS );
 
    // Output some driver info to the console:
    Con::printf( "OpenGL driver information:" );
@@ -84,85 +85,97 @@ void getGLCapabilities( )
    // pre-clear the structure
    dMemset(&gGLState, 0, sizeof(gGLState));
 
-   if(pExtString)
+   gGLState.suppDSA = false;
+   gGLState.isCoreProfile = false;
+   gGLState.glMajorVersion = 3;
+   gGLState.glMinorVersion = 0;
+   if (pVersString && dStrstr(pVersString, "OpenGL ES 2") != NULL && dStrstr(pVersString, "OpenGL ES 3") == NULL)
    {
-      // EXT_paletted_texture ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_paletted_texture") != NULL)
-         gGLState.suppPalettedTexture = true;
-      
-      // EXT_compiled_vertex_array ========================================
-      gGLState.suppLockedArrays = false;
-      if (dStrstr(pExtString, (const char*)"GL_EXT_compiled_vertex_array") != NULL)
-         gGLState.suppLockedArrays = true;
-
-      // ARB_multitexture ========================================
-      if (dStrstr(pExtString, (const char*)"GL_ARB_multitexture") != NULL)
-		  gGLState.suppARBMultitexture = true;
-      
-      // EXT_blend_color
-      if(dStrstr(pExtString, (const char*)"GL_EXT_blend_color") != NULL)
-         gGLState.suppEXTblendcolor = true;
-
-      // EXT_blend_minmax
-      if(dStrstr(pExtString, (const char*)"GL_EXT_blend_minmax") != NULL)
-         gGLState.suppEXTblendminmax = true;
-
-      // NV_vertex_array_range ========================================
-      // does not appear to be supported by apple, at all. ( as of 10.4.3 )
-      // GL_APPLE_vertex_array_range is similar, and may be nearly identical.
-      if (dStrstr(pExtString, (const char*)"GL_NV_vertex_array_range") != NULL)
-         gGLState.suppVertexArrayRange = true;
-      
-
-      // EXT_fog_coord ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_fog_coord") != NULL)
-         gGLState.suppFogCoord = true;
-      
-      // ARB_texture_compression ========================================
-      if (dStrstr(pExtString, (const char*)"GL_ARB_texture_compression") != NULL)
-         gGLState.suppTextureCompression = true;
-
-      // 3DFX_texture_compression_FXT1 ========================================
-      if (dStrstr(pExtString, (const char*)"GL_3DFX_texture_compression_FXT1") != NULL)
-         gGLState.suppFXT1 = true;
-
-      // EXT_texture_compression_S3TC ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_texture_compression_s3tc") != NULL)
-         gGLState.suppS3TC = true;
-
-      // EXT_vertex_buffer ========================================
-      // This extension is deprecated, and not supported by Apple. ( 10.4.3 )
-      // Instead, the ARB Vertex Buffer extension is supported.
-      // The new extension has a different API, so TGE should be updated to use it.
-      if (dStrstr(pExtString, (const char*)"GL_EXT_vertex_buffer") != NULL)
-         gGLState.suppVertexBuffer = true;
-
-      // Anisotropic filtering ========================================
-      gGLState.suppTexAnisotropic    = (dStrstr(pExtString, (const char*)"GL_EXT_texture_filter_anisotropic") != NULL);
-
-      if (gGLState.suppTexAnisotropic)
-         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gGLState.maxAnisotropy);
-
-      // Binary states, i.e., no supporting functions  ========================================
-      // NOTE:
-      // Some of these have multiple representations, via EXT and|or ARB and|or NV and|or SGIS ... etc.
-      // Check all relative versions.
-      
-      gGLState.suppPackedPixels      = (dStrstr(pExtString, (const char*)"GL_EXT_packed_pixels") != NULL);
-      gGLState.suppPackedPixels     |= (dStrstr(pExtString, (const char*)"GL_APPLE_packed_pixel") != NULL);
-
-      gGLState.suppTextureEnvCombine = (dStrstr(pExtString, (const char*)"GL_EXT_texture_env_combine") != NULL);
-      gGLState.suppTextureEnvCombine|= (dStrstr(pExtString, (const char*)"GL_ARB_texture_env_combine") != NULL);
-
-      gGLState.suppEdgeClamp         = (dStrstr(pExtString, (const char*)"GL_EXT_texture_edge_clamp") != NULL);
-      gGLState.suppEdgeClamp        |= (dStrstr(pExtString, (const char*)"GL_SGIS_texture_edge_clamp") != NULL);
-      gGLState.suppEdgeClamp        |= (dStrstr(pExtString, (const char*)"GL_ARB_texture_border_clamp") != NULL);
-	   gGLState.suppEdgeClamp		= true;
-
-      gGLState.suppTexEnvAdd         = (dStrstr(pExtString, (const char*)"GL_ARB_texture_env_add") != NULL);
-      gGLState.suppTexEnvAdd        |= (dStrstr(pExtString, (const char*)"GL_EXT_texture_env_add") != NULL);
-
+      gGLState.glMajorVersion = 2;
+      gGLState.glMinorVersion = 0;
    }
+   else
+   {
+      GLint maj = 0;
+      GLint min = 0;
+      glGetIntegerv(GL_MAJOR_VERSION, &maj);
+      glGetIntegerv(GL_MINOR_VERSION, &min);
+      if (glGetError() == GL_NO_ERROR && maj >= 3)
+      {
+         gGLState.glMajorVersion = maj;
+         gGLState.glMinorVersion = min;
+      }
+   }
+   gGLState.suppTexStorage = (gGLState.glMajorVersion >= 3);
+
+   // In WebGL 2 / OpenGL ES 3.0, glGetString(GL_EXTENSIONS) is invalid; query via glGetStringi instead.
+   const char* pExtString = (gGLState.glMajorVersion < 3)
+      ? (const char*) glGetString( GL_EXTENSIONS )
+      : NULL;
+
+   // EXT_paletted_texture ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_paletted_texture"))
+      gGLState.suppPalettedTexture = true;
+
+   // EXT_compiled_vertex_array ========================================
+   gGLState.suppLockedArrays = false;
+   if (hasGLExtension(pExtString, "GL_EXT_compiled_vertex_array"))
+      gGLState.suppLockedArrays = true;
+
+   // ARB_multitexture ========================================
+   if (hasGLExtension(pExtString, "GL_ARB_multitexture"))
+      gGLState.suppARBMultitexture = true;
+
+   // EXT_blend_color
+   if (hasGLExtension(pExtString, "GL_EXT_blend_color"))
+      gGLState.suppEXTblendcolor = true;
+
+   // EXT_blend_minmax
+   if (hasGLExtension(pExtString, "GL_EXT_blend_minmax"))
+      gGLState.suppEXTblendminmax = true;
+
+   // NV_vertex_array_range ========================================
+   if (hasGLExtension(pExtString, "GL_NV_vertex_array_range"))
+      gGLState.suppVertexArrayRange = true;
+
+   // EXT_fog_coord ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_fog_coord"))
+      gGLState.suppFogCoord = true;
+
+   // ARB_texture_compression ========================================
+   if ((gGLState.glMajorVersion >= 3) || hasGLExtension(pExtString, "GL_ARB_texture_compression"))
+      gGLState.suppTextureCompression = true;
+
+   // 3DFX_texture_compression_FXT1 ========================================
+   if (hasGLExtension(pExtString, "GL_3DFX_texture_compression_FXT1"))
+      gGLState.suppFXT1 = true;
+
+   // EXT_texture_compression_S3TC ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_texture_compression_s3tc") ||
+       hasGLExtension(pExtString, "GL_WEBGL_compressed_texture_s3tc"))
+      gGLState.suppS3TC = true;
+
+   // EXT_vertex_buffer ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_vertex_buffer"))
+      gGLState.suppVertexBuffer = true;
+
+   // Anisotropic filtering ========================================
+   gGLState.suppTexAnisotropic = hasGLExtension(pExtString, "GL_EXT_texture_filter_anisotropic");
+   if (gGLState.suppTexAnisotropic)
+      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gGLState.maxAnisotropy);
+
+   // Binary states, i.e., no supporting functions ========================================
+   gGLState.suppPackedPixels       = (gGLState.glMajorVersion >= 2)
+                                  || hasGLExtension(pExtString, "GL_EXT_packed_pixels")
+                                  || hasGLExtension(pExtString, "GL_APPLE_packed_pixel");
+
+   gGLState.suppTextureEnvCombine  = hasGLExtension(pExtString, "GL_EXT_texture_env_combine")
+                                  || hasGLExtension(pExtString, "GL_ARB_texture_env_combine");
+
+   gGLState.suppEdgeClamp          = true;
+
+   gGLState.suppTexEnvAdd          = hasGLExtension(pExtString, "GL_ARB_texture_env_add")
+                                  || hasGLExtension(pExtString, "GL_EXT_texture_env_add");
    
    // Texture combine units  ========================================
 //   if (gGLState.suppARBMultitexture)
@@ -268,7 +281,6 @@ void dglSetFSAASamples(GLint aasamp)
     Con::setIntVariable("$pref::OpenGL::numFSAASamples", aasamp);
 }
 
-
 #ifdef DUMMY_GL
 
 // declare stub functions
@@ -277,99 +289,8 @@ void dglSetFSAASamples(GLint aasamp)
 #include "platform/GLExtFunc.h"
 #undef GL_FUNCTION
 
-// point gl function pointers at stub functions
-/*#define GL_FUNCTION(fn_return,fn_name,fn_args, fn_value) fn_return (*fn_name)fn_args = stub_##fn_name;
-#include "platform/GLCoreFunc.h"
-#include "platform/GLExtFunc.h"
-#undef GL_FUNCTION
-*/
-#else
-
-
-// stub out these
-
-GLAPI void GLAPIENTRY glPointSize( GLfloat size )
-{
-
-}
-
-GLAPI void GLAPIENTRY glClipPlane( GLenum plane, const GLdouble *equation )
-{
-
-}
-
-GLAPI GLboolean GLAPIENTRY glAreTexturesResident( GLsizei n, const GLuint *textures, GLboolean *residences )
-{
-    return true;
-}
-
-GLAPI void GLAPIENTRY glColor3i( GLint red, GLint green, GLint blue )
-{
-    glColor3f(255.0f/red, 255.0f/green, 255.0f/blue);
-}
-
-GLAPI void GLAPIENTRY glRecti( GLint x1, GLint y1, GLint x2, GLint y2 )
-{
-    //glRectf(x1, y2, x2, y2);
-}
-
+void gluOrtho2D( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top ) {}
+GLint gluProject( GLdouble objx, GLdouble objy, GLdouble objz, const F64 *model, const F64 * proj, const GLint * vp, F64 * winx, F64 * winy, F64 * winz ) { return 0; }
+GLint gluUnProject( GLdouble winx, GLdouble winy, GLdouble winz, const F64 *model, const F64 * proj, const GLint * vp, F64 * x, F64 * y, F64 * z ) { return 0; }
 
 #endif
-
-
-void gluOrtho2D( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top )
-{
-    glOrtho( left, right, bottom, top, -1.0f, 1.0f );
-    int glError;
-    glError = TEST_FOR_OPENGL_ERRORS
-}
-
-GLint gluProject( GLdouble objx, GLdouble objy, GLdouble objz, const F64 *model, const F64 * proj, const GLint * vp, F64 * winx, F64 * winy, F64 * winz )
-{
-    Vector4F v = Vector4F( objx, objy, objz, 1.0f );
-    MatrixF pmat = MatrixF( false );
-        for (int i=0; i<16; i++) { ((F32*)pmat)[i] = (float)proj[i]; }
-    MatrixF mmat = MatrixF( false );
-        for (int i=0; i<16; i++) { ((F32*)mmat)[i] = (float)model[i]; }
-        
-    //Luma: Projection fix
-    mmat.transpose();
-    pmat.transpose();
-    (pmat.mul(mmat)).mul(v);
-    
-    //Luma: Projection fix
-    if(v.w == 0.0f)
-    {
-        return GL_FALSE;
-    }
-    F32     invW = 1.0f / v.w;
-    v.x *= invW;
-    v.y *= invW;
-    v.z *= invW;
-        
-    *winx = (GLfloat)vp[0] + (GLfloat)vp[2] * (v.x + 1.0f) * 0.5f;
-    *winy = (GLfloat)vp[1] + (GLfloat)vp[3] * (v.y + 1.0f) * 0.5f;
-    *winz = (v.z + 1.0f) * 0.5f;
-    int glError;
-    glError = TEST_FOR_OPENGL_ERRORS
-    return GL_TRUE;
-}
-
-GLint gluUnProject( GLdouble winx, GLdouble winy, GLdouble winz, const F64 *model, const F64 * proj, const GLint * vp, F64 * x, F64 * y, F64 * z )
-{
-    Vector4F v = Vector4F( 2.0f*(winx-vp[0])/vp[2] - 1.0f, 2.0f*(winy-vp[1])/vp[2] - 1.0f, 2.0f*vp[2] - 1.0f, 1.0f );
-    MatrixF pmat = MatrixF( false );
-    for (int i=0; i<16; i++) { ((F32*)pmat)[i] = (float)proj[i]; }
-    MatrixF mmat = MatrixF( false );
-    for (int i=0; i<16; i++) { ((F32*)mmat)[i] = (float)model[i]; }
-    mmat = pmat.mul(mmat);
-
-    mmat = mmat.inverse();
-    mmat.mul( v );
-    *x = v.x;
-    *y = v.y;
-    *z = v.z;
-    int glError;
-    glError = TEST_FOR_OPENGL_ERRORS
-    return GL_TRUE;
-}

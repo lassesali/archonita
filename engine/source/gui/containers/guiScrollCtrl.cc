@@ -1151,6 +1151,9 @@ void GuiScrollCtrl::renderBorderedRectWithArrow(RectI& bounds, GuiControlProfile
 				p2 = Point2I(contentRect.point.x, contentRect.point.y + contentRect.extent.y);
 				p3 = Point2I(contentRect.point.x + contentRect.extent.x, contentRect.point.y + (contentRect.extent.y/2));
 				break;
+			case GuiDirection::Center:
+			default:
+				return;
 		}
 		
 		dglDrawTriangleFill(p1, p2, p3, profile->getFontColor(state));

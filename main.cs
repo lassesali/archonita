@@ -44,7 +44,10 @@ $Scripts::ignoreDSOs = true;
 // The name of the game. Used to form the path to save preferences. Defaults to C++ engine define TORQUE_GAME_NAME
 // if not specified.
 // Appending version string to avoid conflicts with existing versions and other versions.
-setCompanyAndProduct("Torque Game Engines", "Torque2D" );
+if ($platformUnixType $= "emscripten")
+    setCompanyAndProduct("Torque Game Engines", "Archonita" );
+else
+    setCompanyAndProduct("Torque Game Engines", "Torque2D" );
 
 // Set module database information echo.
 ModuleDatabase.EchoInfo = false;
@@ -64,8 +67,18 @@ AssetDatabase.IgnoreAutoUnload = true;
 //ModuleDatabase.scanModules( "./PlanetX" );
 //ModuleDatabase.LoadExplicit( "AppCore" );
 
-// Starts the editor.
-exec("./editor/main.cs");
+if ($platformUnixType $= "emscripten")
+{
+    // Boot Archon directly in web builds; desktop continues to launch the editor below.
+    ModuleDatabase.scanModules( "./library" );
+    ModuleDatabase.scanModules( "./Archon" );
+    ModuleDatabase.loadExplicit( "AppCore" );
+}
+else
+{
+    // Starts the editor.
+    exec("./editor/main.cs");
+}
 
 //-----------------------------------------------------------------------------
 

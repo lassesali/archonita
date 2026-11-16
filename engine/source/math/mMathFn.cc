@@ -73,6 +73,9 @@ F32 mEase(const EasingFunction &ease, const F32 &progress)
 	F32 r = mClampF(progress, 0.0f, 1.0f);
 	switch (ease)
 	{
+		case EasingFunction::Linear:
+		default:
+			break;
 		case EasingFunction::EaseIn:
 			r = 1 - mCos((r * M_PI_F) / 2);
 			break;
@@ -86,7 +89,8 @@ F32 mEase(const EasingFunction &ease, const F32 &progress)
 			r = r * r * ((2.70158 * r) - 1.70158);
 			break;
 		case EasingFunction::EaseOutBack:
-			r = 1 + (--r) * r * ((2.70158 * r) + 1.70158);
+			r -= 1.0f;
+			r = 1 + r * r * ((2.70158 * r) + 1.70158);
 			break;
 		case EasingFunction::EaseInOutBack:
 			if (r < 0.5f)
@@ -95,7 +99,8 @@ F32 mEase(const EasingFunction &ease, const F32 &progress)
 			}
 			else
 			{
-				r = 1 + (--r) * r * 2 * ((7 * r) + 2.5);
+				r -= 1.0f;
+				r = 1 + r * r * 2 * ((7 * r) + 2.5);
 			}
 			break;
 		case EasingFunction::EaseInElastic:
