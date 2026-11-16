@@ -13,7 +13,7 @@ Follow this playbook whenever building or modifying the Android APK target in `e
 - **SDK / NDK / ABI (`app/build.gradle`):**
   - `compileSdk 34`, `minSdk 21`, `targetSdk 34`
   - `ndkVersion '25.2.9519653'`
-  - `abiFilters 'arm64-v8a'` (the only ABI with prebuilt `libfreetype.a` and `engine/lib/openal/Android/arm64-v8a/libopenal.so`)
+  - `abiFilters 'arm64-v8a'` (the only ABI with prebuilt `libfreetype.a`; `libopenal.so` is compiled from source by CMake)
   - Native build drives repo-root `CMakeLists.txt` with `-DANDROID_STL=c++_static` and `-std=c++17`.
 - **JDK requirement (critical on hosts with JDK 25+):**
   - Gradle `8.7` fails Groovy buildscript compilation under OpenJDK 25 (`Unsupported class file major version 69`). On Windows setups where `JAVA_HOME` defaults to `C:\Program Files\Android\Android Studio\jbr` (OpenJDK 25), set `JAVA_HOME` in the build command to a JDK 17/21 installation first (for example `C:\Users\lkarh\.gradle\jdks\jetbrains_s_r_o_-21-amd64-windows.2` — check `$env:USERPROFILE\.gradle\jdks` if the hash/folder differs).
@@ -58,6 +58,8 @@ Pop-Location
 5. **If modifying C++ engine code or shaders before building:**
    - Register any new engine files in `cmake/EngineSources.cmake` or `cmake/PlatformSources.cmake`.
    - Follow `.agents/rules/opengl-migration.md` (GLES `320 es` parity, no raw DSA, mandatory VAO, `glslang` validation).
+6. **APK asset & script paths are case-sensitive:**
+   - Android `AssetManager` opens paths inside APK ZIP entries with exact case (unlike Windows NTFS). Keep `exec(...)` paths and asset references exact-case (for example `./gameScripts/complexMouse.cs`, not `complexmouse.cs`). Also dismiss the Java `SplashScreen` dialog (`hideSplashScreen()` / non-focusable UI-thread dismissal in `SplashScreen.java`) so native input/loop is not frozen behind `assets/splash.png`.
 
 ## 4. Required Post-Build Verification
 

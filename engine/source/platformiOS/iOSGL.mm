@@ -56,7 +56,24 @@ void glFillVertexBufferEXT(GLint handle, GLint first, GLsizei count) {}
 void glFreeVertexBufferEXT(GLint handle) {}
 
 
-// Find out which extensions are available for this renderer. 
+// Find out which extensions are available for this renderer.
+static bool hasGLExtension(const char* pExtString, const char* extName)
+{
+   if (gGLState.glMajorVersion >= 3)
+   {
+      GLint numExt = 0;
+      glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+      for (GLint i = 0; i < numExt; ++i)
+      {
+         const char* ext = (const char*) glGetStringi(GL_EXTENSIONS, (GLuint)i);
+         if (ext && dStrcmp(ext, extName) == 0)
+            return true;
+      }
+      return false;
+   }
+   return (pExtString && dStrstr(pExtString, extName) != NULL);
+}
+
 void getGLCapabilities( )
 {
    AssertFatal(platState.ctx, "getGLCapabilities() was called before a monitor was chosen!");
@@ -80,7 +97,6 @@ void getGLCapabilities( )
    const char* pVendString    = (const char*) glGetString( GL_VENDOR );
    const char* pRendString    = (const char*) glGetString( GL_RENDERER );
    const char* pVersString    = (const char*) glGetString( GL_VERSION );
-   const char* pExtString     = (const char*) glGetString( GL_EXTENSIONS );
 
    // Output some driver info to the console:
    Con::printf( "OpenGL driver information:" );
@@ -94,84 +110,106 @@ void getGLCapabilities( )
    // pre-clear the structure
    dMemset(&gGLState, 0, sizeof(gGLState));
 
-   if(pExtString)
+   gGLState.suppDSA = false;
+   gGLState.isCoreProfile = false;
+   gGLState.glMajorVersion = 3;
+   gGLState.glMinorVersion = 0;
+   if (pVersString && dStrstr(pVersString, "OpenGL ES 2") != NULL && dStrstr(pVersString, "OpenGL ES 3") == NULL)
    {
-      // EXT_paletted_texture ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_paletted_texture") != NULL)
-         gGLState.suppPalettedTexture = true;
-      
-      // EXT_compiled_vertex_array ========================================
-      gGLState.suppLockedArrays = false;
-      if (dStrstr(pExtString, (const char*)"GL_EXT_compiled_vertex_array") != NULL)
-         gGLState.suppLockedArrays = true;
-
-      // ARB_multitexture ========================================
-      if (dStrstr(pExtString, (const char*)"GL_ARB_multitexture") != NULL)
-		  gGLState.suppARBMultitexture = true;
-      
-      // EXT_blend_color
-      if(dStrstr(pExtString, (const char*)"GL_EXT_blend_color") != NULL)
-         gGLState.suppEXTblendcolor = true;
-
-      // EXT_blend_minmax
-      if(dStrstr(pExtString, (const char*)"GL_EXT_blend_minmax") != NULL)
-         gGLState.suppEXTblendminmax = true;
-
-      // NV_vertex_array_range ========================================
-      // does not appear to be supported by apple, at all. ( as of 10.4.3 )
-      // GL_APPLE_vertex_array_range is similar, and may be nearly identical.
-      if (dStrstr(pExtString, (const char*)"GL_NV_vertex_array_range") != NULL)
-         gGLState.suppVertexArrayRange = true;
-      
-
-      // EXT_fog_coord ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_fog_coord") != NULL)
-         gGLState.suppFogCoord = true;
-      
-      // ARB_texture_compression ========================================
-      if (dStrstr(pExtString, (const char*)"GL_ARB_texture_compression") != NULL)
-         gGLState.suppTextureCompression = true;
-
-      // 3DFX_texture_compression_FXT1 ========================================
-      if (dStrstr(pExtString, (const char*)"GL_3DFX_texture_compression_FXT1") != NULL)
-         gGLState.suppFXT1 = true;
-
-      // EXT_texture_compression_S3TC ========================================
-      if (dStrstr(pExtString, (const char*)"GL_EXT_texture_compression_s3tc") != NULL)
-         gGLState.suppS3TC = true;
-
-      // EXT_vertex_buffer ========================================
-      // This extension is deprecated, and not supported by Apple. ( 10.4.3 )
-      // Instead, the ARB Vertex Buffer extension is supported.
-      // The new extension has a different API, so TGE should be updated to use it.
-      if (dStrstr(pExtString, (const char*)"GL_EXT_vertex_buffer") != NULL)
-         gGLState.suppVertexBuffer = true;
-
-      // Anisotropic filtering ========================================
-      gGLState.suppTexAnisotropic    = (dStrstr(pExtString, (const char*)"GL_EXT_texture_filter_anisotropic") != NULL);
-      if (gGLState.suppTexAnisotropic)
-         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gGLState.maxAnisotropy);
-
-      // Binary states, i.e., no supporting functions  ========================================
-      // NOTE:
-      // Some of these have multiple representations, via EXT and|or ARB and|or NV and|or SGIS ... etc.
-      // Check all relative versions.
-      
-      gGLState.suppPackedPixels      = (dStrstr(pExtString, (const char*)"GL_EXT_packed_pixels") != NULL);
-      gGLState.suppPackedPixels     |= (dStrstr(pExtString, (const char*)"GL_APPLE_packed_pixel") != NULL);
-
-      gGLState.suppTextureEnvCombine = (dStrstr(pExtString, (const char*)"GL_EXT_texture_env_combine") != NULL);
-      gGLState.suppTextureEnvCombine|= (dStrstr(pExtString, (const char*)"GL_ARB_texture_env_combine") != NULL);
-
-      gGLState.suppEdgeClamp         = (dStrstr(pExtString, (const char*)"GL_EXT_texture_edge_clamp") != NULL);
-      gGLState.suppEdgeClamp        |= (dStrstr(pExtString, (const char*)"GL_SGIS_texture_edge_clamp") != NULL);
-      gGLState.suppEdgeClamp        |= (dStrstr(pExtString, (const char*)"GL_ARB_texture_border_clamp") != NULL);
-	   gGLState.suppEdgeClamp		= true; //-Mat iOS supports edge clamp
-
-      gGLState.suppTexEnvAdd         = (dStrstr(pExtString, (const char*)"GL_ARB_texture_env_add") != NULL);
-      gGLState.suppTexEnvAdd        |= (dStrstr(pExtString, (const char*)"GL_EXT_texture_env_add") != NULL);
-
+      gGLState.glMajorVersion = 2;
+      gGLState.glMinorVersion = 0;
    }
+   else
+   {
+      GLint maj = 0;
+      GLint min = 0;
+      glGetIntegerv(GL_MAJOR_VERSION, &maj);
+      glGetIntegerv(GL_MINOR_VERSION, &min);
+      if (glGetError() == GL_NO_ERROR && maj >= 3)
+      {
+         gGLState.glMajorVersion = maj;
+         gGLState.glMinorVersion = min;
+      }
+   }
+   gGLState.suppTexStorage = (gGLState.glMajorVersion >= 3);
+
+   // In OpenGL ES 3.0, glGetString(GL_EXTENSIONS) is invalid; query via glGetStringi instead.
+   const char* pExtString = (gGLState.glMajorVersion < 3)
+      ? (const char*) glGetString( GL_EXTENSIONS )
+      : NULL;
+
+   // EXT_paletted_texture ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_paletted_texture"))
+      gGLState.suppPalettedTexture = true;
+
+   // EXT_compiled_vertex_array ========================================
+   gGLState.suppLockedArrays = false;
+   if (hasGLExtension(pExtString, "GL_EXT_compiled_vertex_array"))
+      gGLState.suppLockedArrays = true;
+
+   // ARB_multitexture ========================================
+   if (hasGLExtension(pExtString, "GL_ARB_multitexture"))
+      gGLState.suppARBMultitexture = true;
+
+   // EXT_blend_color
+   if (hasGLExtension(pExtString, "GL_EXT_blend_color"))
+      gGLState.suppEXTblendcolor = true;
+
+   // EXT_blend_minmax
+   if (hasGLExtension(pExtString, "GL_EXT_blend_minmax"))
+      gGLState.suppEXTblendminmax = true;
+
+   // NV_vertex_array_range ========================================
+   // does not appear to be supported by apple, at all. ( as of 10.4.3 )
+   // GL_APPLE_vertex_array_range is similar, and may be nearly identical.
+   if (hasGLExtension(pExtString, "GL_NV_vertex_array_range"))
+      gGLState.suppVertexArrayRange = true;
+
+   // EXT_fog_coord ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_fog_coord"))
+      gGLState.suppFogCoord = true;
+
+   // ARB_texture_compression ========================================
+   if ((gGLState.glMajorVersion >= 3) ||
+       hasGLExtension(pExtString, "GL_ARB_texture_compression") ||
+       hasGLExtension(pExtString, "GL_IMG_texture_compression_pvrtc"))
+      gGLState.suppTextureCompression = true;
+
+   // 3DFX_texture_compression_FXT1 ========================================
+   if (hasGLExtension(pExtString, "GL_3DFX_texture_compression_FXT1"))
+      gGLState.suppFXT1 = true;
+
+   // EXT_texture_compression_S3TC ========================================
+   if (hasGLExtension(pExtString, "GL_EXT_texture_compression_s3tc"))
+      gGLState.suppS3TC = true;
+
+   // EXT_vertex_buffer ========================================
+   // This extension is deprecated, and not supported by Apple. ( 10.4.3 )
+   // Instead, the ARB Vertex Buffer extension is supported.
+   // The new extension has a different API, so TGE should be updated to use it.
+   if (hasGLExtension(pExtString, "GL_EXT_vertex_buffer"))
+      gGLState.suppVertexBuffer = true;
+
+   // Anisotropic filtering ========================================
+   gGLState.suppTexAnisotropic = hasGLExtension(pExtString, "GL_EXT_texture_filter_anisotropic");
+   if (gGLState.suppTexAnisotropic)
+      glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gGLState.maxAnisotropy);
+
+   // Binary states, i.e., no supporting functions  ========================================
+   // NOTE:
+   // Some of these have multiple representations, via EXT and|or ARB and|or NV and|or SGIS ... etc.
+   // Check all relative versions.
+   gGLState.suppPackedPixels       = (gGLState.glMajorVersion >= 2)
+                                  || hasGLExtension(pExtString, "GL_EXT_packed_pixels")
+                                  || hasGLExtension(pExtString, "GL_APPLE_packed_pixel");
+
+   gGLState.suppTextureEnvCombine  = hasGLExtension(pExtString, "GL_EXT_texture_env_combine")
+                                  || hasGLExtension(pExtString, "GL_ARB_texture_env_combine");
+
+   gGLState.suppEdgeClamp          = true; //-Mat iOS supports edge clamp
+
+   gGLState.suppTexEnvAdd          = hasGLExtension(pExtString, "GL_ARB_texture_env_add")
+                                  || hasGLExtension(pExtString, "GL_EXT_texture_env_add");
    
    // Texture combine units  ========================================
 //   if (gGLState.suppARBMultitexture)

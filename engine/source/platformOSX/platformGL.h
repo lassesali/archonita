@@ -31,11 +31,27 @@
 #define MIN_RESOLUTION_XY_STRING	"320 320"
 //%PUAP%-->
 
-/// We use the standard Apple OpenGL framework headers.
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <OpenGL/glext.h>
+/// We use the standard Apple OpenGL Core Profile framework headers.
+#ifndef GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+#endif
+#include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
 #include "platform/GLModernTypes.h"
+
+// Fallback extension tokens in case <OpenGL/gl3ext.h> omits legacy EXT symbols.
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#endif
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+#ifndef GL_MAX_TEXTURE_UNITS_ARB
+#define GL_MAX_TEXTURE_UNITS_ARB          0x84E2
+#endif
+#ifndef GL_TEXTURE_COMPRESSION_HINT_ARB
+#define GL_TEXTURE_COMPRESSION_HINT_ARB   0x84EF
+#endif
 
 /// Allows outline mode drawing via a function pointer swapping trick.
 /// Must be included AFTER all the OpenGL headers.

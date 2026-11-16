@@ -133,7 +133,7 @@ void Torque2D_postConsole(const char *buffer)
       return;
 
    dStrncpy(gConsole->postEvent.data, buffer, MaxConsoleLineSize-1);
-   gConsole->postEvent.data[MaxConsoleLineSize] = '\0';
+   gConsole->postEvent.data[MaxConsoleLineSize - 1] = '\0';
    gConsole->postEvent.size = ConsoleEventHeaderSize + dStrlen(gConsole->postEvent.data) + 1;
    Con::printf("=> %s",gConsole->postEvent.data);
    

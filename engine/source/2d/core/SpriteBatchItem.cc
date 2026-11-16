@@ -209,7 +209,8 @@ const ColorF& SpriteBatchItem::getComplexColor(const S8 cornerID)
 	}
 	else
 	{
-		return ColorF(1.0f, 1.0f, 1.0f, 1.0f);
+		static const ColorF defaultColor(1.0f, 1.0f, 1.0f, 1.0f);
+		return defaultColor;
 	}
 }
 

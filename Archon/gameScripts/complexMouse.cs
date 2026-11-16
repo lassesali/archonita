@@ -225,7 +225,7 @@ function mouseOverMovementGrid( %mod, %worldPos )
                                 %hero.setSelectedTile("-1 -1");
    
 
-                                for (%j=0;%j<4;%j++)
+                                for (%j=0;%j<16;%j++)
                                 {
                                    if (isObject($movementgrid[%j])) 
                                    {
@@ -687,7 +687,7 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
            for (%i = 0; %i < %objCount; %i++)
            {
               %picked = getWord(%objList, %i);
-              if (%picked == heroicon || %picked == heroicongrid || %picked.getName() $= "heroicon" || %picked.getName() $= "heroicongrid")
+              if (isObject(%picked) && (%picked.getName() $= "heroicon" || %picked.getName() $= "heroicongrid"))
               {
                  if (CombatEngine.castRevealedSpell("avatar", %picked))
                  {
@@ -753,6 +753,19 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                 //if we found an "isSelectable" object
                 if(%selected)
                 {
+                        // Hero selection uses a single click/tap to pick the card and open faction select;
+                        // do not mount the card onto the cursor or leave objectSelected stuck if Back is pressed.
+                        if (getGameState() == $gameCardSelectState)
+                        {
+                           if (isObject(card_0))
+                              card_0.valittu = false;
+                           if (isObject(card_1))
+                              card_1.valittu = false;
+                           %obj.valittu = true;
+                           checkSelectedCard();
+                           return;
+                        }
+
                         //we then store that object as the selectedObj
                         %this.selectedObj = %obj;
                 
@@ -764,7 +777,11 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                         %this.dragStarted = false;
 
                         if (isObject($mouseObj::object))
+                        {
                            $mouseObj::object.setPosition(%worldPos);
+                           $mouseObj::pos = %worldPos;
+                           $mouseObj::stopped = true;
+                        }
 
                         if($debugMsg::mouse::selection) 
                                echo("echo attempting to mount:" SPC %obj SPC " to mouse obj:" 
@@ -778,22 +795,17 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
                            iconSendToFront(%obj.index);
                         }
                                                 
-                           $mouseObj::isObjMounted = true;
-                           $mouseObj::objMounted = %obj;
-                        
-                           if (getGameState() == $gameCardSelectState) 
-                           {
-                              card_0.valittu = false;
-                              card_1.valittu = false;
-                              %obj.valittu = true;
-                              checkSelectedCard();
-
-                           }
+                        $mouseObj::isObjMounted = true;
+                        $mouseObj::objMounted = %obj;
 
                 }
         }
-        
 
+        if (getGameState() == $gameBattleState)
+        {
+                mouseOverMovementGrid(%mod, %worldPos);
+                mouseOverActionIcons(%mod, %worldPos);
+        }
 
 }
 function setButtonReleasedOff() {

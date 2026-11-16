@@ -33,6 +33,7 @@
 #include "alAuxEffectSlot.h"
 
 #ifdef ANDROID
+#include <android/log.h>
 // Apportable: Defines a cap on the maximum number of playing sources
 extern int alc_max_sources;
 extern int alc_active_sources;

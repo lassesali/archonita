@@ -51,16 +51,25 @@ GLint gluUnProject( GLdouble winx, GLdouble winy, GLdouble winz, const F64 *mode
 
 #else
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include <GLES3/gl3.h>
+#include <GLES2/gl2ext.h>
+
+//------------------------------------------------------------------------------
+/// Overrides and implementations of opengl API to account for ogles differences
+// Include after OpenGLES headers
+#include "platformEmscripten/EmscriptenGL2ES.h"
 
 #ifndef _GLMODERNTYPES_H_
 #include "platform/GLModernTypes.h"
 #endif
 
-void gluOrtho2D( GLfloat, GLfloat, GLfloat, GLfloat );
-GLint gluProject( GLdouble winx, GLdouble winy, GLdouble winz, const F64 *model, const F64 * proj, const GLint * vp, F64 * x, F64 * y, F64 * z );
-GLint gluUnProject( GLdouble winx, GLdouble winy, GLdouble winz, const F64 *model, const F64 * proj, const GLint * vp, F64 * x, F64 * y, F64 * z );
+// Fallback extension tokens in case <GLES2/gl2ext.h> omits ES2 vendor extensions.
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT        0x84FE
+#endif
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT    0x84FF
+#endif
 
 #endif
 

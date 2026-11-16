@@ -437,7 +437,36 @@ void displayKeyboard(bool pShow) {
     keyboardShowing = pShow;
 }
 
-Point2I rawLastTouches[10];
+#define MAX_RAW_TOUCH_POINTERS 10
+Point2I rawLastTouches[MAX_RAW_TOUCH_POINTERS];
+int32_t rawPointerIds[MAX_RAW_TOUCH_POINTERS] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+
+static int findRawTouchSlot(int32_t pointerId)
+{
+    for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+    {
+        if (rawPointerIds[i] == pointerId)
+            return i;
+    }
+    return -1;
+}
+
+static int allocRawTouchSlot(int32_t pointerId)
+{
+    int slot = findRawTouchSlot(pointerId);
+    if (slot != -1)
+        return slot;
+
+    for (int i = 0; i < MAX_RAW_TOUCH_POINTERS; i++)
+    {
+        if (rawPointerIds[i] == -1)
+        {
+            rawPointerIds[i] = pointerId;
+            return i;
+        }
+    }
+    return -1;
+}
 
 // Handle touch and keyboard input from android OS
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
@@ -446,36 +475,81 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
 
-        int32_t eventValue = (AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK);
+        int32_t action = AMotionEvent_getAction(event);
+        int32_t eventValue = (action & AMOTION_EVENT_ACTION_MASK);
+        size_t touchCount = AMotionEvent_getPointerCount(event);
 
-        if (eventValue == AMOTION_EVENT_ACTION_DOWN || eventValue == AMOTION_EVENT_ACTION_POINTER_DOWN) {
+        if (eventValue == AMOTION_EVENT_ACTION_DOWN) {
 
-            size_t touchCount = AMotionEvent_getPointerCount(event);
-            for (U8 i = 0; i < touchCount; i++)
+            for (int k = 0; k < MAX_RAW_TOUCH_POINTERS; k++)
+                rawPointerIds[k] = -1;
+
+            for (size_t i = 0; i < touchCount; i++)
             {
                 Point2I point;
-                point.x = AMotionEvent_getX(event, i);
-                point.y = AMotionEvent_getY(event, i);
+                point.x = (S32)AMotionEvent_getX(event, i);
+                point.y = (S32)AMotionEvent_getY(event, i);
+                int32_t pointerId = AMotionEvent_getPointerId(event, i);
+                int slot = allocRawTouchSlot(pointerId);
+                if (slot != -1)
+                    rawLastTouches[slot] = point;
 
-                rawLastTouches[i].x = point.x;
-                rawLastTouches[i].y = point.y;
-
-                createMouseDownEvent(i, point.x, point.y, touchCount);
+                createMouseDownEvent(pointerId, point.x, point.y, touchCount);
             }
 
         }
 
-        if (eventValue == AMOTION_EVENT_ACTION_UP || eventValue == AMOTION_EVENT_ACTION_POINTER_UP) {
+        if (eventValue == AMOTION_EVENT_ACTION_POINTER_DOWN) {
 
-            size_t touchCount = AMotionEvent_getPointerCount(event);
-            for (U8 i = 0; i < touchCount; i++)
+            size_t pointerIndex = (size_t)((action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+            if (pointerIndex < touchCount)
             {
                 Point2I point;
-                point.x = AMotionEvent_getX(event, i);
-                point.y = AMotionEvent_getY(event, i);
-                Point2I prevPoint = rawLastTouches[i];
+                point.x = (S32)AMotionEvent_getX(event, pointerIndex);
+                point.y = (S32)AMotionEvent_getY(event, pointerIndex);
+                int32_t pointerId = AMotionEvent_getPointerId(event, pointerIndex);
+                int slot = allocRawTouchSlot(pointerId);
+                if (slot != -1)
+                    rawLastTouches[slot] = point;
 
-                createMouseUpEvent(i, point.x, point.y, prevPoint.x, prevPoint.y, touchCount);
+                createMouseDownEvent(pointerId, point.x, point.y, touchCount);
+            }
+
+        }
+
+        if (eventValue == AMOTION_EVENT_ACTION_POINTER_UP) {
+
+            size_t pointerIndex = (size_t)((action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+            if (pointerIndex < touchCount)
+            {
+                Point2I point;
+                point.x = (S32)AMotionEvent_getX(event, pointerIndex);
+                point.y = (S32)AMotionEvent_getY(event, pointerIndex);
+                int32_t pointerId = AMotionEvent_getPointerId(event, pointerIndex);
+                int slot = findRawTouchSlot(pointerId);
+                Point2I prevPoint = (slot != -1) ? rawLastTouches[slot] : point;
+                if (slot != -1)
+                    rawPointerIds[slot] = -1;
+
+                createMouseUpEvent(pointerId, point.x, point.y, prevPoint.x, prevPoint.y, touchCount);
+            }
+
+        }
+
+        if (eventValue == AMOTION_EVENT_ACTION_UP) {
+
+            for (size_t i = 0; i < touchCount; i++)
+            {
+                Point2I point;
+                point.x = (S32)AMotionEvent_getX(event, i);
+                point.y = (S32)AMotionEvent_getY(event, i);
+                int32_t pointerId = AMotionEvent_getPointerId(event, i);
+                int slot = findRawTouchSlot(pointerId);
+                Point2I prevPoint = (slot != -1) ? rawLastTouches[slot] : point;
+                if (slot != -1)
+                    rawPointerIds[slot] = -1;
+
+                createMouseUpEvent(pointerId, point.x, point.y, prevPoint.x, prevPoint.y, touchCount);
 
                 if (touchCount > 0)
                 {
@@ -483,37 +557,45 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
                     createMouseTapEvent(touchCount, (int) point.x, (int) point.y);
                 }
             }
+
+            for (int k = 0; k < MAX_RAW_TOUCH_POINTERS; k++)
+                rawPointerIds[k] = -1;
         }
 
         if (eventValue == AMOTION_EVENT_ACTION_MOVE) {
 
-            size_t touchCount = AMotionEvent_getPointerCount(event);
-            for (U8 i = 0; i < touchCount; i++)
+            for (size_t i = 0; i < touchCount; i++)
             {
                 Point2I point;
-                point.x = AMotionEvent_getX(event, i);
-                point.y = AMotionEvent_getY(event, i);
-                Point2I prevPoint = rawLastTouches[i];
+                point.x = (S32)AMotionEvent_getX(event, i);
+                point.y = (S32)AMotionEvent_getY(event, i);
+                int32_t pointerId = AMotionEvent_getPointerId(event, i);
+                int slot = findRawTouchSlot(pointerId);
+                Point2I prevPoint = (slot != -1) ? rawLastTouches[slot] : point;
 
-                createMouseMoveEvent(i, point.x, point.y, prevPoint.x, prevPoint.y);
+                createMouseMoveEvent(pointerId, point.x, point.y, prevPoint.x, prevPoint.y);
 
-                rawLastTouches[i].x = point.x;
-                rawLastTouches[i].y = point.y;
-
+                if (slot == -1)
+                    slot = allocRawTouchSlot(pointerId);
+                if (slot != -1)
+                    rawLastTouches[slot] = point;
             }
         }
 
         if (eventValue == AMOTION_EVENT_ACTION_CANCEL) {
 
-            size_t touchCount = AMotionEvent_getPointerCount(event);
-            for (U8 i = 0; i < touchCount; i++)
+            for (size_t i = 0; i < touchCount; i++)
             {
                 Point2I point;
-                point.x = AMotionEvent_getX(event, i);
-                point.y = AMotionEvent_getY(event, i);
-                Point2I prevPoint = rawLastTouches[i];
+                point.x = (S32)AMotionEvent_getX(event, i);
+                point.y = (S32)AMotionEvent_getY(event, i);
+                int32_t pointerId = AMotionEvent_getPointerId(event, i);
+                int slot = findRawTouchSlot(pointerId);
+                Point2I prevPoint = (slot != -1) ? rawLastTouches[slot] : point;
+                if (slot != -1)
+                    rawPointerIds[slot] = -1;
 
-                createMouseUpEvent(i, point.x, point.y, prevPoint.x, prevPoint.y, touchCount);
+                createMouseUpEvent(pointerId, point.x, point.y, prevPoint.x, prevPoint.y, touchCount);
 
                 if (touchCount > 0)
                 {
@@ -521,6 +603,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
                     createMouseTapEvent(touchCount, (int) point.x, (int) point.y);
                 }
             }
+
+            for (int k = 0; k < MAX_RAW_TOUCH_POINTERS; k++)
+                rawPointerIds[k] = -1;
         }
 
         return 1;
@@ -821,6 +906,7 @@ static int engine_init_display(struct engine* engine) {
 			return -1;
     	}
     	activity.finishGLSetup();
+    	toggleSplashScreen(false);
     	SetupCompleted = true;
     }
     else
@@ -1256,12 +1342,16 @@ void android_main(struct android_app* state) {
         // Read all pending events.
         int ident;
         int events;
-        struct android_poll_source* source;
+        struct android_poll_source* source = NULL;
 
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
+        // NDK r27 removed ALooper_pollAll because it could swallow wakes; exit
+        // the poll loop on any < 0 return (including WAKE/CALLBACK) so
+        // destroyRequested is checked and engine_update_frame only runs while
+        // animating.
+        while ((ident = ALooper_pollOnce(engine.animating ? 0 : -1, NULL, &events,
                 (void**)&source)) >= 0) {
 
             // Process this event.
@@ -1301,9 +1391,18 @@ void android_main(struct android_app* state) {
                 engine_term_display(&engine, true);
                 return;
             }
+
+            source = NULL;
         }
 
-        engine_update_frame(&engine);
+        if (state->destroyRequested != 0) {
+            engine_term_display(&engine, true);
+            return;
+        }
+
+        if (engine.animating) {
+            engine_update_frame(&engine);
+        }
 
         /*if (engine.animating) {
 
@@ -1526,6 +1625,7 @@ bool android_DumpPathExtra(Vector<Platform::FileInfo>& fileVector)
 			const char *rawString = lJNIEnv->GetStringUTFChars(string, 0);
 			std::string str = rawString;
 			lJNIEnv->ReleaseStringUTFChars(string, rawString);
+			lJNIEnv->DeleteLocalRef(string);
 
 			const U32 fileSize = Platform::getFileSize(str.c_str());
 			fileVector.increment();
@@ -1674,6 +1774,7 @@ bool android_DumpPath(const char* dir, Vector<Platform::FileInfo>& fileVector, U
 			const char *rawString = lJNIEnv->GetStringUTFChars(string, 0);
 			std::string str = rawString;
 			lJNIEnv->ReleaseStringUTFChars(string, rawString);
+			lJNIEnv->DeleteLocalRef(string);
 
 			const U32 fileSize = Platform::getFileSize(str.c_str());
 			fileVector.increment();

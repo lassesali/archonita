@@ -90,7 +90,7 @@ GLuint createVertexArray()
       return vao;
    }
    glGenVertexArrays(1, &vao);
-#elif defined(TORQUE_OS_ANDROID)
+#elif defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS) || defined(TORQUE_OS_OSX) || defined(TORQUE_OS_EMSCRIPTEN)
    glGenVertexArrays(1, &vao);
 #endif
    return vao;
@@ -98,7 +98,7 @@ GLuint createVertexArray()
 
 void deleteVertexArray(GLuint vao)
 {
-#if defined(TORQUE_OS_WIN) || defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_ANDROID)
+#if defined(TORQUE_OS_WIN) || defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS) || defined(TORQUE_OS_OSX) || defined(TORQUE_OS_EMSCRIPTEN)
    if (vao != 0)
       glDeleteVertexArrays(1, &vao);
 #endif
@@ -135,7 +135,7 @@ void textureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLs
    }
    glBindTexture(GL_TEXTURE_2D, texture);
    glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
-#elif defined(TORQUE_OS_ANDROID)
+#elif defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS) || defined(TORQUE_OS_EMSCRIPTEN)
    glBindTexture(GL_TEXTURE_2D, texture);
    glTexStorage2D(GL_TEXTURE_2D, levels, internalformat, width, height);
 #endif
@@ -194,10 +194,15 @@ void textureParameterf(GLuint texture, GLenum pname, GLfloat param)
 
 void setTextureSwizzle(GLuint texture, GLint r, GLint g, GLint b, GLint a)
 {
+#if defined(TORQUE_OS_EMSCRIPTEN)
+   // WebGL 2.0 does not support GL_TEXTURE_SWIZZLE_*.
+   (void)texture; (void)r; (void)g; (void)b; (void)a;
+#else
    textureParameteri(texture, GL_TEXTURE_SWIZZLE_R, r);
    textureParameteri(texture, GL_TEXTURE_SWIZZLE_G, g);
    textureParameteri(texture, GL_TEXTURE_SWIZZLE_B, b);
    textureParameteri(texture, GL_TEXTURE_SWIZZLE_A, a);
+#endif
 }
 
 void bindTextureUnit(GLuint unit, GLuint texture)

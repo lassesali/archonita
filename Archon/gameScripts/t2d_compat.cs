@@ -338,12 +338,22 @@ function SceneWindow::onTouchDragged(%this, %touchID, %worldPos)
 
 function SceneWindow::setUseWindowMouseEvents(%this, %val)
 {
-   %this.useWindowMouseEvents = %val;
+   %this.setUseWindowInputEvents(%val);
+}
+
+function SceneWindow::getUseWindowMouseEvents(%this)
+{
+   return %this.getUseWindowInputEvents();
 }
 
 function SceneWindow::setUseObjectMouseEvents(%this, %val)
 {
-   %this.useObjectMouseEvents = %val;
+   %this.setUseObjectInputEvents(%val);
+}
+
+function SceneWindow::getUseObjectMouseEvents(%this)
+{
+   return %this.getUseObjectInputEvents();
 }
 
 // Vector math compatibility functions

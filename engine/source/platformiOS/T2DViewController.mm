@@ -69,32 +69,32 @@ extern void _iOSGameInnerLoop();
 
 -(void)swapBuffers {
 	if( isLayedOut == true ) {
-		[self.context presentRenderbuffer:GL_RENDERBUFFER_OES];
+		[self.context presentRenderbuffer:GL_RENDERBUFFER];
 	}
 }
 
 - (BOOL)createFramebuffer {
 	
-	glGenFramebuffersOES(1, &viewFramebuffer);
-	glGenRenderbuffersOES(1, &viewRenderbuffer);
+	glGenFramebuffers(1, &viewFramebuffer);
+	glGenRenderbuffers(1, &viewRenderbuffer);
 	
-	glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
-	glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
-	[self.context renderbufferStorage:GL_RENDERBUFFER_OES fromDrawable:(CAEAGLLayer*)self.view.layer];
-	glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, viewRenderbuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, viewFramebuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, viewRenderbuffer);
+	[self.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.view.layer];
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, viewRenderbuffer);
 	
-	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_WIDTH_OES, &backingWidth);
-	glGetRenderbufferParameterivOES(GL_RENDERBUFFER_OES, GL_RENDERBUFFER_HEIGHT_OES, &backingHeight);
+	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth);
+	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight);
 	
 	if (USE_DEPTH_BUFFER) {
-		glGenRenderbuffersOES(1, &depthRenderbuffer);
-		glBindRenderbufferOES(GL_RENDERBUFFER_OES, depthRenderbuffer);
-		glRenderbufferStorageOES(GL_RENDERBUFFER_OES, GL_DEPTH_COMPONENT16_OES, backingWidth, backingHeight);
-		glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_DEPTH_ATTACHMENT_OES, GL_RENDERBUFFER_OES, depthRenderbuffer);
+		glGenRenderbuffers(1, &depthRenderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, backingWidth, backingHeight);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
 	}
 	
-	if(glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES) != GL_FRAMEBUFFER_COMPLETE_OES) {
-		NSLog(@"failed to make complete framebuffer object %x", glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES));
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		NSLog(@"failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 		return NO;
 	}
 	
@@ -104,13 +104,13 @@ extern void _iOSGameInnerLoop();
 
 - (void)destroyFramebuffer {
 	
-	glDeleteFramebuffersOES(1, &viewFramebuffer);
+	glDeleteFramebuffers(1, &viewFramebuffer);
 	viewFramebuffer = 0;
-	glDeleteRenderbuffersOES(1, &viewRenderbuffer);
+	glDeleteRenderbuffers(1, &viewRenderbuffer);
 	viewRenderbuffer = 0;
 	
 	if(depthRenderbuffer) {
-		glDeleteRenderbuffersOES(1, &depthRenderbuffer);
+		glDeleteRenderbuffers(1, &depthRenderbuffer);
 		depthRenderbuffer = 0;
 	}
 }
@@ -121,7 +121,11 @@ extern void _iOSGameInnerLoop();
     [super viewDidLoad];
     
     self.context = [[EAGLContext alloc]
-                    initWithAPI:kEAGLRenderingAPIOpenGLES1];
+                    initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (!self.context) {
+        self.context = [[EAGLContext alloc]
+                        initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
     
     if (!self.context) {
         NSLog(@"Failed to create ES context");

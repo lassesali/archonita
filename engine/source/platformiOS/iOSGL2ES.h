@@ -34,8 +34,8 @@
 
 #include "platform/types.h"
 
-#include "OpenGLES/ES1/gl.h"
-#include "OpenGLES/ES1/glext.h"
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
 
 extern "C"
 {
@@ -119,9 +119,15 @@ class ColorI;
 //#define GL_TRIANGLES                      0x0004
 //#define GL_TRIANGLE_STRIP                 0x0005
 //#define GL_TRIANGLE_FAN                   0x0006
+#ifndef GL_QUADS
 #define GL_QUADS                          0x0007
+#endif
+#ifndef GL_QUAD_STRIP
 #define GL_QUAD_STRIP                     0x0008
+#endif
+#ifndef GL_POLYGON
 #define GL_POLYGON                        0x0009
+#endif
 //
 ///* BlendingFactorDest */
 //#define GL_ZERO                           0
@@ -199,11 +205,15 @@ class ColorI;
 //
 ///* DataType */
 //#define GL_BYTE                           0x1400
-//#define GL_UNSIGNED_BYTE                  0x1401
+#ifndef GL_UNSIGNED_BYTE
+#define GL_UNSIGNED_BYTE                  0x1401
+#endif
 //#define GL_SHORT                          0x1402
 //#define GL_UNSIGNED_SHORT                 0x1403
 //#define GL_INT                            0x1404
+#ifndef GL_UNSIGNED_INT
 #define GL_UNSIGNED_INT                   0x1405
+#endif
 //#define GL_FLOAT                          0x1406
 //#define GL_2_BYTES                        0x1407
 //#define GL_3_BYTES                        0x1408
@@ -1108,22 +1118,34 @@ class ColorI;
 //#define GL_LUMINANCE12_ALPHA4             0x8046
 //#define GL_LUMINANCE12_ALPHA12            0x8047
 //#define GL_LUMINANCE16_ALPHA16            0x8048
+#ifndef GL_INTENSITY
 #define GL_INTENSITY                      0x8049
+#endif
 //#define GL_INTENSITY4                     0x804A
 //#define GL_INTENSITY8                     0x804B
 //#define GL_INTENSITY12                    0x804C
 //#define GL_INTENSITY16                    0x804D
 //#define GL_R3_G3_B2                       0x2A10
 //#define GL_RGB4                           0x804F
+#ifndef GL_RGB5
 #define GL_RGB5                           0x8050
+#endif
+#ifndef GL_RGB8
 #define GL_RGB8                           0x8051
+#endif
 //#define GL_RGB10                          0x8052
 //#define GL_RGB12                          0x8053
 //#define GL_RGB16                          0x8054
 //#define GL_RGBA2                          0x8055
+#ifndef GL_RGBA4
 #define GL_RGBA4                          0x8056
+#endif
+#ifndef GL_RGB5_A1
 #define GL_RGB5_A1                        0x8057
+#endif
+#ifndef GL_RGBA8
 #define GL_RGBA8                          0x8058
+#endif
 //#define GL_RGB10_A2                       0x8059
 //#define GL_RGBA12                         0x805A
 //#define GL_RGBA16                         0x805B
@@ -1230,7 +1252,9 @@ class ColorI;
 //
 ///* EXT_bgra */
 //#define GL_BGR_EXT                        0x80E0
+#ifndef GL_BGRA_EXT
 #define GL_BGRA_EXT                       0x80E1
+#endif
 //
 ///* Extensions */
 //#define GL_EXT_abgr                       1
@@ -1242,14 +1266,20 @@ class ColorI;
 //#define GL_ABGR_EXT                       0x8000
 //
 ///* EXT_blend_color */
+#ifndef GL_CONSTANT_COLOR_EXT
 #define GL_CONSTANT_COLOR_EXT             0x8001
+#endif
 //#define GL_ONE_MINUS_CONSTANT_COLOR_EXT   0x8002
 //#define GL_CONSTANT_ALPHA_EXT             0x8003
 //#define GL_ONE_MINUS_CONSTANT_ALPHA_EXT   0x8004
+#ifndef GL_BLEND_COLOR_EXT
 #define GL_BLEND_COLOR_EXT                0x8005
+#endif
 //
 ///* EXT_blend_minmax */
+#ifndef GL_FUNC_ADD_EXT
 #define GL_FUNC_ADD_EXT                   0x8006
+#endif
 //#define GL_MIN_EXT                        0x8007
 //#define GL_MAX_EXT                        0x8008
 //#define GL_BLEND_EQUATION_EXT             0x8009
@@ -1391,6 +1421,28 @@ class ColorI;
 #define glFrustum( left, right, bottom, top, near, far ) glFrustumf( left, right, bottom, top, near, far )
 #define glDepthRange( near, far ) glDepthRangef( near, far )
 
+// OpenGL ES 1.1 compatibility prototypes (implemented in iOSGL2ES.mm on top of ES 3.0)
+void glColor4f( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha );
+void glColor4ub( GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha );
+void glNormal3f( GLfloat nx, GLfloat ny, GLfloat nz );
+void glOrthof( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar );
+void glFrustumf( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar );
+void glLoadIdentity();
+void glLoadMatrixf( const GLfloat *m );
+void glMultMatrixf( const GLfloat *m );
+void glTranslatef( GLfloat x, GLfloat y, GLfloat z );
+void glRotatef( GLfloat angle, GLfloat x, GLfloat y, GLfloat z );
+void glScalef( GLfloat x, GLfloat y, GLfloat z );
+void glTexEnvi( GLenum target, GLenum pname, GLint param );
+void glTexEnvfv( GLenum target, GLenum pname, const GLfloat *params );
+void glAlphaFunc( GLenum func, GLclampf ref );
+void glPointSize( GLfloat size );
+void glEnableClientState( GLenum array );
+void glDisableClientState( GLenum array );
+void glVertexPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+void glColorPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+void glTexCoordPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+
 // functions that need workarounds
 void glBegin( GLint );
 void glEnd();
@@ -1400,7 +1452,6 @@ void glActiveTextureARB( GLint );
 void glMultiTexCoord2fARB( GLint, GLfloat, GLfloat);
 void glPushAttrib( GLint );
 void glPopAttrib();
-void glReadBuffer( GLint );
 void glVertex3f( GLfloat, GLfloat, GLfloat );
 void glVertex2f( GLfloat, GLfloat );
 void glVertex2i( GLint, GLint );

@@ -159,6 +159,8 @@ target_compile_features(Torque2D PRIVATE cxx_std_17)
 target_include_directories(Torque2D PRIVATE
     ${TORQUE_SRC}
     ${TORQUE_LIB}
+)
+target_include_directories(Torque2D SYSTEM PRIVATE
     ${TORQUE_SRC}/persistence/rapidjson
     ${TORQUE_SRC}/persistence/rapidjson/include
 )
@@ -227,6 +229,18 @@ else()
     # tolerates it; Clang (Android NDK, and macOS/iOS) makes -Wregister an error.
     target_compile_options(Torque2D PRIVATE -Wno-register)
 endif()
+
+# Suppress compiler warnings in vendored Box2D sources while keeping them enabled for Torque2D code.
+set(_torque_box2d_sources ${TORQUE_ENGINE_SOURCES})
+list(FILTER _torque_box2d_sources INCLUDE REGEX "/Box2D/")
+if(_torque_box2d_sources)
+    if(MSVC)
+        set_source_files_properties(${_torque_box2d_sources} PROPERTIES COMPILE_OPTIONS "/W0")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        set_source_files_properties(${_torque_box2d_sources} PROPERTIES COMPILE_OPTIONS "-w")
+    endif()
+endif()
+unset(_torque_box2d_sources)
 
 # Link: third-party libs built from source (transitively bring their includes).
 target_link_libraries(Torque2D PRIVATE libogg libvorbis lpng ljpeg)
@@ -506,22 +520,16 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
 endif()
 
 if(ANDROID)
-    # Prebuilt third-party libs (arm64-v8a only — the other ABIs have no prebuilts).
-    # FreeType is an ancient (2.4.12) static .a; OpenAL is a shared .so that must
-    # also be packaged into the APK (see the Gradle jniLibs config).
+    # Prebuilt FreeType (arm64-v8a static .a); OpenAL Soft is built from source
+    # via engine/lib/CMakeLists.txt so libopenal.so tracks the active ABI and fixes.
     add_library(android_freetype STATIC IMPORTED)
     set_target_properties(android_freetype PROPERTIES
         IMPORTED_LOCATION "${TORQUE_LIB}/freetype/android/lib/${ANDROID_ABI}/libfreetype.a"
         INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/freetype/android/include;${TORQUE_LIB}/freetype/android/include/freetype2")
 
-    add_library(android_openal SHARED IMPORTED)
-    set_target_properties(android_openal PROPERTIES
-        IMPORTED_LOCATION "${TORQUE_LIB}/openal/Android/${ANDROID_ABI}/libopenal.so"
-        INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/openal/Android/openal-soft-master/jni/OpenAL/include")
-
     # Android system libraries (z = NDK libz; GLESv3 provides OpenGL ES 3.2).
     target_link_libraries(Torque2D PRIVATE
-        android_freetype android_openal
+        android_freetype openal
         log android EGL GLESv3 OpenSLES z)
 endif()
 
@@ -561,19 +569,16 @@ if(EMSCRIPTEN)
 
     # Script/asset trees packaged into the MEMFS virtual filesystem by the emcc file
     # packager (--preload-file SRC@DST -> a .data sidecar). The engine runs from cwd
-    # "/" in the browser, so main.cs lands at /main.cs and the trees under /editor,
-    # /library, /toybox. Everything a web build can touch must be preloaded (there's
-    # no host FS to lazy-load from), so the runtime content trees are all bundled.
-    # NOTE: tools/ is deliberately EXCLUDED — unlike the iOS bundle it is not shipped,
-    # because it is build-time-only tooling (TexturePacker, and ~90 MB of generated
-    # doxygen HTML under tools/doxygen/output) that the engine never loads at runtime.
+    # "/" in the browser, so main.cs lands at /main.cs and the runtime trees under
+    # /library and /Archon. Everything the Archon web build touches must be preloaded
+    # (there's no host FS to lazy-load from); editor/, toybox/, PlanetX/, and tools/
+    # are excluded because main.cs boots Archon directly on Emscripten and excluding
+    # unused trees keeps Torque2D.data under GitHub's 100 MB limit.
     # (SHELL: keeps each option+path pair together and unde-duplicated by CMake.)
     set(_emPreload
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/main.cs@/main.cs"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/editor@/editor"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/library@/library"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/toybox@/toybox"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/PlanetX@/PlanetX")
+        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Archon@/Archon")
 
     target_link_options(Torque2D PRIVATE
         "-sUSE_SDL=2"
@@ -593,6 +598,8 @@ if(EMSCRIPTEN)
     # emcc picks the output format from the target suffix: .html emits the HTML
     # shell + .js + .wasm (+ .data from the preload). -> Torque2D_DEBUG.html etc.
     set_target_properties(Torque2D PROPERTIES SUFFIX ".html")
+    # Repackage the .data sidecar whenever the root boot script changes.
+    set_property(TARGET Torque2D APPEND PROPERTY LINK_DEPENDS "${CMAKE_SOURCE_DIR}/main.cs")
 endif()
 
 # Output name. On Android the NativeActivity loads "torque2d" -> libtorque2d.so.

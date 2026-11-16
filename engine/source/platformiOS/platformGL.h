@@ -27,13 +27,13 @@
 #ifdef __OBJC__
 	#import <QuartzCore/QuartzCore.h>
 //#import <OpenGLES/EAGL.h>
-	#import <OpenGLES/ES1/gl.h>
-	#import <OpenGLES/ES1/glext.h>
+	#import <OpenGLES/ES3/gl.h>
+	#import <OpenGLES/ES3/glext.h>
 #else
 #include <QuartzCore/QuartzCore.h>
 //#include <OpenGLES/EAGL.h>
-#include <OpenGLES/ES1/gl.h>
-#include <OpenGLES/ES1/glext.h>
+#include <OpenGLES/ES3/gl.h>
+#include <OpenGLES/ES3/glext.h>
 #endif
 
 //------------------------------------------------------------------------------
@@ -43,6 +43,26 @@
 
 #ifndef _GLMODERNTYPES_H_
 #include "platform/GLModernTypes.h"
+#endif
+
+// Fallback extension tokens in case <OpenGLES/ES3/glext.h> omits ES2 vendor extensions.
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT        0x84FE
+#endif
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT    0x84FF
+#endif
+#ifndef GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG
+#define GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG   0x8C00
+#endif
+#ifndef GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG
+#define GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG   0x8C01
+#endif
+#ifndef GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG
+#define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG  0x8C02
+#endif
+#ifndef GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG
+#define GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG  0x8C03
 #endif
 
 

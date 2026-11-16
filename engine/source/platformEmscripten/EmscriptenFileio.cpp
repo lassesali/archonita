@@ -95,6 +95,16 @@ static void ForwardSlash(char *str)
   }
 }
 
+static void JoinPath(char* dest, S32 destSize, const char* base, const char* leaf)
+{
+  if (!base || !*base)
+     dSprintf(dest, destSize, "%s", leaf);
+  else if (base[dStrlen(base) - 1] == '/')
+     dSprintf(dest, destSize, "%s%s", base, leaf);
+  else
+     dSprintf(dest, destSize, "%s/%s", base, leaf);
+}
+
 //------------------------------------------------------------------------------
 // copy a file from src to dest
 static bool CopyFile(const char* src, const char* dest)
@@ -286,8 +296,8 @@ static void MungePath(char* dest, S32 destSize,
   {
      AssertFatal(absolutePrefix, "Absolute Prefix must not be NULL");
 
-     dSprintf(tempBuf, MaxPath, "%s/%s", 
-        absolutePrefix, dest);
+     JoinPath(tempBuf, MaxPath, absolutePrefix, src);
+     ForwardSlash(tempBuf);
 
      // copy the result back into dest
      dStrncpy(dest, tempBuf, destSize);
@@ -338,7 +348,7 @@ bool ModifyFile(const char * name, S32 modType)
 static bool RecurseDumpPath(const char *path, const char* relativePath, const char *pattern, Vector<Platform::FileInfo> &fileVector, int recurseDepth) 
 {
   char search[1024];
-  dSprintf(search, sizeof(search), "%s", path, pattern);
+  dSprintf(search, sizeof(search), "%s", path);
   
   DIR *directory = opendir(search);
 
@@ -349,14 +359,17 @@ static bool RecurseDumpPath(const char *path, const char* relativePath, const ch
   fEntry = readdir(directory);		// read the first "file" in the directory
 
   if (fEntry == NULL)
+  {
+     closedir(directory);
      return false;
+  }
 
   do
   {
      char filename[BUFSIZ+1];
      struct stat fStat;
 
-     dSprintf(filename, sizeof(filename), "%s/%s", search, fEntry->d_name); // "construct" the file name
+     JoinPath(filename, sizeof(filename), search, fEntry->d_name); // "construct" the file name
      stat(filename, &fStat); // get the file stats
 
      if ( (fStat.st_mode & S_IFMT) == S_IFDIR )
@@ -372,13 +385,12 @@ static bool RecurseDumpPath(const char *path, const char* relativePath, const ch
 
 
         char child[MaxPath];
-        dSprintf(child, sizeof(child), "%s/%s", path, fEntry->d_name);
+        JoinPath(child, sizeof(child), path, fEntry->d_name);
         char* childRelative = NULL;
         char childRelativeBuf[MaxPath];
         if (relativePath)
         {
-           dSprintf(childRelativeBuf, sizeof(childRelativeBuf), "%s/%s", 
-              relativePath, fEntry->d_name);
+           JoinPath(childRelativeBuf, sizeof(childRelativeBuf), relativePath, fEntry->d_name);
            childRelative = childRelativeBuf;
         }
 
@@ -583,20 +595,19 @@ File::Status File::setPosition(S32 position, bool absolutePos)
        return currentStatus;
    
    U32 finalPos = 0;
-   switch (absolutePos)
+   if (absolutePos)
    {
-   case true:                                                    // absolute position
        AssertFatal(0 <= position, "File::setPosition: negative absolute position");
-       
+
        // position beyond EOS is OK
        finalPos = lseek(*((int *)handle), position, SEEK_SET);
-       break;
-   case false:                                                    // relative position
+   }
+   else
+   {
        AssertFatal((getPosition() >= (U32)abs(position) && 0 > position) || 0 <= position, "File::setPosition: negative relative position");
-       
+
        // position beyond EOS is OK
        finalPos = lseek(*((int *)handle), position, SEEK_CUR);
-  break;
    }
 
    if (0xffffffff == finalPos)
@@ -837,7 +848,13 @@ bool Platform::getFileTimes(const char *filePath, FileTime *createTime, FileTime
   char cwd[MaxPath];
   getcwd(cwd, MaxPath);
   if (dStrstr(filePath, cwd) == filePath)
-     filePath = filePath + dStrlen(cwd) + 1;
+  {
+     const U32 cwdLen = dStrlen(cwd);
+     if (cwdLen > 0 && cwd[cwdLen - 1] == '/')
+        filePath += cwdLen;
+     else if (filePath[cwdLen] == '/')
+        filePath += cwdLen + 1;
+  }
   
   // if its relative, first look in the pref dir
   if (filePath[0] != '/' && filePath[0] != '\\')
@@ -984,7 +1001,7 @@ bool Platform::isSubDirectory(const char *pParent, const char *pDir)
      char dirBuf[MAXPATHLEN];
      struct stat fStat;
 
-     dSprintf(dirBuf, sizeof(dirBuf), "%s/%s", pParent, fEntry->d_name);
+     JoinPath(dirBuf, sizeof(dirBuf), pParent, fEntry->d_name);
      if (stat(dirBuf, &fStat) < 0)
         continue;
      // if it is a directory...
@@ -1018,13 +1035,13 @@ bool Platform::hasSubDirectory(const char *pPath)
  if (dip == NULL)
    return false;
 
- while (d = readdir(dip))
+ while ((d = readdir(dip)) != NULL)
    {
   bool isDir = false;
   if (d->d_type == DT_UNKNOWN) 
   {
       char child [1024];
-      if ((pPath[dStrlen(pPath) - 1] == '/'))
+      if (pPath[dStrlen(pPath) - 1] == '/')
           dSprintf(child, 1024, "%s%s", pPath, d->d_name);
       else
           dSprintf(child, 1024, "%s/%s", pPath, d->d_name);
@@ -1108,14 +1125,14 @@ static bool recurseDumpDirectories(const char *basePath, const char *subPath, Ve
  // Iterate through and grab valid directories
  //////////////////////////////////////////////////////////////////////////
 
-  while (d = readdir(dip))
+  while ((d = readdir(dip)) != NULL)
   {
       bool	isDir;
       isDir = false;
       if (d->d_type == DT_UNKNOWN) 
       {
           char child [1024];
-          if ((Path[dStrlen(Path) - 1] == '/'))
+          if (Path[dStrlen(Path) - 1] == '/')
               dSprintf(child, 1024, "%s%s", Path, d->d_name);
           else
               dSprintf(child, 1024, "%s/%s", Path, d->d_name);

@@ -25,8 +25,10 @@
 
 
 #include "platform/types.h"
-#include <GLES/gl.h>
-#include <GLES/glext.h>
+#include <GLES3/gl3.h>
+#include <GLES2/gl2ext.h>
+
+typedef void GLvoid;
 
 extern "C"
 {
@@ -110,9 +112,15 @@ class ColorI;
 //#define GL_TRIANGLES                      0x0004
 //#define GL_TRIANGLE_STRIP                 0x0005
 //#define GL_TRIANGLE_FAN                   0x0006
+#ifndef GL_QUADS
 #define GL_QUADS                          0x0007
+#endif
+#ifndef GL_QUAD_STRIP
 #define GL_QUAD_STRIP                     0x0008
+#endif
+#ifndef GL_POLYGON
 #define GL_POLYGON                        0x0009
+#endif
 //
 ///* BlendingFactorDest */
 //#define GL_ZERO                           0
@@ -190,11 +198,15 @@ class ColorI;
 //
 ///* DataType */
 //#define GL_BYTE                           0x1400
+#ifndef GL_UNSIGNED_BYTE
 #define GL_UNSIGNED_BYTE                  0x1401
+#endif
 //#define GL_SHORT                          0x1402
 //#define GL_UNSIGNED_SHORT                 0x1403
 //#define GL_INT                            0x1404
+#ifndef GL_UNSIGNED_INT
 #define GL_UNSIGNED_INT                   0x1405
+#endif
 //#define GL_FLOAT                          0x1406
 //#define GL_2_BYTES                        0x1407
 //#define GL_3_BYTES                        0x1408
@@ -336,14 +348,22 @@ class ColorI;
 ///*      GL_FOG_MODE */
 ///*      GL_FOG_START */
 //
+#ifndef GL_FOG_COORDINATE_SOURCE_EXT
 #define GL_FOG_COORDINATE_SOURCE_EXT 0x8450
+#endif
+#ifndef GL_FOG_COORDINATE_EXT
 #define GL_FOG_COORDINATE_EXT 0x8451
+#endif
+#ifndef GL_FRAGMENT_DEPTH_EXT
 #define GL_FRAGMENT_DEPTH_EXT 0x8452
+#endif
 //#define GL_CURRENT_FOG_COORDINATE_EXT 0x8453
 //#define GL_FOG_COORDINATE_ARRAY_TYPE_EXT 0x8454
 //#define GL_FOG_COORDINATE_ARRAY_STRIDE_EXT 0x8455
 //#define GL_FOG_COORDINATE_ARRAY_POINTER_EXT 0x8456
-#define GL_FOG_COORDINATE_ARRAY_EXT 0x8457 
+#ifndef GL_FOG_COORDINATE_ARRAY_EXT
+#define GL_FOG_COORDINATE_ARRAY_EXT 0x8457
+#endif
 //
 ///* FrontFaceDirection */
 //#define GL_CW                             0x0900
@@ -400,7 +420,9 @@ class ColorI;
 //#define GL_MAX_LIST_NESTING               0x0B31
 //#define GL_LIST_BASE                      0x0B32
 //#define GL_LIST_INDEX                     0x0B33
+#ifndef GL_POLYGON_MODE
 #define GL_POLYGON_MODE                   0x0B40
+#endif
 //#define GL_POLYGON_SMOOTH                 0x0B41
 //#define GL_POLYGON_STIPPLE                0x0B42
 //#define GL_EDGE_FLAG                      0x0B43
@@ -477,8 +499,12 @@ class ColorI;
 //#define GL_LINE_SMOOTH_HINT               0x0C52
 //#define GL_POLYGON_SMOOTH_HINT            0x0C53
 //#define GL_FOG_HINT                       0x0C54
+#ifndef GL_TEXTURE_GEN_S
 #define GL_TEXTURE_GEN_S                  0x0C60
+#endif
+#ifndef GL_TEXTURE_GEN_T
 #define GL_TEXTURE_GEN_T                  0x0C61
+#endif
 //#define GL_TEXTURE_GEN_R                  0x0C62
 //#define GL_TEXTURE_GEN_Q                  0x0C63
 //#define GL_PIXEL_MAP_I_TO_I               0x0C70
@@ -617,7 +643,9 @@ class ColorI;
 //#define GL_TEXTURE_WIDTH                  0x1000
 //#define GL_TEXTURE_HEIGHT                 0x1001
 //#define GL_TEXTURE_INTERNAL_FORMAT        0x1003
+#ifndef GL_TEXTURE_BORDER_COLOR
 #define GL_TEXTURE_BORDER_COLOR           0x1004
+#endif
 //#define GL_TEXTURE_BORDER                 0x1005
 ///*      GL_TEXTURE_RED_SIZE */
 ///*      GL_TEXTURE_GREEN_SIZE */
@@ -785,7 +813,9 @@ class ColorI;
 //#define GL_STENCIL                        0x1802
 //
 ///* PixelFormat */
+#ifndef GL_COLOR_INDEX
 #define GL_COLOR_INDEX                    0x1900
+#endif
 //#define GL_STENCIL_INDEX                  0x1901
 //#define GL_DEPTH_COMPONENT                0x1902
 //#define GL_RED                            0x1903
@@ -794,8 +824,12 @@ class ColorI;
 //#define GL_ALPHA                          0x1906
 //#define GL_RGB                            0x1907
 //#define GL_RGBA                           0x1908
-//#define GL_LUMINANCE                      0x1909
-//#define GL_LUMINANCE_ALPHA                0x190A
+#ifndef GL_LUMINANCE
+#define GL_LUMINANCE                      0x1909
+#endif
+#ifndef GL_LUMINANCE_ALPHA
+#define GL_LUMINANCE_ALPHA                0x190A
+#endif
 //#define GL_BGR					          0x80E0
 //#define GL_BGRA					          0x80E1
 //
@@ -853,8 +887,12 @@ class ColorI;
 //
 ///* PolygonMode */
 //#define GL_POINT                          0x1B00
+#ifndef GL_LINE
 #define GL_LINE                           0x1B01
+#endif
+#ifndef GL_FILL
 #define GL_FILL                           0x1B02
+#endif
 //
 ///* ReadBufferMode */
 ///*      GL_FRONT_LEFT */
@@ -905,8 +943,12 @@ class ColorI;
 //#define GL_EXTENSIONS                     0x1F03
 //
 ///* TextureCoordName */
+#ifndef GL_S
 #define GL_S                              0x2000
+#endif
+#ifndef GL_T
 #define GL_T                              0x2001
+#endif
 //#define GL_R                              0x2002
 //#define GL_Q                              0x2003
 //
@@ -931,12 +973,20 @@ class ColorI;
 //
 ///* TextureGenMode */
 //#define GL_EYE_LINEAR                     0x2400
+#ifndef GL_OBJECT_LINEAR
 #define GL_OBJECT_LINEAR                  0x2401
+#endif
+#ifndef GL_SPHERE_MAP
 #define GL_SPHERE_MAP                     0x2402
+#endif
 //
 ///* TextureGenParameter */
+#ifndef GL_TEXTURE_GEN_MODE
 #define GL_TEXTURE_GEN_MODE               0x2500
+#endif
+#ifndef GL_OBJECT_PLANE
 #define GL_OBJECT_PLANE                   0x2501
+#endif
 //#define GL_EYE_PLANE                      0x2502
 //
 ///* TextureMagFilter */
@@ -966,7 +1016,9 @@ class ColorI;
 ///*      GL_PROXY_TEXTURE_2D */
 //
 ///* TextureWrapMode */
+#ifndef GL_CLAMP
 #define GL_CLAMP                          0x2900
+#endif
 //#define GL_REPEAT                         0x2901
 //
 //#define GL_TEXTURE0                       0x84C0
@@ -1044,12 +1096,24 @@ class ColorI;
 //#define GL_COMBINE                        0x8570
 //#define GL_COMBINE_RGB                    0x8571
 //#define GL_COMBINE_ALPHA                  0x8572
+#ifndef GL_SOURCE0_RGB
 #define GL_SOURCE0_RGB                    0x8580
+#endif
+#ifndef GL_SOURCE1_RGB
 #define GL_SOURCE1_RGB                    0x8581
+#endif
+#ifndef GL_SOURCE2_RGB
 #define GL_SOURCE2_RGB                    0x8582
+#endif
+#ifndef GL_SOURCE0_ALPHA
 #define GL_SOURCE0_ALPHA                  0x8588
+#endif
+#ifndef GL_SOURCE1_ALPHA
 #define GL_SOURCE1_ALPHA                  0x8589
+#endif
+#ifndef GL_SOURCE2_ALPHA
 #define GL_SOURCE2_ALPHA                  0x858A
+#endif
 //#define GL_OPERAND0_RGB                   0x8590
 //#define GL_OPERAND1_RGB                   0x8591
 //#define GL_OPERAND2_RGB                   0x8592
@@ -1099,22 +1163,34 @@ class ColorI;
 //#define GL_LUMINANCE12_ALPHA4             0x8046
 //#define GL_LUMINANCE12_ALPHA12            0x8047
 //#define GL_LUMINANCE16_ALPHA16            0x8048
+#ifndef GL_INTENSITY
 #define GL_INTENSITY                      0x8049
+#endif
 //#define GL_INTENSITY4                     0x804A
 //#define GL_INTENSITY8                     0x804B
 //#define GL_INTENSITY12                    0x804C
 //#define GL_INTENSITY16                    0x804D
 //#define GL_R3_G3_B2                       0x2A10
 //#define GL_RGB4                           0x804F
+#ifndef GL_RGB5
 #define GL_RGB5                           0x8050
+#endif
+#ifndef GL_RGB8
 #define GL_RGB8                           0x8051
+#endif
 //#define GL_RGB10                          0x8052
 //#define GL_RGB12                          0x8053
 //#define GL_RGB16                          0x8054
 //#define GL_RGBA2                          0x8055
+#ifndef GL_RGBA4
 #define GL_RGBA4                          0x8056
+#endif
+#ifndef GL_RGB5_A1
 #define GL_RGB5_A1                        0x8057
+#endif
+#ifndef GL_RGBA8
 #define GL_RGBA8                          0x8058
+#endif
 //#define GL_RGB10_A2                       0x8059
 //#define GL_RGBA12                         0x805A
 //#define GL_RGBA16                         0x805B
@@ -1221,7 +1297,9 @@ class ColorI;
 //
 ///* EXT_bgra */
 //#define GL_BGR_EXT                        0x80E0
+#ifndef GL_BGRA_EXT
 #define GL_BGRA_EXT                       0x80E1
+#endif
 //
 ///* Extensions */
 //#define GL_EXT_abgr                       1
@@ -1233,14 +1311,20 @@ class ColorI;
 //#define GL_ABGR_EXT                       0x8000
 //
 ///* EXT_blend_color */
+#ifndef GL_CONSTANT_COLOR_EXT
 #define GL_CONSTANT_COLOR_EXT             0x8001
+#endif
 //#define GL_ONE_MINUS_CONSTANT_COLOR_EXT   0x8002
 //#define GL_CONSTANT_ALPHA_EXT             0x8003
 //#define GL_ONE_MINUS_CONSTANT_ALPHA_EXT   0x8004
+#ifndef GL_BLEND_COLOR_EXT
 #define GL_BLEND_COLOR_EXT                0x8005
+#endif
 //
 ///* EXT_blend_minmax */
+#ifndef GL_FUNC_ADD_EXT
 #define GL_FUNC_ADD_EXT                   0x8006
+#endif
 //#define GL_MIN_EXT                        0x8007
 //#define GL_MAX_EXT                        0x8008
 //#define GL_BLEND_EQUATION_EXT             0x8009
@@ -1264,7 +1348,9 @@ class ColorI;
 //#define GL_COLOR_INDEX1_EXT               0x80E2
 //#define GL_COLOR_INDEX2_EXT               0x80E3
 //#define GL_COLOR_INDEX4_EXT               0x80E4
+#ifndef GL_COLOR_INDEX8_EXT
 #define GL_COLOR_INDEX8_EXT               0x80E5
+#endif
 //#define GL_COLOR_INDEX12_EXT              0x80E6
 //#define GL_COLOR_INDEX16_EXT              0x80E7
 //
@@ -1317,10 +1403,18 @@ class ColorI;
 //typedef void*		NativeWindowType;
 //typedef void*		NativePixmapType;
 
+#ifndef GL_TEXTURE0_ARB
 #define GL_TEXTURE0_ARB                   0x84C0
+#endif
+#ifndef GL_TEXTURE1_ARB
 #define GL_TEXTURE1_ARB                   0x84C1
+#endif
+#ifndef GL_TEXTURE2_ARB
 #define GL_TEXTURE2_ARB                   0x84C2
+#endif
+#ifndef GL_TEXTURE3_ARB
 #define GL_TEXTURE3_ARB                   0x84C3
+#endif
 //#define GL_TEXTURE4_ARB                   0x84C4
 //#define GL_TEXTURE5_ARB                   0x84C5
 //#define GL_TEXTURE6_ARB                   0x84C6
@@ -1351,15 +1445,23 @@ class ColorI;
 //#define GL_TEXTURE31_ARB                  0x84DF
 //#define GL_ACTIVE_TEXTURE_ARB             0x84E0
 //#define GL_CLIENT_ACTIVE_TEXTURE_ARB      0x84E1
+#ifndef GL_MAX_TEXTURE_UNITS_ARB
 #define GL_MAX_TEXTURE_UNITS_ARB          0x84E2
+#endif
 //
 //#define GL_COMPRESSED_ALPHA_ARB 0x84E9
 //#define GL_COMPRESSED_LUMINANCE_ARB 0x84EA
 //#define GL_COMPRESSED_LUMINANCE_ALPHA_ARB 0x84EB
 //#define GL_COMPRESSED_INTENSITY_ARB 0x84EC
+#ifndef GL_COMPRESSED_RGB_ARB
 #define GL_COMPRESSED_RGB_ARB 0x84ED
+#endif
+#ifndef GL_COMPRESSED_RGBA_ARB
 #define GL_COMPRESSED_RGBA_ARB 0x84EE
+#endif
+#ifndef GL_TEXTURE_COMPRESSION_HINT_ARB
 #define GL_TEXTURE_COMPRESSION_HINT_ARB 0x84EF
+#endif
 //#define GL_TEXTURE_COMPRESSED_IMAGE_SIZE_ARB 0x86A0
 //#define GL_TEXTURE_COMPRESSED_ARB 0x86A1
 //#define GL_NUM_COMPRESSED_TEXTURE_FORMATS_ARB 0x86A2
@@ -1382,6 +1484,28 @@ class ColorI;
 #define glFrustum( left, right, bottom, top, near, far ) glFrustumf( left, right, bottom, top, near, far )
 #define glDepthRange( near, far ) glDepthRangef( near, far )
 
+// OpenGL ES 1.1 compatibility prototypes (implemented in EmscriptenGL2ES.cpp on top of WebGL 2 / ES 3.0)
+void glColor4f( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha );
+void glColor4ub( GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha );
+void glNormal3f( GLfloat nx, GLfloat ny, GLfloat nz );
+void glOrthof( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar );
+void glFrustumf( GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar );
+void glLoadIdentity();
+void glLoadMatrixf( const GLfloat *m );
+void glMultMatrixf( const GLfloat *m );
+void glTranslatef( GLfloat x, GLfloat y, GLfloat z );
+void glRotatef( GLfloat angle, GLfloat x, GLfloat y, GLfloat z );
+void glScalef( GLfloat x, GLfloat y, GLfloat z );
+void glTexEnvi( GLenum target, GLenum pname, GLint param );
+void glTexEnvfv( GLenum target, GLenum pname, const GLfloat *params );
+void glAlphaFunc( GLenum func, GLclampf ref );
+void glPointSize( GLfloat size );
+void glEnableClientState( GLenum array );
+void glDisableClientState( GLenum array );
+void glVertexPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+void glColorPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+void glTexCoordPointer( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+
 // functions that need workarounds
 void glBegin( GLint );
 void glEnd();
@@ -1391,7 +1515,6 @@ void glActiveTextureARB( GLint );
 void glMultiTexCoord2fARB( GLint, GLfloat, GLfloat);
 void glPushAttrib( GLint );
 void glPopAttrib();
-void glReadBuffer( GLint );
 void glVertex3f( GLfloat, GLfloat, GLfloat );
 void glVertex2f( GLfloat, GLfloat );
 void glVertex2i( GLint, GLint );

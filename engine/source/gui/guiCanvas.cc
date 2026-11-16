@@ -718,7 +718,10 @@ void GuiCanvas::rootScreenTouchDown(const GuiEvent &event)
             // then unlock the existing control.  
             if (bool(mMouseCapturedControl) && mMouseCapturedControl->isMouseLocked() && mMouseCapturedControl != controlHit)
             {
-                mMouseCapturedControl->onTouchLeave(event);
+                GuiControl* prevCaptured = mMouseCapturedControl;
+                prevCaptured->onTouchLeave(event);
+                if (mMouseCapturedControl == prevCaptured)
+                    mouseUnlock(prevCaptured);
             }
 
             //Regardless of what the control does, it has the user's focus.
@@ -726,6 +729,7 @@ void GuiCanvas::rootScreenTouchDown(const GuiEvent &event)
 
             if (controlHit->mUseInput)
             {
+                mMouseControl = controlHit;
 				controlHit->mPassEventThru = false;//If true after the call then pass the event to the next control below it.
 				controlHit->onTouchDown(event);
 				if (!controlHit->mPassEventThru)
@@ -767,11 +771,12 @@ void GuiCanvas::rootScreenTouchUp(const GuiEvent &event)
         {
             GuiControl* controlHit = ctrl->findHitControl(event.mousePoint);
 
-            if (controlHit->mActive && controlHit->mUseInput)
+            if (controlHit->mUseInput)
             {
+				SimObjectPtr<GuiControl> hitCtrl(controlHit);
 				controlHit->mPassEventThru = false;//If true after the call then pass the event to the next control below it.
 				controlHit->onTouchUp(event);
-				if (!controlHit->mPassEventThru)
+				if (!hitCtrl || !hitCtrl->mPassEventThru)
 				{
 					break;
 				}

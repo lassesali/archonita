@@ -208,6 +208,12 @@ static bool ProcessMessages()
       }
    }
 
+   // Catch canvas/fullscreen changes initiated by the HTML page outside SDL.
+   const Point2I prevSize = Platform::getWindowSize();
+   OpenGLDevice::followWindow();
+   if (Platform::getWindowSize() != prevSize)
+      Game->refreshWindow();
+
    return true;
 }
 #endif // DEDICATED

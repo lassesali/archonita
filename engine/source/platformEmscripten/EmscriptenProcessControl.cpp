@@ -41,7 +41,7 @@ void Platform::postQuitMessage(const U32 in_quitVal)
 
 void Platform::debugBreak()
 {
-   Platform::outputDebugString((const char *)"\pDEBUG_BREAK!");
+   Platform::outputDebugString((const char *)"DEBUG_BREAK!");
 }
 
 void Platform::forceShutdown(S32 returnValue)
@@ -71,6 +71,8 @@ void Cleanup(bool minimal)
 
    EmscriptenConsole::destroy();
 #ifndef DEDICATED
+   gPlatState.windowCreated = false;
+   gPlatState.sdlWindow = NULL;
    SDL_Quit();
 #endif
 }

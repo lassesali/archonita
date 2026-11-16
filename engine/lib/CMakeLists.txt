@@ -8,7 +8,7 @@
 # programs that live in these trees (e.g. ljpeg/extras, cjpeg/djpeg, pngtest,
 # vorbis barkmel/tone) are intentionally excluded.
 #
-# Warnings in third-party C are silenced (/W0) and CRT-secure warnings disabled.
+# Warnings in third-party C are silenced (/W0 on MSVC, -w on Clang/GCC) and CRT-secure warnings disabled.
 # The MSVC runtime (static /MT) is inherited from CMAKE_MSVC_RUNTIME_LIBRARY set
 # by the root CMakeLists before this directory is added.
 # -----------------------------------------------------------------------------
@@ -17,6 +17,8 @@ function(torque_thirdparty_lib name)
     if(MSVC)
         target_compile_options(${name} PRIVATE /W0)
         target_compile_definitions(${name} PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_SECURE_NO_DEPRECATE)
+    elseif(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${name} PRIVATE -w)
     endif()
     set_target_properties(${name} PROPERTIES FOLDER "ThirdParty")
 endfunction()
@@ -254,4 +256,55 @@ if(EMSCRIPTEN)
     target_include_directories(freetype PUBLIC ${_ft}/include)
     target_compile_definitions(freetype PRIVATE FT2_BUILD_LIBRARY)
     torque_thirdparty_lib(freetype)
+endif()
+
+# --- OpenAL Soft (built from source for Android) -------------------------------
+# Replaces the stale prebuilt arm64-v8a libopenal.so (which probed
+# /system/lib/libOpenSLES.so, assumed ILP32 sizes, and hung on SCHED_RR).
+if(ANDROID)
+    set(_openal ${CMAKE_CURRENT_SOURCE_DIR}/openal/Android/openal-soft-master/jni/OpenAL)
+    add_library(openal SHARED
+        ${_openal}/Alc/android.c
+        ${_openal}/Alc/ALc.c
+        ${_openal}/Alc/alcConfig.c
+        ${_openal}/Alc/alcEcho.c
+        ${_openal}/Alc/alcModulator.c
+        ${_openal}/Alc/alcReverb.c
+        ${_openal}/Alc/alcRing.c
+        ${_openal}/Alc/alcThread.c
+        ${_openal}/Alc/ALu.c
+        ${_openal}/Alc/audiotrack.c
+        ${_openal}/Alc/bs2b.c
+        ${_openal}/Alc/mixer.c
+        ${_openal}/Alc/null.c
+        ${_openal}/Alc/opensles.c
+        ${_openal}/Alc/panning.c
+        ${_openal}/OpenAL32/alAuxEffectSlot.c
+        ${_openal}/OpenAL32/alBuffer.c
+        ${_openal}/OpenAL32/alDatabuffer.c
+        ${_openal}/OpenAL32/alEffect.c
+        ${_openal}/OpenAL32/alError.c
+        ${_openal}/OpenAL32/alExtension.c
+        ${_openal}/OpenAL32/alFilter.c
+        ${_openal}/OpenAL32/alListener.c
+        ${_openal}/OpenAL32/alSource.c
+        ${_openal}/OpenAL32/alState.c
+        ${_openal}/OpenAL32/alThunk.c
+    )
+    target_include_directories(openal
+        PUBLIC  ${_openal}/include
+        PRIVATE ${_openal}
+                ${_openal}/OpenAL32/Include
+    )
+    target_compile_definitions(openal PRIVATE
+        ANDROID
+        POST_FROYO
+        AL_BUILD_LIBRARY
+        AL_ALEXT_PROTOTYPES
+        MAX_SOURCES_LOW=4
+        MAX_SOURCES_START=8
+        MAX_SOURCES_HIGH=64
+    )
+    target_link_libraries(openal PRIVATE OpenSLES log dl m)
+    torque_thirdparty_lib(openal)
 endif()

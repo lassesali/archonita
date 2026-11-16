@@ -4,6 +4,7 @@
 #include "apportable_openal_funcs.h"
 
 static JavaVM *javaVM = NULL;
+ApportableOpenALFuncs apportableOpenALFuncs = { NULL, NULL, NULL };
 JavaVM *alcGetJavaVM(void) {
 	return javaVM;
 }

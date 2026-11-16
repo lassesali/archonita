@@ -64,6 +64,10 @@ typedef void ALCvoid;
 /** ALC enumerations. */
 typedef int ALCenum;
 
+/** Opaque device and context handle types (matching alc.h). */
+typedef ALCvoid ALCdevice;
+typedef ALCvoid ALCcontext;
+
 /* Bad value. */
 #define ALC_INVALID                              (-1)
 

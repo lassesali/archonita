@@ -2565,12 +2565,15 @@ bool OpenALInit()
 #elif defined(TORQUE_OS_OSX)
    mDevice = alcOpenDevice((const ALCchar*)NULL);
 #elif defined(TORQUE_OS_ANDROID)
-   mDevice = alcOpenDevice("openal-soft");
+   mDevice = (ALCvoid *)alcOpenDevice((const ALCchar*)NULL);
 #else
    mDevice = (ALCvoid *)alcOpenDevice((const ALCchar*)NULL);
 #endif
    if (mDevice == (ALCvoid *)NULL)
+   {
+      Con::errorf("OpenALInit: alcOpenDevice failed");
       return false;
+   }
 
    // Create an openAL context
 #if defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_OPENBSD)
@@ -2600,7 +2603,10 @@ bool OpenALInit()
    mContext = alcCreateContext(mDevice,NULL);
 #endif
    if (mContext == NULL)
+   {
+      Con::errorf("OpenALInit: alcCreateContext failed (err=0x%x)", alcGetError((ALCdevice*)mDevice));
       return false;
+   }
 
    // Make this context the active context
 #if defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_LINUX) || defined(TORQUE_OS_EMSCRIPTEN) || defined(TORQUE_OS_OPENBSD)
@@ -2608,6 +2614,7 @@ bool OpenALInit()
 #else
    alcMakeContextCurrent(mContext);
 #endif
+   Con::printf("   OpenAL device: %s", alcGetString((ALCdevice*)mDevice, ALC_DEVICE_SPECIFIER) ? alcGetString((ALCdevice*)mDevice, ALC_DEVICE_SPECIFIER) : "(null)");
    ALenum err = alGetError();
    mRequestSources = MAX_AUDIOSOURCES;	
    while(true)
@@ -2621,6 +2628,7 @@ bool OpenALInit()
 
       if (mRequestSources == 0)
       {
+         Con::errorf("OpenALInit: alGenSources failed (err=0x%x)", err);
          OpenALShutdown();
          return (false);
       }
