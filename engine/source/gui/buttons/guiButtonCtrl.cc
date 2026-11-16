@@ -117,15 +117,30 @@ void GuiButtonCtrl::onTouchEnter(const GuiEvent &event)
 	setUpdate();
 }
 
-void GuiButtonCtrl::onTouchLeave(const GuiEvent &)
+void GuiButtonCtrl::onTouchLeave(const GuiEvent &event)
 {
 	if (!mActive)
 		return;
 
 	if (isMouseLocked())
+	{
+#if defined(TORQUE_OS_ANDROID) || defined(TORQUE_OS_IOS)
+		// Allow minor fingertip roll/jitter near edges during a tap without cancelling the press.
+		const S32 kTouchCancelSlop = 24;
+		const Point2I globalPos = localToGlobalCoord(Point2I(0, 0));
+		const RectI slopBounds(
+			globalPos.x - kTouchCancelSlop,
+			globalPos.y - kTouchCancelSlop,
+			mBounds.extent.x + kTouchCancelSlop * 2,
+			mBounds.extent.y + kTouchCancelSlop * 2);
+		if (!slopBounds.pointInRect(event.mousePoint))
+			mDepressed = false;
+#else
+		(void)event;
 		mDepressed = false;
+#endif
+	}
 
-	mouseUnlock();
 	mMouseOver = false;
 
 	Con::executef(this, 1, "onTouchLeave");

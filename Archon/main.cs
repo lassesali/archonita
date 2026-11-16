@@ -71,7 +71,7 @@ function initializeProject()
    exec("./gameScripts/game.cs");
    exec("./gameScripts/audiodatablocks.cs");
    exec("./gameScripts/fading.cs");
-   exec("./gameScripts/complexmouse.cs");
+   exec("./gameScripts/complexMouse.cs");
    exec("./gameScripts/units.cs");
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
@@ -119,7 +119,8 @@ function initializeProject()
    if (!$Archon::skipSplash)
       loadGGsplash();
 
-   
+   if ($platform $= "Android" && isFunction("hideSplashScreen"))
+      hideSplashScreen();
 }
 
 

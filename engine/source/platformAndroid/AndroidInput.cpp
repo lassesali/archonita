@@ -94,6 +94,7 @@ touchTracker CombinedTouchEvents[MAX_TOUCH_EVENTS];
 struct touchCorrelation {
 	S32 lastX;
 	S32 lastY;
+	S32 touchNumber;
 };
 
 touchCorrelation lastTouches[MAX_TOUCH_EVENTS];
@@ -195,6 +196,7 @@ void Input::init()
 	{
 		lastTouches[i].lastX = -1;
 		lastTouches[i].lastY = -1;
+		lastTouches[i].touchNumber = -1;
 	}
 	
 	
@@ -763,14 +765,12 @@ int processMultipleTouches()
 		dStrcat( touchNums, temp );
 		dStrcat( touchNums, " " );		
 		
-		lastTouches[currentEvent->number].lastX = -1;
-		lastTouches[currentEvent->number].lastY	 = -1;
-		
-        int x;
-        x = -1;
-        
-        lastTouches[currentEvent->number].lastX = -1;
-		lastTouches[currentEvent->number].lastY	 = -1;
+		if (currentEvent->number >= 0 && currentEvent->number < MAX_TOUCH_EVENTS)
+		{
+			lastTouches[currentEvent->number].lastX = -1;
+			lastTouches[currentEvent->number].lastY = -1;
+			lastTouches[currentEvent->number].touchNumber = -1;
+		}
         
 		TouchUpEvents.pop_back();
 	}
@@ -837,6 +837,17 @@ bool createMouseMoveEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY )
 	if (Canvas == NULL)
 		return false;
 
+	if (touchNumber >= 0)
+	{
+		for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
+		{
+			if( lastTouches[i].lastX != -1 && lastTouches[i].touchNumber == touchNumber )
+			{
+				currentSlot = i;
+			}
+		}
+	}
+
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
 	{
 		if( (lastX == lastTouches[i].lastX ) &&
@@ -862,6 +873,7 @@ bool createMouseMoveEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY )
 	{
 		lastTouches[currentSlot].lastX = x;
 		lastTouches[currentSlot].lastY = y;
+		lastTouches[currentSlot].touchNumber = touchNumber;
 	}		
 	
 	TouchMoveEvents.push_back( touchEvent( currentSlot, x, y ) );	
@@ -877,6 +889,17 @@ bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches )
 	
 	if (Canvas == NULL)
 		return false;
+
+	if (touchNumber >= 0)
+	{
+		for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (vacantSlot == -1) ; i++ )
+		{
+			if( lastTouches[i].lastX != -1 && lastTouches[i].touchNumber == touchNumber )
+			{
+				vacantSlot = i;
+			}
+		}
+	}
 
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (vacantSlot == -1) ; i++ )
 	{
@@ -903,6 +926,7 @@ bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches )
 	{
 		lastTouches[vacantSlot].lastX = x;
 		lastTouches[vacantSlot].lastY = y;
+		lastTouches[vacantSlot].touchNumber = touchNumber;
 	}	
 
 	TouchDownEvents.push_back( touchEvent( vacantSlot, x, y ) );
@@ -914,6 +938,20 @@ bool createMouseDownEvent( S32 touchNumber, S32 x, S32 y, U32 numTouches )
 bool createMouseUpEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY, U32 numTouches ) //EFM
 {	
 	S32 currentSlot = -1;
+
+	if (Canvas == NULL)
+		return false;
+
+	if (touchNumber >= 0)
+	{
+		for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
+		{
+			if( lastTouches[i].lastX != -1 && lastTouches[i].touchNumber == touchNumber )
+			{
+				currentSlot = i;
+			}
+		}
+	}
 	
 	for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
 	{
@@ -924,17 +962,36 @@ bool createMouseUpEvent( S32 touchNumber, S32 x, S32 y, S32 lastX, S32 lastY, U3
 		}	
 	}
 	
-	if( currentSlot == -1 ) 
-        return false;
+	if( currentSlot == -1 )
+	{
+		for( int i = 0 ; (i < MAX_TOUCH_EVENTS) && (currentSlot == -1) ; i++ )
+		{
+			if( lastTouches[i].lastX != -1 )
+			{
+				currentSlot = i;
+			}
+		}
+	}
+
+	S32 eventSlot = (currentSlot != -1) ? currentSlot : 0;
+
+	Canvas->setCursorPos( Point2I( x, y ) );
+
+	if (currentSlot != -1)
+	{
+		lastTouches[currentSlot].lastX = -1;
+		lastTouches[currentSlot].lastY = -1;
+		lastTouches[currentSlot].touchNumber = -1;
+	}
 
 	ScreenTouchEvent event;
 	event.xPos = x;
 	event.yPos = y;
 	event.action = SI_BREAK;
-	event.touchID = currentSlot;
+	event.touchID = eventSlot;
 	event.numTouches = numTouches;
     
-	TouchUpEvents.push_back( touchEvent( currentSlot, x, y ) );	
+	TouchUpEvents.push_back( touchEvent( eventSlot, x, y ) );	
 	
 	Game->postEvent(event);
 	
@@ -947,6 +1004,7 @@ void clearPendingMultitouchEvents( void ) //EFM
 	{
 		lastTouches[i].lastX = -1;
 		lastTouches[i].lastY = -1;
+		lastTouches[i].touchNumber = -1;
 	}
 
 	TouchMoveEvents.clear();

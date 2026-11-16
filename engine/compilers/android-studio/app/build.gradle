@@ -38,8 +38,7 @@ android {
         main {
             // The script/asset tree is copied into src/main/game by copyGame below.
             assets.srcDirs = ['src/main/assets', 'src/main/game']
-            // Package the prebuilt libopenal.so (per-ABI subdirs live under here).
-            jniLibs.srcDirs = ['../../../lib/openal/Android']
+            // libopenal.so is now built from source by CMake and packaged automatically.
         }
     }
 

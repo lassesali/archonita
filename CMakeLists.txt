@@ -506,22 +506,16 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
 endif()
 
 if(ANDROID)
-    # Prebuilt third-party libs (arm64-v8a only — the other ABIs have no prebuilts).
-    # FreeType is an ancient (2.4.12) static .a; OpenAL is a shared .so that must
-    # also be packaged into the APK (see the Gradle jniLibs config).
+    # Prebuilt FreeType (arm64-v8a static .a); OpenAL Soft is built from source
+    # via engine/lib/CMakeLists.txt so libopenal.so tracks the active ABI and fixes.
     add_library(android_freetype STATIC IMPORTED)
     set_target_properties(android_freetype PROPERTIES
         IMPORTED_LOCATION "${TORQUE_LIB}/freetype/android/lib/${ANDROID_ABI}/libfreetype.a"
         INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/freetype/android/include;${TORQUE_LIB}/freetype/android/include/freetype2")
 
-    add_library(android_openal SHARED IMPORTED)
-    set_target_properties(android_openal PROPERTIES
-        IMPORTED_LOCATION "${TORQUE_LIB}/openal/Android/${ANDROID_ABI}/libopenal.so"
-        INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/openal/Android/openal-soft-master/jni/OpenAL/include")
-
     # Android system libraries (z = NDK libz; GLESv3 provides OpenGL ES 3.2).
     target_link_libraries(Torque2D PRIVATE
-        android_freetype android_openal
+        android_freetype openal
         log android EGL GLESv3 OpenSLES z)
 endif()
 

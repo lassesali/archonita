@@ -87,7 +87,11 @@
 /* #cmakedefine HAVE___INT64 */
 
 /* Define to the size of a long int type */
+#if defined(__LP64__) || defined(_LP64)
+#define SIZEOF_LONG 8
+#else
 #define SIZEOF_LONG 4
+#endif
 
 /* Define to the size of a long long int type */
 #define SIZEOF_LONG_LONG 8
@@ -96,7 +100,11 @@
 #define SIZEOF_UINT 4
 
 /* Define to the size of a void pointer type */
+#if defined(__LP64__) || defined(_LP64)
+#define SIZEOF_VOIDP 8
+#else
 #define SIZEOF_VOIDP 4
+#endif
 
 /* Define if we have GCC's destructor attribute */
 #define HAVE_GCC_DESTRUCTOR 1

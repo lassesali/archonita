@@ -151,6 +151,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
       Extent = %boxWidth SPC %boxHeight;
       MinExtent = "8 2";
       Visible = "1";
+      useInput = false;
       isContainer = "1";
 
       // 4-point dark shadow / outline for high contrast against any background
@@ -161,6 +162,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "1 0";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
       new GuiControl()
@@ -170,6 +172,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "-1 0";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
       new GuiControl()
@@ -179,6 +182,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "0 1";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
       new GuiControl()
@@ -188,6 +192,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "0 -1";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
       new GuiControl()
@@ -197,6 +202,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "1 1";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
 
@@ -208,6 +214,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
          VertSizing = "height";
          Position = "0 0";
          Extent = %boxWidth SPC %boxHeight;
+         useInput = false;
          text = %text;
       };
    };

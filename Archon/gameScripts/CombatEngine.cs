@@ -702,7 +702,7 @@ function CombatEngine::movePiece(%this, %pos, %boardpos)
    %piece.setSceneLayerDepthFront();
 
    %piece.facing = %this.facing(%piece.positionOnBoard, %boardpos);
-   %piece.moveto(%pos, 10, true, true, true);
+   %piece.moveto(%pos, 10, true, true, 0.1);
    
    %this.setPieceState(%piece, $olentoWalkState[%piece.creatureID]);
    $fxfoot = playArchonSound(fxFootStep);
