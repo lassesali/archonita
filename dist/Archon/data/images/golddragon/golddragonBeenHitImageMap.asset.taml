@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="golddragonBeenHitImageMap"
+    ImageFile="beenImageMap.png"
+    CellCountX="10"
+    CellCountY="3"
+    CellWidth="128"
+    CellHeight="128" />

@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="dreadzombieAttackAnimation_s"
+    Image="@asset=Archon:dreadzombieAttackImageMap"
+    AnimationFrames="22 23 24 25 26 27 28 29 30 31 32"
+    AnimationTime="1"
+    AnimationCycle="0" />

@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="demonStoppedAnimation_s"
+    Image="@asset=Archon:demonStoppedImageMap"
+    AnimationFrames="0"
+    AnimationTime="1"
+    AnimationCycle="1" />

@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="hornedoneyeAttackAnimation_s"
+    Image="@asset=Archon:hornedoneyeAttackImageMap"
+    AnimationFrames="20 21 22 23 24 25 26 27 28 29"
+    AnimationTime="1"
+    AnimationCycle="0" />

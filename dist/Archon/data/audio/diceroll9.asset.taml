@@ -1,0 +1,7 @@
+<AudioAsset
+    AssetName="diceroll9"
+    AssetAutoUnload="0"
+    AudioFile="diceroll9.ogg"
+    Looping="false"
+    Volume="1"
+    VolumeChannel="1" />

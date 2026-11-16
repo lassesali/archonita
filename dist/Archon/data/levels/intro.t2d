@@ -1,0 +1,38 @@
+%levelContent = new Scene(t2dScene) {
+   canSaveDynamicFields = "1";
+      cameraSize = "100 75";
+      cameraPosition = "0 0";
+
+   new Sprite(logo1) {
+      image = "Archon:gamelonlogoImageMap";
+      Image = "@asset=Archon:gamelonlogoImageMap";
+      position = "1.8 1.15";
+      size = "29.3 42.3";
+         mountID = "2";
+   };
+   new Scroller(logo1tex) {
+      image = "Archon:jee1ImageMap";
+      Image = "@asset=Archon:jee1ImageMap";
+      scrollX = "10";
+      scrollY = "10";
+      scrollPositionX = "0.822445";
+      scrollPositionY = "0.116249";
+      position = "1.81 0.792";
+      size = "29.7 43.3";
+      SrcBlendFactor = "DST_COLOR";
+      DstBlendFactor = "ZERO";
+         mountID = "3";
+   };
+   new Sprite() {
+      image = "Archon:blackImageMap";
+      Image = "@asset=Archon:blackImageMap";
+      position = "-9.54e-07 0";
+      size = "102 76.8";
+      SceneLayer = "31";
+      Layer = "31";
+      SrcBlendFactor = "ONE_MINUS_SRC_ALPHA";
+      DstBlendFactor = "SRC_COLOR";
+         mountID = "4";
+   };
+};
+

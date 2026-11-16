@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="airdragonStoppedAnimation_s"
+    Image="@asset=Archon:airdragonStoppedImageMap"
+    AnimationFrames="0"
+    AnimationTime="1"
+    AnimationCycle="1" />

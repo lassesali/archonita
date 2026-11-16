@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="textsImageMap"
+    ImageFile="texts.png"
+    CellCountX="1"
+    CellCountY="3"
+    CellWidth="512"
+    CellHeight="64" />

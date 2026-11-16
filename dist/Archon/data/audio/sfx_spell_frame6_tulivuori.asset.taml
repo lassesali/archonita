@@ -1,0 +1,7 @@
+<AudioAsset
+    AssetName="sfx_spell_frame6_tulivuori"
+    AssetAutoUnload="0"
+    AudioFile="sfx_spell_frame6_tulivuori.wav"
+    Looping="false"
+    Volume="1"
+    VolumeChannel="1" />

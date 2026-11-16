@@ -1,0 +1,18 @@
+<Scene Name="t2dScene">
+    <Sprite
+        Name="credits1"
+        Image="@asset=Archon:creditsImageMap"
+        Position="-9.54e-07 0.14"
+        Size="80 60" />
+    <Sprite
+        Name="credits2"
+        Image="@asset=Archon:blackImageMap"
+        Position="-0.312 0.173"
+        Size="102 76.6"
+        SceneLayer="31" />
+    <ParticlePlayer
+        Name="explosion"
+        Position="-0.718 12"
+        Size="40.5 15.3"
+        SceneLayer="31" />
+</Scene>

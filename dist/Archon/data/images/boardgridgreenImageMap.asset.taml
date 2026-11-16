@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="boardgridgreenImageMap"
+    ImageFile="grid_5.png"
+    CellCountX="3"
+    CellCountY="1"
+    CellWidth="64"
+    CellHeight="64" />

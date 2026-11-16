@@ -1,0 +1,7 @@
+<AudioAsset
+    AssetName="sfx_spell_frame3_taikamakkara"
+    AssetAutoUnload="0"
+    AudioFile="sfx_spell_frame3_taikamakkara.wav"
+    Looping="false"
+    Volume="1"
+    VolumeChannel="1" />

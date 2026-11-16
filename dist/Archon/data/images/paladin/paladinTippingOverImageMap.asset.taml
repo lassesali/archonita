@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="paladinTippingOverImageMap"
+    ImageFile="tippingImageMap.png"
+    CellCountX="10"
+    CellCountY="4"
+    CellWidth="128"
+    CellHeight="128" />
