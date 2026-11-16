@@ -21,6 +21,7 @@ new GuiControl(mainScreenGui) {
       MinExtent = "8 8";
       canSave = "1";
       Visible = "1";
+      Active = "1";
       lockMouse = "0";
       useWindowMouseEvents = "1";
       useObjectMouseEvents = "0";
