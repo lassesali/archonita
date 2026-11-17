@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="gremlinBeenHitAnimation_n"
+    Image="@asset=Archon:gremlinBeenHitImageMap"
+    AnimationFrames="7 8 9 10 11 12 13"
+    AnimationTime="1"
+    AnimationCycle="0" />

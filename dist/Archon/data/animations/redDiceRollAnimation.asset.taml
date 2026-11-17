@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="redDiceRollAnimation"
+    Image="@asset=Archon:red_dice_sheetImageMap"
+    AnimationFrames="0 1 2 3 4 5"
+    AnimationTime="0.5"
+    AnimationCycle="true" />

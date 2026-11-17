@@ -1,0 +1,7 @@
+<AudioAsset
+    AssetName="sfx_spell_frame7_voikukan_juuri"
+    AssetAutoUnload="0"
+    AudioFile="sfx_spell_frame7_voikukan_juuri.wav"
+    Looping="false"
+    Volume="1"
+    VolumeChannel="1" />
