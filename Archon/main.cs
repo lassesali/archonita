@@ -31,14 +31,23 @@ function initializeProject()
    if (!isObject($ResolutionManager))
       $ResolutionManager = new ScriptObject(ResolutionManager) { };
 
-   %bootW = getWord($ResolutionManager.currentResolution, 0);
-   %bootH = getWord($ResolutionManager.currentResolution, 1);
-   if (%bootW <= 0 || %bootH <= 0)
+   if ($platform $= "Android")
    {
-      %bootW = 1280;
-      %bootH = 720;
+      %androidRes = $ResolutionManager.getAndroidScreenResolution();
+      %bootW = getWord(%androidRes, 0);
+      %bootH = getWord(%androidRes, 1);
    }
-   setScreenMode( %bootW, %bootH, 32, $ResolutionManager.currentFullScreen );
+   else
+   {
+      %bootW = getWord($ResolutionManager.currentResolution, 0);
+      %bootH = getWord($ResolutionManager.currentResolution, 1);
+      if (%bootW <= 0 || %bootH <= 0)
+      {
+         %bootW = 1280;
+         %bootH = 720;
+      }
+      setScreenMode( %bootW, %bootH, 32, $ResolutionManager.currentFullScreen );
+   }
 
    OpenALInitDriver();
    Canvas.setCursor(DefaultCursor);
@@ -62,7 +71,7 @@ function initializeProject()
    exec("./gameScripts/game.cs");
    exec("./gameScripts/audiodatablocks.cs");
    exec("./gameScripts/fading.cs");
-   exec("./gameScripts/complexmouse.cs");
+   exec("./gameScripts/complexMouse.cs");
    exec("./gameScripts/units.cs");
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
@@ -115,7 +124,8 @@ function initializeProject()
    if (!$Archon::skipSplash)
       loadGGsplash();
 
-   
+   if ($platform $= "Android" && isFunction("hideSplashScreen"))
+      hideSplashScreen();
 }
 
 

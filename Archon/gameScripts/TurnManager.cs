@@ -174,7 +174,7 @@ function TurnManager::dealCards(%this)
    $specialcard[%i].setLayer(10 - %i);
    $specialcard[%i].setUseMouseEvents(0);
    $specialcard[%i].isSelectable = false;
-   $specialcard[%i].moveto("-40" SPC (0 + (%i * 0.5)), 50, true, true, true);
+   $specialcard[%i].moveto("-40" SPC (0 + (%i * 0.5)), 50, true, true, 0.1);
 }
 
 function TurnManager::updateActionIcons(%this)

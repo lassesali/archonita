@@ -1,0 +1,270 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2013 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+#import "T2DViewController.h"
+#import "platformiOS/platformGL.h"
+#include "platformiOS/iOSWindow.h"
+#include "platformiOS/platformiOS.h"
+#include "graphics/dgl.h"
+
+extern iOSPlatState platState;
+
+
+#define USE_DEPTH_BUFFER 0
+
+extern bool retinaEnabled;
+
+extern void ConvertToRetina (CGPoint *p);
+
+extern bool _iOSTorqueFatalError;
+extern int _iOSRunTorqueMain( id appID,  UIView *Window, T2DViewController *Controller );
+
+//-Mat we should update the accelereometer once per frame
+extern U32  AccelerometerUpdateMS;
+extern void _iOSGameInnerLoop();
+
+@implementation T2DViewController
+
+@synthesize context = _context;
+@synthesize connectionData = _connectionData;
+@synthesize connection = _connection;
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (void)didReceiveMemoryWarning
+{
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+#pragma mark - View lifecycle
+
+
+-(void)swapBuffers {
+	if( isLayedOut == true ) {
+		[self.context presentRenderbuffer:GL_RENDERBUFFER];
+	}
+}
+
+- (BOOL)createFramebuffer {
+	
+	glGenFramebuffers(1, &viewFramebuffer);
+	glGenRenderbuffers(1, &viewRenderbuffer);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, viewFramebuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, viewRenderbuffer);
+	[self.context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.view.layer];
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, viewRenderbuffer);
+	
+	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &backingWidth);
+	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &backingHeight);
+	
+	if (USE_DEPTH_BUFFER) {
+		glGenRenderbuffers(1, &depthRenderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthRenderbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, backingWidth, backingHeight);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderbuffer);
+	}
+	
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		NSLog(@"failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+		return NO;
+	}
+	
+	return YES;
+}
+
+
+- (void)destroyFramebuffer {
+	
+	glDeleteFramebuffers(1, &viewFramebuffer);
+	viewFramebuffer = 0;
+	glDeleteRenderbuffers(1, &viewRenderbuffer);
+	viewRenderbuffer = 0;
+	
+	if(depthRenderbuffer) {
+		glDeleteRenderbuffers(1, &depthRenderbuffer);
+		depthRenderbuffer = 0;
+	}
+}
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.context = [[EAGLContext alloc]
+                    initWithAPI:kEAGLRenderingAPIOpenGLES3];
+    if (!self.context) {
+        self.context = [[EAGLContext alloc]
+                        initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    }
+    
+    if (!self.context) {
+        NSLog(@"Failed to create ES context");
+    }
+    
+    T2DView *view = (T2DView *) self.view;
+    view.context = self.context;
+
+    // Point-based rendering: pin the GL backing to POINT resolution by forcing
+    // contentScaleFactor = 1 BEFORE createFramebuffer. createFramebuffer sizes the
+    // renderbuffer from layer.bounds * layer.contentsScale (renderbufferStorage:
+    // fromDrawable:), and a UIView defaults contentScaleFactor to the screen scale
+    // (2-3 on Retina). We deliberately render in points so the GUI is physically
+    // the right size on Retina (see Platform::init); the logical resolution, this
+    // backing, and the point-space touch coords must therefore all be at scale 1.
+    // (Must be set here — the old Platform::initWindow set ran AFTER this, too late,
+    // and only for scale==2.) retinaEnabled=false so touch points are NOT scaled up.
+    view.contentScaleFactor = 1.0f;
+    retinaEnabled = false;
+
+	if( AccelerometerUpdateMS <= 0 ) {
+        //Luma:	This variable needs to be store MS value, not Seconds value
+        AccelerometerUpdateMS = 33; // 33 ms
+	}
+
+	//Luma: Do division by 1000.0f here to get the seconds value that the UIAccelerometer needs
+	//[[UIAccelerometer sharedAccelerometer] setUpdateInterval:(AccelerometerUpdateMS / 1000.0f)];//this value is in seconds
+	//[[UIAccelerometer sharedAccelerometer] setDelegate:self];
+
+	[EAGLContext setCurrentContext:self.context];
+	[self createFramebuffer];
+
+    view.isLayedOut = true;
+
+    //by default, we are in portrait(upright) mode
+	view.currentAngle = (M_PI / 2.0);
+
+    platState.multipleTouchesEnabled = true;
+    [self.view setMultipleTouchEnabled:YES];
+
+    UIApplication * application = [UIApplication sharedApplication];
+    id appDelegate = [application delegate];
+    
+	_iOSTorqueFatalError = false;
+	if(!_iOSRunTorqueMain( appDelegate, self.view, self ))
+	{
+		_iOSTorqueFatalError = true;
+		return;
+	};
+}
+
+- (void)viewDidUnload
+{
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    if ([EAGLContext currentContext] == self.context) {
+        [EAGLContext setCurrentContext:nil];
+    }
+    
+    self.context = nil;
+}
+
+- (void)update
+{
+    _iOSGameInnerLoop();
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    // Return YES for supported orientations
+    
+    switch (interfaceOrientation)
+    {
+        case UIDeviceOrientationPortraitUpsideDown:
+            return mOrientationPortraitUpsideDownSupported;
+            break;
+            
+        case UIDeviceOrientationPortrait:
+            return mOrientationPortraitSupported;
+            break;
+            
+        case UIDeviceOrientationLandscapeRight:
+            return mOrientationLandscapeRightSupported;
+            break;
+            
+        case UIDeviceOrientationLandscapeLeft:
+            return mOrientationLandscapeLeftSupported;
+            break;
+            
+        default:
+            break;
+    }
+    
+    return NO;
+}
+
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return UIInterfaceOrientationLandscapeRight;
+}
+
+void supportLandscape( bool enable)
+{
+    platState.viewController->mOrientationLandscapeLeftSupported = enable;
+    platState.viewController->mOrientationLandscapeRightSupported = enable;
+}
+
+ConsoleFunction(supportLandscape, void, 2, 2, "supportLandscape( bool ) "
+                "enable or disable Landscape")
+{
+    bool enable = true;
+    if( argc > 1 )
+        enable = dAtob( argv[1] );
+    
+    supportLandscape(enable);
+}
+
+void supportPortrait( bool enable )
+{
+    platState.viewController->mOrientationPortraitSupported = enable;
+    platState.viewController->mOrientationPortraitUpsideDownSupported = enable;
+}
+
+ConsoleFunction(supportPortrait, void, 2, 2, "supportPortrait( bool ) "
+                "enable or disable portrait")
+{
+    bool enable = true;
+    if( argc > 1 )
+        enable = dAtob( argv[1] );
+    
+    supportPortrait(enable);
+}
+
+
+- (void)viewDidLayoutSubviews
+{
+    [self destroyFramebuffer];
+	[self createFramebuffer];
+}
+
+@end

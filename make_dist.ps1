@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # Archonita - Build Release Distribution Script
 # ==============================================================================
 param(
@@ -199,8 +199,6 @@ New-Item -ItemType Directory -Path "$rootThemesDest\cursors\Base" -Force | Out-N
 
 if (Test-Path "$SourceRoot\library\themes\Base.taml") {
     Copy-Item "$SourceRoot\library\themes\Base.taml" "$rootThemesDest\Base.taml" -Force
-} elseif (Test-Path "C:\Users\lkarh\Downloads\Torque2D-4.0-EA4-Windows-x64\Torque2D-4.0-EA4-Windows-x64\themes\Base.taml") {
-    Copy-Item "C:\Users\lkarh\Downloads\Torque2D-4.0-EA4-Windows-x64\Torque2D-4.0-EA4-Windows-x64\themes\Base.taml" "$rootThemesDest\Base.taml" -Force
 }
 
 # Copy cursor art from AppCore stock cursors
@@ -302,7 +300,7 @@ $readmeContent = @'
 ================================================================================
                            ARCHONITA (2006 - 2026)
                         20th Anniversary Edition
-                 Ported to 64-Bit Torque2D 4.0 (EA4)
+                 Ported to 64-Bit Torque2D 4.0 (OpenGL 4.6 Core)
 ================================================================================
 
 ABOUT THE GAME

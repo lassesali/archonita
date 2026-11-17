@@ -1,0 +1,226 @@
+Torque 2D - OpenGL 4.6 Core / OpenGL ES 3.2 Migration Report
+Generated: 2026-11-14
+Repository: C:\Users\lkarh\Downloads\Torque2D-master
+Branch: local-gl46 (merged with upstream/development, 31 commits)
+
+================================================================================
+1. ARCHITECTURE & TARGET BASELINES
+================================================================================
+
+- Desktop Target:
+  OpenGL 4.6 Core Profile (#version 460 core).
+- Android / Mobile Target:
+  OpenGL ES 3.2 (#version 320 es) with precision qualifiers
+  (precision highp float;, precision highp int;, precision highp sampler2D;)
+  injected by ShaderManager::buildPreprocessedSource().
+- Web / Emscripten Target:
+  CMakeLists.txt pairs upstream/development SDL 2 (-sUSE_SDL=2) with WebGL 2
+  flags (-sMIN_WEBGL_VERSION=2, -sMAX_WEBGL_VERSION=2, replacing
+  LEGACY_GL_EMULATION). ShaderManager::compileShader selects ES shader
+  profiles for TORQUE_OS_EMSCRIPTEN (WebGL 2 GL attributes in
+  EmscriptenOGLVideo.cpp remain a follow-up item; see Section 3.A.4).
+- Direct State Access Abstraction (GLDSA):
+  4.5+ DSA calls are wrapped behind GLDSA::* in engine/source/graphics/glDSA.h
+  and glDSA.cc so core engine code compiles and runs cleanly against OpenGL 4.6
+  Core, OpenGL ES 3.2, and future ANGLE/Vulkan or macOS fallback paths.
+- VAO-Backed Programmable Pipeline & CPU Matrix Stacks:
+  Fixed-function immediate mode, client arrays, matrix stacks, GL_ALPHA_TEST,
+  and glClipPlane calls are replaced by VAO/VBO/IBO streaming draws in
+  ShaderManager and CPU matrix stacks in dglMatrix.cc.
+- Phase Scope:
+  Phase 1 strictly replaces the internal fixed-function rendering pipeline;
+  custom ShaderAsset TAML types are deferred to Phase 2.
+
+================================================================================
+2. SUMMARY OF CHANGES
+================================================================================
+
+A. Core Programmable Pipeline, DSA Abstraction, and CPU Matrices
+- engine/source/graphics/ShaderManager.h & ShaderManager.cc
+  * Implemented ShaderManager::buildPreprocessedSource (#version 460 core vs
+    #version 320 es + highp precision qualifiers), shader/program compilation,
+    DGLTexMode state (DGL_TEX_NONE, DGL_TEX_MODULATE, DGL_TEX_BLEND,
+    DGL_TEX_REPLACE, DGL_TEX_ADD), uniform alpha testing, uniform clip planes,
+    streaming VAO/VBO/IBO drawVertices/drawIndexedVertices/drawBatch, and
+    immediate-mode replacement helpers (begin/texCoord2f/color*/vertex*/end).
+  * Fixed graphics/gColor.h include path and added DGLVertex::set(...) inline
+    helper in ShaderManager.h.
+- engine/source/graphics/glDSA.h & glDSA.cc
+  * Provided thin wrapper entry points for buffer creation/upload, texture
+    creation/upload/parameters/swizzle, and texture unit binding.
+  * Updated Windows preprocessor guards from TORQUE_OS_WIN32 to TORQUE_OS_WIN so
+    x64 (Win64) builds compile desktop DSA/VAO paths instead of no-op stubs,
+    and ensured bindTextureUnit always activates GL_TEXTURE0 + unit on the
+    non-DSA fallback path.
+- engine/source/platform/GLModernTypes.h & GLModernFunc.h
+  * Defined Core Profile / ES 3.2 sized format constants (GL_R8, GL_RG8,
+    GL_RGB8, GL_RGBA8, GL_RGB565, GL_RGB5_A1, GL_RGBA4), swizzle constants
+    (GL_TEXTURE_SWIZZLE_RGBA), and context/profile enums.
+- engine/source/graphics/dgl.h, dglMatrix.cc & dgl.cc
+  * Replaced fixed-function GL matrix stack calls with CPU stacks (dglMatrixMode,
+    dglPushMatrix, dglPopMatrix, dglLoadIdentity, dglOrtho, dglFrustum,
+    dglTranslatef, dglRotatef, dglScalef, dglGetMVPColumnMajor, stack depth
+    queries, and dglResetMatrixStacks).
+  * Migrated primitive, bitmap, quad, glyph batching (dglDrawTextN), clip rect,
+    pure-math dglPointToScreen, canonical/debug helpers, dglSetViewport,
+    dglGetViewport, dglSetFrustum, dglGetFrustum, dglIsOrtho, dglGetPixelScale,
+    dglGetWorldToScreenScale, and dglProjectRadius.
+- engine/source/graphics/TextureHandle.cc, TextureManager.cc & splineUtil.cc
+  * Routed texture parameters, uploads, deletes, residency checks (glIsTexture),
+    and GL_R8 swizzle masks ({ GL_ONE, GL_ONE, GL_ONE, GL_RED } for bitmap font
+    alpha sheets) through GLDSA::*.
+  * Migrated splineUtil::drawSplineBeam overloads to ShaderManager::begin/end.
+
+B. 2D Core, Scene Objects, and GUI
+- engine/source/2d/core/BatchRender.h & BatchRender.cc
+  * Migrated RenderQuad and flushInternal() to ShaderManager streaming indexed
+    batches and GLDSA::bindTextureUnit.
+- engine/source/2d/gui/guiSceneObjectCtrl.cc & SceneWindow.cc
+  * Replaced projection/modelview matrix stacks, alpha test enables/disables,
+    and overlay banner quads with dgl* matrices and ShaderManager.
+- engine/source/2d/scene/DebugDraw.cc & Scene.cc
+  * Migrated Box2D debug drawing (polygons, circles, segments, transforms, points)
+    to ShaderManager; guarded glPointSize off Android/iOS/Emscripten.
+  * Updated Scene matrix calls to dglTranslatef / dglRotatef.
+- engine/source/2d/sceneobject/LightObject.cc, ParticlePlayer.cc, SceneObject.cc,
+  Scroller.cc & ShapeVector.cc
+  * Replaced triangle fans, blends/alpha test toggles, matrix transforms, OOBB
+    clip planes (ShaderManager::setClipPlane / enableClipPlane), and polygon/
+    circle rendering (shared emitShapePass / renderShapePasses template helpers)
+    with dgl* and ShaderManager calls.
+- engine/source/gui/guiCanvas.cc, guiSliderCtrl.cc, guiTextEditSliderCtrl.cc,
+  gui/editor/guiGraphCtrl.cc & gui/editor/guiEditCtrl.cc
+  * Replaced fallback cursor rect, slider ticks, arrows, graph series primitives,
+    and editor grid dots with dglDraw* / ShaderManager draw paths.
+
+C. Android OpenGL ES 3.2 Compatibility & Build / Test Registration
+- engine/source/platformAndroid/AndroidGL2ES.h & AndroidGL2ES.cpp
+  * Updated Android ES compatibility stubs/wrappers against <GLES3/gl32.h> to
+    delegate matrix, immediate-mode, color, alpha-test, texenv, and clip-plane
+    calls to dgl* and ShaderManager, removing legacy ES 1.1 client arrays and
+    removed fixed-function GL calls.
+- cmake/EngineSources.cmake
+  * Registered ShaderManager.cc, glDSA.cc, dglMatrix.cc, and
+    engine/source/testing/tests/openglMigrationTests.cc.
+- engine/source/testing/tests/openglMigrationTests.cc
+  * Added GoogleTest unit tests covering buildPreprocessedSource (460 core &
+    320 es + invalid args), CPU render-state accessors, CPU matrix stack
+    push/pop/mode/ortho/MVP/rotation math, and Core/ES constants.
+- CHANGELOG.md & README.md
+  * Documented [Unreleased] migration entries, updated Visual Studio 2022/2026
+    and Release (-Release) test commands, and noted the merged state.
+
+D. Upstream Development Merge Integration (31 Commits into local-gl46)
+- CMakeLists.txt
+  * Merged upstream/development SDL 2 support (-sUSE_SDL=2 on Emscripten and
+    vendored SDL 2 / TORQUE_SDL on Linux) while preserving WebGL 2 shader flags
+    (-sMIN_WEBGL_VERSION=2, -sMAX_WEBGL_VERSION=2) and Android GLESv3 linking.
+- cmake/EngineSources.cmake
+  * Preserved ShaderManager.cc, glDSA.cc, dglMatrix.cc, and
+    openglMigrationTests.cc alongside upstream/development's
+    particleAssetFieldTests.cc and particleEmissionAngleTests.cc.
+- engine/source/platformWin32/winFileio.cc
+  * Integrated upstream/development's case-sensitive
+    StringTable->insert(..., true) directory scan fix (matching HEAD).
+- Auto-Merged Graphics, UI, and Particle Files
+  * Audited post-merge diffs for ParticlePlayer.cc (calculateEmissionAngle
+    refactor), guiCanvas.cc (first-responder focus fixes), and x86UNIXGL.cc
+    (<SDL.h> + SDL_GL_SetSwapInterval support); confirmed zero legacy
+    fixed-function OpenGL calls were introduced.
+
+================================================================================
+3. VERIFICATION RESULTS
+================================================================================
+
+A. Post-Merge Verification (local-gl46 + upstream/development)
+
+1. CMake Out-of-Source Configure (build-gl46-test)
+   - Generator / Toolchain: Visual Studio 18 2026 (-A x64), CMake 4.3.1-msvc1,
+     MSVC 19.51.36263.0, Windows SDK 10.0.26100.0.
+   - Result: Configuring done (7.4s), Generating done (0.3s); exit code 0.
+
+2. Windows x64 Release Build (Visual Studio 18 2026, x64)
+   - Command: cmake --build build-gl46-test --config Release --parallel
+   - Result: Compiled and linked with 0 errors and 0 C++/CMake post-merge
+     patches required.
+   - Output artifacts at repository root: Torque2D.exe (6,112,768 bytes) and
+     OpenAL32.dll (2,929,664 bytes).
+
+3. Post-Merge Conflict & Legacy OpenGL Audit
+   - git diff --check exited 0; git grep for conflict markers returned 0 hits.
+   - Post-merge git diff scan across engine/source/2d/, engine/source/gui/,
+     and engine/source/graphics/ returned 0 legacy fixed-function OpenGL calls.
+
+4. Pending Post-Merge Checks & Known Follow-Ups
+   - Post-merge runtime execution of C++ unit tests
+     (pwsh -ExecutionPolicy Bypass -File tests\run-unit.ps1 -Release), Debug
+     build (Torque2D_DEBUG.exe), and TorqueScript smoke/screenshot suites
+     (tests\run.ps1) was not executed in this sandboxed merge session and
+     remains to be run locally.
+   - Android NDK and Emscripten/WebAssembly builds were not executed on this
+     Windows host.
+   - Emscripten WebGL 2 Context Attributes Follow-Up: CMakeLists.txt sets
+     -sUSE_SDL=2 with -sMIN_WEBGL_VERSION=2 and -sMAX_WEBGL_VERSION=2, whereas
+     upstream/development's EmscriptenOGLVideo.cpp (CreateGLWindow) still
+     omits SDL GL version attributes for ES 3.0 / WebGL 2 and keeps comments
+     referencing LEGACY_GL_EMULATION. Update CreateGLWindow before shipping Web.
+
+B. Pre-Merge Baseline Verification (Recorded on local-gl46 commit 910a9aae)
+   Historical results captured prior to merging upstream/development:
+
+1. Static Workspace Audit (Select-String on engine/source, excluding platform*
+   and glDSA.*)
+   - Result: All matches for legacy glBegin/glEnd, glVertex*, glColor*,
+     glTexCoord*, matrix stack, client array pointers, glClipPlane, glAlphaFunc,
+     glTexEnv, GL_ALPHA_TEST, gluProject/gluUnProject/gluOrtho2D, and raw DSA
+     calls were comments only.
+   - glPointSize in DebugDraw.cc is guarded off Android/iOS/Emscripten.
+
+2. GLSL Shader Validation (C:\bin\glslang.exe --stdin)
+   - Extracted sDefaultVertexShaderBody (377 chars) and
+     sDefaultFragmentShaderBody (1086 chars) from ShaderManager.cc.
+   - #version 460 core (vert + frag): Exit code 0.
+   - #version 320 es + precision highp qualifiers (vert + frag): Exit code 0.
+
+3. Windows Debug Build (Visual Studio 18 2026, x64)
+   - Command: cmake --build build --config Debug
+   - Result: Torque2D_DEBUG.exe and the GoogleTest runner compiled and linked
+     with 0 errors.
+
+4. C++ Unit Tests (tests\run-unit.ps1 -> tests\logs\unit.log)
+   - Result: All 329 passed (329 tests, 0 failed; exit code 0).
+   - Includes all 7 OpenGLMigration* tests:
+     * OpenGLMigrationShaderTest.BuildPreprocessedSourceDesktopGL46Core
+     * OpenGLMigrationShaderTest.BuildPreprocessedSourceMobileGLES32
+     * OpenGLMigrationShaderTest.BuildPreprocessedSourceRejectsInvalidArgs
+     * OpenGLMigrationStateTest.CpuRenderStateAccessors
+     * OpenGLMigrationMatrixTest.StackDepthPushPopAndModeSwitching
+     * OpenGLMigrationMatrixTest.OrthoAndCombinedMVPTransform
+     * OpenGLMigrationConstantsTest.CoreSizedFormatsAndSwizzleEnumsDefined
+
+5. TorqueScript Integration / Smoke Tests (tests\run.ps1)
+   - Result: All 60 smoke test suites passed ("All 60 as expected", exit 0),
+     including toybox, planetX, font, particleColorGraph, profileEditor,
+     assetImageInspector, assetFontInspector, assetAnimationInspector, and
+     assetParticleInspector.
+   - Runtime log (tests\logs\toybox.log):
+     "Created OpenGL 4.6 Core Profile rendering context."
+     "Vendor: ATI Technologies Inc. / Renderer: AMD Radeon RX 7700 XT"
+     "Version: 4.6.0 Core Profile Context 26.8.1.260810"
+
+6. Screenshot Tests (tests\run.ps1 -Shots)
+   - Result: All 25 screenshot test suites passed ("All 25 as expected", exit 0),
+     rendering crisp UI chrome, sprites, PlanetX HUD/world, animations,
+     particle color graphs, color pickers, and fonts.
+   - Note on pre-existing Windows GDI font behavior: For uninstalled custom
+     BaseTheme fonts (raleway, black ops one, fira code semibold) whose size-20
+     .uft caches omit certain tail glyphs, Windows GDI maps height-20 fallback
+     requests to raster "MS Sans Serif" where GetGlyphOutline returns GDI_ERROR
+     (identical in the unmodified baseline), whereas sizes 19 and 28 map to
+     TrueType "Arial" and render dynamically.
+
+7. Verification Scope Note
+   - Android NDK compilation and on-device OpenGL ES 3.2 execution were not run
+     in this Windows workspace. GLES 3.2 compatibility is verified through
+     glslang.exe #version 320 es shader compilation, unit tests for preprocessor
+     output and Core/ES constants, and updating AndroidGL2ES.cpp to <GLES3/gl32.h>.

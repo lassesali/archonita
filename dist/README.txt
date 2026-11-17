@@ -1,13 +1,13 @@
 ﻿================================================================================
                            ARCHONITA (2006 - 2026)
                         20th Anniversary Edition
-                 Ported to 64-Bit Torque2D 4.0 (EA4)
+                 Ported to 64-Bit Torque2D 4.0 (OpenGL 4.6 Core)
 ================================================================================
 
 ABOUT THE GAME
 --------------
 Archonita is a tactical turn-based grid strategy game originally developed by
-Gamelon Productions for the Suomipelit.com PikkukesÃ¤kilpailu 2006 game jam.
+Gamelon Productions for the Suomipelit.com Pikkukesäkilpailu 2006 game jam.
 Blending the strategic depth of classic board games (such as Archon) with real-time
 dice rolls, hero abilities, and spellcasting, Archonita challenges you to deploy
 your fantasy army and dominate the tactical battlefield.

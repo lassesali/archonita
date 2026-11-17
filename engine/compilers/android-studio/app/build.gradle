@@ -1,0 +1,98 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.garagegames.torque2d'
+    compileSdk 36
+    ndkVersion '27.0.12077973'
+
+    // The native build is now driven by the CMake source of truth at the repo
+    // root (replacing the old hand-maintained src/main/jni/Android.mk).
+    externalNativeBuild {
+        cmake {
+            path '../../../../CMakeLists.txt'
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.garagegames.torque2d"
+        minSdk 21
+        targetSdk 36
+        versionCode 1
+        versionName "4.0"
+
+        ndk {
+            // arm64-v8a only for now (the only ABI with prebuilt freetype/openal).
+            abiFilters 'arm64-v8a'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static'
+                cppFlags '-std=c++17'
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            // The script/asset tree is copied into src/main/game by copyGame below.
+            assets.srcDirs = ['src/main/assets', 'src/main/game']
+            // libopenal.so is now built from source by CMake and packaged automatically.
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+// Copy the Archonita scripts/modules and pre-seeded theme data into APK assets (read via AAssetManager).
+tasks.register('copyGame', Sync) {
+    description = 'Copy Archonita scripts, modules, and runtime themes into the APK assets'
+    into 'src/main/game'
+    includeEmptyDirs = false
+
+    from('../../../../') {
+        include 'Archon/**'
+        include 'library/AppCore/**'
+        include 'library/Audio/**'
+        include 'library/themes/**'
+        include 'version.json'
+        include 'version.env'
+
+        exclude '**/*.dso'
+        exclude '**/*.bak'
+        exclude '**/*.jbf'
+        exclude '**/Thumbs.db'
+        exclude '**/preferences.cs'
+        exclude 'Archon/**/1280/**'
+        exclude 'Archon/**/800/**'
+        exclude 'Archon/resolutionpatch_*.zip'
+    }
+
+    // Seed read-only root themes/ so AppCore::loadThemes skips pathCopy/TAMLWrite at runtime.
+    from('../../../../library/themes/Base.taml') {
+        into 'themes'
+    }
+    from('../../../../library/AppCore/gui/images/cursors') {
+        include '*.png'
+        into 'themes/cursors/Base'
+    }
+
+    // Package the Android-specific main.cs booting Archonita directly.
+    from('src/main/android_boot/main.cs')
+}
+
+tasks.register('wipeGame', Delete) {
+    description = 'Remove the android-specific copy of the torque scripts and modules'
+    delete 'src/main/game/'
+}
+tasks.named('clean') { dependsOn 'wipeGame' }
+tasks.withType(JavaCompile).configureEach { dependsOn 'copyGame' }
+// Native build (and asset merge) also depend on the game content being present.
+tasks.matching { it.name.startsWith('merge') && it.name.endsWith('Assets') }.configureEach {
+    dependsOn 'copyGame'
+}

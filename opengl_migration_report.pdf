@@ -1,0 +1,279 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 5 0 R 7 0 R 9 0 R 11 0 R ] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 4918 >>
+stream
+BT /F2 15 Tf 50 742.0 Td (Torque 2D - OpenGL 4.6 Core / OpenGL ES 3.2 Migration Report) Tj ET
+BT /F1 9.2 Tf 50 722.0 Td (Generated: 2026-11-14) Tj ET
+BT /F1 9.2 Tf 50 709.5 Td (Repository: C:\\Users\\lkarh\\Downloads\\Torque2D-master) Tj ET
+BT /F1 9.2 Tf 50 697.0 Td (Branch: local-gl46 \(merged with upstream/development, 31 commits\)) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 675.0 m 562 675.0 l S
+BT /F2 11.5 Tf 50 662.0 Td (1. ARCHITECTURE & TARGET BASELINES) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 649.0 m 562 649.0 l S
+BT /F1 9.2 Tf 50 628.5 Td (- Desktop Target:) Tj ET
+BT /F1 9.2 Tf 50 616.0 Td (  OpenGL 4.6 Core Profile \(#version 460 core\).) Tj ET
+BT /F1 9.2 Tf 50 603.5 Td (- Android / Mobile Target:) Tj ET
+BT /F1 9.2 Tf 50 591.0 Td (  OpenGL ES 3.2 \(#version 320 es\) with precision qualifiers) Tj ET
+BT /F1 9.2 Tf 50 578.5 Td (  \(precision highp float;, precision highp int;, precision highp sampler2D;\)) Tj ET
+BT /F1 9.2 Tf 50 566.0 Td (  injected by ShaderManager::buildPreprocessedSource\(\).) Tj ET
+BT /F1 9.2 Tf 50 553.5 Td (- Web / Emscripten Target:) Tj ET
+BT /F1 9.2 Tf 50 541.0 Td (  CMakeLists.txt pairs upstream/development SDL 2 \(-sUSE_SDL=2\) with WebGL 2) Tj ET
+BT /F1 9.2 Tf 50 528.5 Td (  flags \(-sMIN_WEBGL_VERSION=2, -sMAX_WEBGL_VERSION=2, replacing) Tj ET
+BT /F1 9.2 Tf 50 516.0 Td (  LEGACY_GL_EMULATION\). ShaderManager::compileShader selects ES shader) Tj ET
+BT /F1 9.2 Tf 50 503.5 Td (  profiles for TORQUE_OS_EMSCRIPTEN \(WebGL 2 GL attributes in) Tj ET
+BT /F1 9.2 Tf 50 491.0 Td (  EmscriptenOGLVideo.cpp remain a follow-up item; see Section 3.A.4\).) Tj ET
+BT /F1 9.2 Tf 50 478.5 Td (- Direct State Access Abstraction \(GLDSA\):) Tj ET
+BT /F1 9.2 Tf 50 466.0 Td (  4.5+ DSA calls are wrapped behind GLDSA::* in engine/source/graphics/glDSA.h) Tj ET
+BT /F1 9.2 Tf 50 453.5 Td (  and glDSA.cc so core engine code compiles and runs cleanly against OpenGL 4.6) Tj ET
+BT /F1 9.2 Tf 50 441.0 Td (  Core, OpenGL ES 3.2, and future ANGLE/Vulkan or macOS fallback paths.) Tj ET
+BT /F1 9.2 Tf 50 428.5 Td (- VAO-Backed Programmable Pipeline & CPU Matrix Stacks:) Tj ET
+BT /F1 9.2 Tf 50 416.0 Td (  Fixed-function immediate mode, client arrays, matrix stacks, GL_ALPHA_TEST,) Tj ET
+BT /F1 9.2 Tf 50 403.5 Td (  and glClipPlane calls are replaced by VAO/VBO/IBO streaming draws in) Tj ET
+BT /F1 9.2 Tf 50 391.0 Td (  ShaderManager and CPU matrix stacks in dglMatrix.cc.) Tj ET
+BT /F1 9.2 Tf 50 378.5 Td (- Phase Scope:) Tj ET
+BT /F1 9.2 Tf 50 366.0 Td (  Phase 1 strictly replaces the internal fixed-function rendering pipeline;) Tj ET
+BT /F1 9.2 Tf 50 353.5 Td (  custom ShaderAsset TAML types are deferred to Phase 2.) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 331.5 m 562 331.5 l S
+BT /F2 11.5 Tf 50 318.5 Td (2. SUMMARY OF CHANGES) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 305.5 m 562 305.5 l S
+BT /F2 9.8 Tf 50 285.0 Td (A. Core Programmable Pipeline, DSA Abstraction, and CPU Matrices) Tj ET
+BT /F1 9.2 Tf 50 271.5 Td (- engine/source/graphics/ShaderManager.h & ShaderManager.cc) Tj ET
+BT /F1 9.2 Tf 50 259.0 Td (  * Implemented ShaderManager::buildPreprocessedSource \(#version 460 core vs) Tj ET
+BT /F1 9.2 Tf 50 246.5 Td (    #version 320 es + highp precision qualifiers\), shader/program compilation,) Tj ET
+BT /F1 9.2 Tf 50 234.0 Td (    DGLTexMode state \(DGL_TEX_NONE, DGL_TEX_MODULATE, DGL_TEX_BLEND,) Tj ET
+BT /F1 9.2 Tf 50 221.5 Td (    DGL_TEX_REPLACE, DGL_TEX_ADD\), uniform alpha testing, uniform clip planes,) Tj ET
+BT /F1 9.2 Tf 50 209.0 Td (    streaming VAO/VBO/IBO drawVertices/drawIndexedVertices/drawBatch, and) Tj ET
+BT /F1 9.2 Tf 50 196.5 Td (    immediate-mode replacement helpers \(begin/texCoord2f/color*/vertex*/end\).) Tj ET
+BT /F1 9.2 Tf 50 184.0 Td (  * Fixed graphics/gColor.h include path and added DGLVertex::set\(...\) inline) Tj ET
+BT /F1 9.2 Tf 50 171.5 Td (    helper in ShaderManager.h.) Tj ET
+BT /F1 9.2 Tf 50 159.0 Td (- engine/source/graphics/glDSA.h & glDSA.cc) Tj ET
+BT /F1 9.2 Tf 50 146.5 Td (  * Provided thin wrapper entry points for buffer creation/upload, texture) Tj ET
+BT /F1 9.2 Tf 50 134.0 Td (    creation/upload/parameters/swizzle, and texture unit binding.) Tj ET
+BT /F1 9.2 Tf 50 121.5 Td (  * Updated Windows preprocessor guards from TORQUE_OS_WIN32 to TORQUE_OS_WIN so) Tj ET
+BT /F1 9.2 Tf 50 109.0 Td (    x64 \(Win64\) builds compile desktop DSA/VAO paths instead of no-op stubs,) Tj ET
+BT /F1 9.2 Tf 50 96.5 Td (    and ensured bindTextureUnit always activates GL_TEXTURE0 + unit on the) Tj ET
+BT /F1 9.2 Tf 50 84.0 Td (    non-DSA fallback path.) Tj ET
+BT /F1 9.2 Tf 50 71.5 Td (- engine/source/platform/GLModernTypes.h & GLModernFunc.h) Tj ET
+BT /F1 9.2 Tf 50 59.0 Td (  * Defined Core Profile / ES 3.2 sized format constants \(GL_R8, GL_RG8,) Tj ET
+0.75 0.75 0.75 RG 0.5 w 50 40 m 562 40 l S
+BT /F1 8 Tf 50 28 Td (Torque 2D OpenGL 4.6 Core / GLES 3.2 Migration Report  |  Page 1 of 4) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 5466 >>
+stream
+BT /F1 9.2 Tf 50 742.0 Td (    GL_RGB8, GL_RGBA8, GL_RGB565, GL_RGB5_A1, GL_RGBA4\), swizzle constants) Tj ET
+BT /F1 9.2 Tf 50 729.5 Td (    \(GL_TEXTURE_SWIZZLE_RGBA\), and context/profile enums.) Tj ET
+BT /F1 9.2 Tf 50 717.0 Td (- engine/source/graphics/dgl.h, dglMatrix.cc & dgl.cc) Tj ET
+BT /F1 9.2 Tf 50 704.5 Td (  * Replaced fixed-function GL matrix stack calls with CPU stacks \(dglMatrixMode,) Tj ET
+BT /F1 9.2 Tf 50 692.0 Td (    dglPushMatrix, dglPopMatrix, dglLoadIdentity, dglOrtho, dglFrustum,) Tj ET
+BT /F1 9.2 Tf 50 679.5 Td (    dglTranslatef, dglRotatef, dglScalef, dglGetMVPColumnMajor, stack depth) Tj ET
+BT /F1 9.2 Tf 50 667.0 Td (    queries, and dglResetMatrixStacks\).) Tj ET
+BT /F1 9.2 Tf 50 654.5 Td (  * Migrated primitive, bitmap, quad, glyph batching \(dglDrawTextN\), clip rect,) Tj ET
+BT /F1 9.2 Tf 50 642.0 Td (    pure-math dglPointToScreen, canonical/debug helpers, dglSetViewport,) Tj ET
+BT /F1 9.2 Tf 50 629.5 Td (    dglGetViewport, dglSetFrustum, dglGetFrustum, dglIsOrtho, dglGetPixelScale,) Tj ET
+BT /F1 9.2 Tf 50 617.0 Td (    dglGetWorldToScreenScale, and dglProjectRadius.) Tj ET
+BT /F1 9.2 Tf 50 604.5 Td (- engine/source/graphics/TextureHandle.cc, TextureManager.cc & splineUtil.cc) Tj ET
+BT /F1 9.2 Tf 50 592.0 Td (  * Routed texture parameters, uploads, deletes, residency checks \(glIsTexture\),) Tj ET
+BT /F1 9.2 Tf 50 579.5 Td (    and GL_R8 swizzle masks \({ GL_ONE, GL_ONE, GL_ONE, GL_RED } for bitmap font) Tj ET
+BT /F1 9.2 Tf 50 567.0 Td (    alpha sheets\) through GLDSA::*.) Tj ET
+BT /F1 9.2 Tf 50 554.5 Td (  * Migrated splineUtil::drawSplineBeam overloads to ShaderManager::begin/end.) Tj ET
+BT /F2 9.8 Tf 50 535.5 Td (B. 2D Core, Scene Objects, and GUI) Tj ET
+BT /F1 9.2 Tf 50 522.0 Td (- engine/source/2d/core/BatchRender.h & BatchRender.cc) Tj ET
+BT /F1 9.2 Tf 50 509.5 Td (  * Migrated RenderQuad and flushInternal\(\) to ShaderManager streaming indexed) Tj ET
+BT /F1 9.2 Tf 50 497.0 Td (    batches and GLDSA::bindTextureUnit.) Tj ET
+BT /F1 9.2 Tf 50 484.5 Td (- engine/source/2d/gui/guiSceneObjectCtrl.cc & SceneWindow.cc) Tj ET
+BT /F1 9.2 Tf 50 472.0 Td (  * Replaced projection/modelview matrix stacks, alpha test enables/disables,) Tj ET
+BT /F1 9.2 Tf 50 459.5 Td (    and overlay banner quads with dgl* matrices and ShaderManager.) Tj ET
+BT /F1 9.2 Tf 50 447.0 Td (- engine/source/2d/scene/DebugDraw.cc & Scene.cc) Tj ET
+BT /F1 9.2 Tf 50 434.5 Td (  * Migrated Box2D debug drawing \(polygons, circles, segments, transforms, points\)) Tj ET
+BT /F1 9.2 Tf 50 422.0 Td (    to ShaderManager; guarded glPointSize off Android/iOS/Emscripten.) Tj ET
+BT /F1 9.2 Tf 50 409.5 Td (  * Updated Scene matrix calls to dglTranslatef / dglRotatef.) Tj ET
+BT /F1 9.2 Tf 50 397.0 Td (- engine/source/2d/sceneobject/LightObject.cc, ParticlePlayer.cc, SceneObject.cc,) Tj ET
+BT /F1 9.2 Tf 50 384.5 Td (  Scroller.cc & ShapeVector.cc) Tj ET
+BT /F1 9.2 Tf 50 372.0 Td (  * Replaced triangle fans, blends/alpha test toggles, matrix transforms, OOBB) Tj ET
+BT /F1 9.2 Tf 50 359.5 Td (    clip planes \(ShaderManager::setClipPlane / enableClipPlane\), and polygon/) Tj ET
+BT /F1 9.2 Tf 50 347.0 Td (    circle rendering \(shared emitShapePass / renderShapePasses template helpers\)) Tj ET
+BT /F1 9.2 Tf 50 334.5 Td (    with dgl* and ShaderManager calls.) Tj ET
+BT /F1 9.2 Tf 50 322.0 Td (- engine/source/gui/guiCanvas.cc, guiSliderCtrl.cc, guiTextEditSliderCtrl.cc,) Tj ET
+BT /F1 9.2 Tf 50 309.5 Td (  gui/editor/guiGraphCtrl.cc & gui/editor/guiEditCtrl.cc) Tj ET
+BT /F1 9.2 Tf 50 297.0 Td (  * Replaced fallback cursor rect, slider ticks, arrows, graph series primitives,) Tj ET
+BT /F1 9.2 Tf 50 284.5 Td (    and editor grid dots with dglDraw* / ShaderManager draw paths.) Tj ET
+BT /F2 9.8 Tf 50 265.5 Td (C. Android OpenGL ES 3.2 Compatibility & Build / Test Registration) Tj ET
+BT /F1 9.2 Tf 50 252.0 Td (- engine/source/platformAndroid/AndroidGL2ES.h & AndroidGL2ES.cpp) Tj ET
+BT /F1 9.2 Tf 50 239.5 Td (  * Updated Android ES compatibility stubs/wrappers against <GLES3/gl32.h> to) Tj ET
+BT /F1 9.2 Tf 50 227.0 Td (    delegate matrix, immediate-mode, color, alpha-test, texenv, and clip-plane) Tj ET
+BT /F1 9.2 Tf 50 214.5 Td (    calls to dgl* and ShaderManager, removing legacy ES 1.1 client arrays and) Tj ET
+BT /F1 9.2 Tf 50 202.0 Td (    removed fixed-function GL calls.) Tj ET
+BT /F1 9.2 Tf 50 189.5 Td (- cmake/EngineSources.cmake) Tj ET
+BT /F1 9.2 Tf 50 177.0 Td (  * Registered ShaderManager.cc, glDSA.cc, dglMatrix.cc, and) Tj ET
+BT /F1 9.2 Tf 50 164.5 Td (    engine/source/testing/tests/openglMigrationTests.cc.) Tj ET
+BT /F1 9.2 Tf 50 152.0 Td (- engine/source/testing/tests/openglMigrationTests.cc) Tj ET
+BT /F1 9.2 Tf 50 139.5 Td (  * Added GoogleTest unit tests covering buildPreprocessedSource \(460 core &) Tj ET
+BT /F1 9.2 Tf 50 127.0 Td (    320 es + invalid args\), CPU render-state accessors, CPU matrix stack) Tj ET
+BT /F1 9.2 Tf 50 114.5 Td (    push/pop/mode/ortho/MVP/rotation math, and Core/ES constants.) Tj ET
+BT /F1 9.2 Tf 50 102.0 Td (- CHANGELOG.md & README.md) Tj ET
+BT /F1 9.2 Tf 50 89.5 Td (  * Documented [Unreleased] migration entries, updated Visual Studio 2022/2026) Tj ET
+BT /F1 9.2 Tf 50 77.0 Td (    and Release \(-Release\) test commands, and noted the merged state.) Tj ET
+0.75 0.75 0.75 RG 0.5 w 50 40 m 562 40 l S
+BT /F1 8 Tf 50 28 Td (Torque 2D OpenGL 4.6 Core / GLES 3.2 Migration Report  |  Page 2 of 4) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 4722 >>
+stream
+BT /F2 9.8 Tf 50 742.0 Td (D. Upstream Development Merge Integration \(31 Commits into local-gl46\)) Tj ET
+BT /F1 9.2 Tf 50 728.5 Td (- CMakeLists.txt) Tj ET
+BT /F1 9.2 Tf 50 716.0 Td (  * Merged upstream/development SDL 2 support \(-sUSE_SDL=2 on Emscripten and) Tj ET
+BT /F1 9.2 Tf 50 703.5 Td (    vendored SDL 2 / TORQUE_SDL on Linux\) while preserving WebGL 2 shader flags) Tj ET
+BT /F1 9.2 Tf 50 691.0 Td (    \(-sMIN_WEBGL_VERSION=2, -sMAX_WEBGL_VERSION=2\) and Android GLESv3 linking.) Tj ET
+BT /F1 9.2 Tf 50 678.5 Td (- cmake/EngineSources.cmake) Tj ET
+BT /F1 9.2 Tf 50 666.0 Td (  * Preserved ShaderManager.cc, glDSA.cc, dglMatrix.cc, and) Tj ET
+BT /F1 9.2 Tf 50 653.5 Td (    openglMigrationTests.cc alongside upstream/development's) Tj ET
+BT /F1 9.2 Tf 50 641.0 Td (    particleAssetFieldTests.cc and particleEmissionAngleTests.cc.) Tj ET
+BT /F1 9.2 Tf 50 628.5 Td (- engine/source/platformWin32/winFileio.cc) Tj ET
+BT /F1 9.2 Tf 50 616.0 Td (  * Integrated upstream/development's case-sensitive) Tj ET
+BT /F1 9.2 Tf 50 603.5 Td (    StringTable->insert\(..., true\) directory scan fix \(matching HEAD\).) Tj ET
+BT /F1 9.2 Tf 50 591.0 Td (- Auto-Merged Graphics, UI, and Particle Files) Tj ET
+BT /F1 9.2 Tf 50 578.5 Td (  * Audited post-merge diffs for ParticlePlayer.cc \(calculateEmissionAngle) Tj ET
+BT /F1 9.2 Tf 50 566.0 Td (    refactor\), guiCanvas.cc \(first-responder focus fixes\), and x86UNIXGL.cc) Tj ET
+BT /F1 9.2 Tf 50 553.5 Td (    \(<SDL.h> + SDL_GL_SetSwapInterval support\); confirmed zero legacy) Tj ET
+BT /F1 9.2 Tf 50 541.0 Td (    fixed-function OpenGL calls were introduced.) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 519.0 m 562 519.0 l S
+BT /F2 11.5 Tf 50 506.0 Td (3. VERIFICATION RESULTS) Tj ET
+0.65 0.65 0.65 RG 0.7 w 50 493.0 m 562 493.0 l S
+BT /F2 9.8 Tf 50 472.5 Td (A. Post-Merge Verification \(local-gl46 + upstream/development\)) Tj ET
+BT /F1 9.2 Tf 50 452.5 Td (1. CMake Out-of-Source Configure \(build-gl46-test\)) Tj ET
+BT /F1 9.2 Tf 50 440.0 Td (   - Generator / Toolchain: Visual Studio 18 2026 \(-A x64\), CMake 4.3.1-msvc1,) Tj ET
+BT /F1 9.2 Tf 50 427.5 Td (     MSVC 19.51.36263.0, Windows SDK 10.0.26100.0.) Tj ET
+BT /F1 9.2 Tf 50 415.0 Td (   - Result: Configuring done \(7.4s\), Generating done \(0.3s\); exit code 0.) Tj ET
+BT /F1 9.2 Tf 50 396.0 Td (2. Windows x64 Release Build \(Visual Studio 18 2026, x64\)) Tj ET
+BT /F1 9.2 Tf 50 383.5 Td (   - Command: cmake --build build-gl46-test --config Release --parallel) Tj ET
+BT /F1 9.2 Tf 50 371.0 Td (   - Result: Compiled and linked with 0 errors and 0 C++/CMake post-merge) Tj ET
+BT /F1 9.2 Tf 50 358.5 Td (     patches required.) Tj ET
+BT /F1 9.2 Tf 50 346.0 Td (   - Output artifacts at repository root: Torque2D.exe \(6,112,768 bytes\) and) Tj ET
+BT /F1 9.2 Tf 50 333.5 Td (     OpenAL32.dll \(2,929,664 bytes\).) Tj ET
+BT /F1 9.2 Tf 50 314.5 Td (3. Post-Merge Conflict & Legacy OpenGL Audit) Tj ET
+BT /F1 9.2 Tf 50 302.0 Td (   - git diff --check exited 0; git grep for conflict markers returned 0 hits.) Tj ET
+BT /F1 9.2 Tf 50 289.5 Td (   - Post-merge git diff scan across engine/source/2d/, engine/source/gui/,) Tj ET
+BT /F1 9.2 Tf 50 277.0 Td (     and engine/source/graphics/ returned 0 legacy fixed-function OpenGL calls.) Tj ET
+BT /F1 9.2 Tf 50 258.0 Td (4. Pending Post-Merge Checks & Known Follow-Ups) Tj ET
+BT /F1 9.2 Tf 50 245.5 Td (   - Post-merge runtime execution of C++ unit tests) Tj ET
+BT /F1 9.2 Tf 50 233.0 Td (     \(pwsh -ExecutionPolicy Bypass -File tests\\run-unit.ps1 -Release\), Debug) Tj ET
+BT /F1 9.2 Tf 50 220.5 Td (     build \(Torque2D_DEBUG.exe\), and TorqueScript smoke/screenshot suites) Tj ET
+BT /F1 9.2 Tf 50 208.0 Td (     \(tests\\run.ps1\) was not executed in this sandboxed merge session and) Tj ET
+BT /F1 9.2 Tf 50 195.5 Td (     remains to be run locally.) Tj ET
+BT /F1 9.2 Tf 50 183.0 Td (   - Android NDK and Emscripten/WebAssembly builds were not executed on this) Tj ET
+BT /F1 9.2 Tf 50 170.5 Td (     Windows host.) Tj ET
+BT /F1 9.2 Tf 50 158.0 Td (   - Emscripten WebGL 2 Context Attributes Follow-Up: CMakeLists.txt sets) Tj ET
+BT /F1 9.2 Tf 50 145.5 Td (     -sUSE_SDL=2 with -sMIN_WEBGL_VERSION=2 and -sMAX_WEBGL_VERSION=2, whereas) Tj ET
+BT /F1 9.2 Tf 50 133.0 Td (     upstream/development's EmscriptenOGLVideo.cpp \(CreateGLWindow\) still) Tj ET
+BT /F1 9.2 Tf 50 120.5 Td (     omits SDL GL version attributes for ES 3.0 / WebGL 2 and keeps comments) Tj ET
+BT /F1 9.2 Tf 50 108.0 Td (     referencing LEGACY_GL_EMULATION. Update CreateGLWindow before shipping Web.) Tj ET
+0.75 0.75 0.75 RG 0.5 w 50 40 m 562 40 l S
+BT /F1 8 Tf 50 28 Td (Torque 2D OpenGL 4.6 Core / GLES 3.2 Migration Report  |  Page 3 of 4) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 5306 >>
+stream
+BT /F2 9.8 Tf 50 742.0 Td (B. Pre-Merge Baseline Verification \(Recorded on local-gl46 commit 910a9aae\)) Tj ET
+BT /F1 9.2 Tf 50 728.5 Td (   Historical results captured prior to merging upstream/development:) Tj ET
+BT /F1 9.2 Tf 50 709.5 Td (1. Static Workspace Audit \(Select-String on engine/source, excluding platform*) Tj ET
+BT /F1 9.2 Tf 50 697.0 Td (   and glDSA.*\)) Tj ET
+BT /F1 9.2 Tf 50 684.5 Td (   - Result: All matches for legacy glBegin/glEnd, glVertex*, glColor*,) Tj ET
+BT /F1 9.2 Tf 50 672.0 Td (     glTexCoord*, matrix stack, client array pointers, glClipPlane, glAlphaFunc,) Tj ET
+BT /F1 9.2 Tf 50 659.5 Td (     glTexEnv, GL_ALPHA_TEST, gluProject/gluUnProject/gluOrtho2D, and raw DSA) Tj ET
+BT /F1 9.2 Tf 50 647.0 Td (     calls were comments only.) Tj ET
+BT /F1 9.2 Tf 50 634.5 Td (   - glPointSize in DebugDraw.cc is guarded off Android/iOS/Emscripten.) Tj ET
+BT /F1 9.2 Tf 50 615.5 Td (2. GLSL Shader Validation \(C:\\bin\\glslang.exe --stdin\)) Tj ET
+BT /F1 9.2 Tf 50 603.0 Td (   - Extracted sDefaultVertexShaderBody \(377 chars\) and) Tj ET
+BT /F1 9.2 Tf 50 590.5 Td (     sDefaultFragmentShaderBody \(1086 chars\) from ShaderManager.cc.) Tj ET
+BT /F1 9.2 Tf 50 578.0 Td (   - #version 460 core \(vert + frag\): Exit code 0.) Tj ET
+BT /F1 9.2 Tf 50 565.5 Td (   - #version 320 es + precision highp qualifiers \(vert + frag\): Exit code 0.) Tj ET
+BT /F1 9.2 Tf 50 546.5 Td (3. Windows Debug Build \(Visual Studio 18 2026, x64\)) Tj ET
+BT /F1 9.2 Tf 50 534.0 Td (   - Command: cmake --build build --config Debug) Tj ET
+BT /F1 9.2 Tf 50 521.5 Td (   - Result: Torque2D_DEBUG.exe and the GoogleTest runner compiled and linked) Tj ET
+BT /F1 9.2 Tf 50 509.0 Td (     with 0 errors.) Tj ET
+BT /F1 9.2 Tf 50 490.0 Td (4. C++ Unit Tests \(tests\\run-unit.ps1 -> tests\\logs\\unit.log\)) Tj ET
+BT /F1 9.2 Tf 50 477.5 Td (   - Result: All 329 passed \(329 tests, 0 failed; exit code 0\).) Tj ET
+BT /F1 9.2 Tf 50 465.0 Td (   - Includes all 7 OpenGLMigration* tests:) Tj ET
+BT /F1 9.2 Tf 50 452.5 Td (     * OpenGLMigrationShaderTest.BuildPreprocessedSourceDesktopGL46Core) Tj ET
+BT /F1 9.2 Tf 50 440.0 Td (     * OpenGLMigrationShaderTest.BuildPreprocessedSourceMobileGLES32) Tj ET
+BT /F1 9.2 Tf 50 427.5 Td (     * OpenGLMigrationShaderTest.BuildPreprocessedSourceRejectsInvalidArgs) Tj ET
+BT /F1 9.2 Tf 50 415.0 Td (     * OpenGLMigrationStateTest.CpuRenderStateAccessors) Tj ET
+BT /F1 9.2 Tf 50 402.5 Td (     * OpenGLMigrationMatrixTest.StackDepthPushPopAndModeSwitching) Tj ET
+BT /F1 9.2 Tf 50 390.0 Td (     * OpenGLMigrationMatrixTest.OrthoAndCombinedMVPTransform) Tj ET
+BT /F1 9.2 Tf 50 377.5 Td (     * OpenGLMigrationConstantsTest.CoreSizedFormatsAndSwizzleEnumsDefined) Tj ET
+BT /F1 9.2 Tf 50 358.5 Td (5. TorqueScript Integration / Smoke Tests \(tests\\run.ps1\)) Tj ET
+BT /F1 9.2 Tf 50 346.0 Td (   - Result: All 60 smoke test suites passed \("All 60 as expected", exit 0\),) Tj ET
+BT /F1 9.2 Tf 50 333.5 Td (     including toybox, planetX, font, particleColorGraph, profileEditor,) Tj ET
+BT /F1 9.2 Tf 50 321.0 Td (     assetImageInspector, assetFontInspector, assetAnimationInspector, and) Tj ET
+BT /F1 9.2 Tf 50 308.5 Td (     assetParticleInspector.) Tj ET
+BT /F1 9.2 Tf 50 296.0 Td (   - Runtime log \(tests\\logs\\toybox.log\):) Tj ET
+BT /F1 9.2 Tf 50 283.5 Td (     "Created OpenGL 4.6 Core Profile rendering context.") Tj ET
+BT /F1 9.2 Tf 50 271.0 Td (     "Vendor: ATI Technologies Inc. / Renderer: AMD Radeon RX 7700 XT") Tj ET
+BT /F1 9.2 Tf 50 258.5 Td (     "Version: 4.6.0 Core Profile Context 26.8.1.260810") Tj ET
+BT /F1 9.2 Tf 50 239.5 Td (6. Screenshot Tests \(tests\\run.ps1 -Shots\)) Tj ET
+BT /F1 9.2 Tf 50 227.0 Td (   - Result: All 25 screenshot test suites passed \("All 25 as expected", exit 0\),) Tj ET
+BT /F1 9.2 Tf 50 214.5 Td (     rendering crisp UI chrome, sprites, PlanetX HUD/world, animations,) Tj ET
+BT /F1 9.2 Tf 50 202.0 Td (     particle color graphs, color pickers, and fonts.) Tj ET
+BT /F1 9.2 Tf 50 189.5 Td (   - Note on pre-existing Windows GDI font behavior: For uninstalled custom) Tj ET
+BT /F1 9.2 Tf 50 177.0 Td (     BaseTheme fonts \(raleway, black ops one, fira code semibold\) whose size-20) Tj ET
+BT /F1 9.2 Tf 50 164.5 Td (     .uft caches omit certain tail glyphs, Windows GDI maps height-20 fallback) Tj ET
+BT /F1 9.2 Tf 50 152.0 Td (     requests to raster "MS Sans Serif" where GetGlyphOutline returns GDI_ERROR) Tj ET
+BT /F1 9.2 Tf 50 139.5 Td (     \(identical in the unmodified baseline\), whereas sizes 19 and 28 map to) Tj ET
+BT /F1 9.2 Tf 50 127.0 Td (     TrueType "Arial" and render dynamically.) Tj ET
+BT /F1 9.2 Tf 50 108.0 Td (7. Verification Scope Note) Tj ET
+BT /F1 9.2 Tf 50 95.5 Td (   - Android NDK compilation and on-device OpenGL ES 3.2 execution were not run) Tj ET
+BT /F1 9.2 Tf 50 83.0 Td (     in this Windows workspace. GLES 3.2 compatibility is verified through) Tj ET
+BT /F1 9.2 Tf 50 70.5 Td (     glslang.exe #version 320 es shader compilation, unit tests for preprocessor) Tj ET
+BT /F1 9.2 Tf 50 58.0 Td (     output and Core/ES constants, and updating AndroidGL2ES.cpp to <GLES3/gl32.h>.) Tj ET
+0.75 0.75 0.75 RG 0.5 w 50 40 m 562 40 l S
+BT /F1 8 Tf 50 28 Td (Torque 2D OpenGL 4.6 Core / GLES 3.2 Migration Report  |  Page 4 of 4) Tj ET
+endstream
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000017 00000 n 
+0000000069 00000 n 
+0000000150 00000 n 
+0000000250 00000 n 
+0000000355 00000 n 
+0000000494 00000 n 
+0000005468 00000 n 
+0000005607 00000 n 
+0000011129 00000 n 
+0000011269 00000 n 
+0000016048 00000 n 
+0000016189 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+21552
+%%EOF
