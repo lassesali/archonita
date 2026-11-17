@@ -1,0 +1,77 @@
+{
+  "buildFiles": [
+    "C:\\Users\\lkarh\\Downloads\\archonita\\CMakeLists.txt",
+    "C:\\Users\\lkarh\\Downloads\\archonita\\cmake\\EngineSources.cmake",
+    "C:\\Users\\lkarh\\Downloads\\archonita\\cmake\\PlatformSources.cmake",
+    "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\lib\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\lkarh\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\lkarh\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "Torque2D::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "Torque2D",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\build\\intermediates\\cxx\\Debug\\69491d5g\\obj\\arm64-v8a\\libtorque2d.so",
+      "runtimeFiles": [
+        "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\build\\intermediates\\cxx\\Debug\\69491d5g\\obj\\arm64-v8a\\libopenal.so"
+      ]
+    },
+    "libogg::@47d3557a5d1c64bb14ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "libogg",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a\\engine\\lib\\liblibogg.a"
+    },
+    "libvorbis::@47d3557a5d1c64bb14ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "libvorbis",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a\\engine\\lib\\liblibvorbis.a"
+    },
+    "ljpeg::@47d3557a5d1c64bb14ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "ljpeg",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a\\engine\\lib\\libljpeg.a"
+    },
+    "lpng::@47d3557a5d1c64bb14ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "lpng",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\.cxx\\Debug\\69491d5g\\arm64-v8a\\engine\\lib\\liblpng.a"
+    },
+    "openal::@47d3557a5d1c64bb14ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "openal",
+      "output": "C:\\Users\\lkarh\\Downloads\\archonita\\engine\\compilers\\android-studio\\app\\build\\intermediates\\cxx\\Debug\\69491d5g\\obj\\arm64-v8a\\libopenal.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "C:\\Users\\lkarh\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "C:\\Users\\lkarh\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": [
+    "cc",
+    "cpp"
+  ]
+}

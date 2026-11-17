@@ -327,7 +327,7 @@ function FactionSelectGui::createControls(%this)
    }
 
    %panelW = 750;
-   %panelH = 516;
+   %panelH = 490;
    %panelX = mFloor((%mainW - %panelW) / 2);
    %panelY = mFloor((%mainH - %panelH) / 2);
 
@@ -385,7 +385,7 @@ function FactionSelectGui::createControls(%this)
       {
          Profile = %this.cardProfile;
          Position = %cx SPC %cy;
-         Extent = "226 350";
+         Extent = "226 340";
       };
 
       %this.cardTitle[%i] = new GuiControl()
@@ -435,7 +435,7 @@ function FactionSelectGui::createControls(%this)
       %this.descLabel[%i] = new GuiControl()
       {
          Profile = %this.descTextProfile;
-         Position = "10 194";
+         Position = "10 198";
          Extent = "206 72";
          Text = %specText;
       };
@@ -445,8 +445,8 @@ function FactionSelectGui::createControls(%this)
       %this.cardBtn[%i] = new GuiButtonCtrl()
       {
          Profile = %this.btnNormalProfile;
-         Position = "12 282";
-         Extent = "202 52";
+         Position = "18 284";
+         Extent = "190 38";
          Text = "SELECT";
          Command = "$FactionSelectGui.onSelectFaction(\"" @ %fKey @ "\");";
       };
@@ -459,8 +459,8 @@ function FactionSelectGui::createControls(%this)
    %this.btnBack = new GuiButtonCtrl(FactionSelectBackBtn)
    {
       Profile = %this.btnNormalProfile;
-      Position = "130 442";
-      Extent = "220 56";
+      Position = "140 430";
+      Extent = "200 40";
       Text = "CHANGE HERO";
       Command = "$FactionSelectGui.onBackClicked();";
    };
@@ -469,8 +469,8 @@ function FactionSelectGui::createControls(%this)
    %this.btnStart = new GuiButtonCtrl(FactionSelectStartBtn)
    {
       Profile = %this.btnActionProfile;
-      Position = "400 442";
-      Extent = "220 56";
+      Position = "410 430";
+      Extent = "200 40";
       Text = "BEGIN BATTLE";
       Command = "$FactionSelectGui.onStartClicked();";
    };
@@ -494,7 +494,7 @@ function FactionSelectGui::reanchor(%this)
    }
 
    %panelW = 750;
-   %panelH = 516;
+   %panelH = 490;
    %panelX = mFloor((%mainW - %panelW) / 2);
    %panelY = mFloor((%mainH - %panelH) / 2);
 
@@ -593,8 +593,6 @@ function FactionSelectGui::onBackClicked(%this)
 
    // Re-enable hero card selection
    $cardSelectTransitioning = false;
-   if (isObject(sceneWindow2D))
-      sceneWindow2D.objectSelected = false;
    if (isObject(card_0))
       card_0.valittu = 0;
    if (isObject(card_1))

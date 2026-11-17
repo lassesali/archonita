@@ -6,10 +6,19 @@
 function CombatEngine::onAdd(%this)
 {
    %this.dice = new SimSet();
+   %this.activeProjectiles = new SimSet();
    %this.hideBloodEvent = 0;
    %this.damagePieceEvent = 0;
    %this.diceRollEvent = 0;
    %this.diceStopEvent = 0;
+   %this.rangedLaunchEvent = 0;
+   %this.rangedImpactTimeoutEvent = 0;
+   %this.pendingAttackId = 0;
+   %this.pendingAttackIsRanged = 0;
+   %this.pendingRollComplete = 0;
+   %this.pendingProjectileImpacted = 0;
+   %this.pendingAttackResolved = 0;
+   %this.activeCombatProjectile = "";
    %this.inputLocked = false;
    $inputLocked = false;
    $scheduleID = 0;
@@ -18,6 +27,9 @@ function CombatEngine::onAdd(%this)
 
 function CombatEngine::onRemove(%this)
 {
+   %this.cleanupProjectiles();
+   if (isObject(%this.activeProjectiles))
+      %this.activeProjectiles.delete();
    if (isObject(%this.dice))
       %this.dice.delete();
    if (isEventPending(%this.hideBloodEvent))
@@ -28,6 +40,10 @@ function CombatEngine::onRemove(%this)
       cancel(%this.diceRollEvent);
    if (isEventPending(%this.diceStopEvent))
       cancel(%this.diceStopEvent);
+   if (isEventPending(%this.rangedLaunchEvent))
+      cancel(%this.rangedLaunchEvent);
+   if (isEventPending(%this.rangedImpactTimeoutEvent))
+      cancel(%this.rangedImpactTimeoutEvent);
 
    for (%i = 0; %i <= 8; %i++)
    {
@@ -67,6 +83,32 @@ function CombatEngine::isInputLocked(%this)
    return (%this.inputLocked || $inputLocked);
 }
 
+function CombatEngine::cleanupProjectiles(%this)
+{
+   if (isEventPending(%this.rangedLaunchEvent))
+   {
+      cancel(%this.rangedLaunchEvent);
+      %this.rangedLaunchEvent = 0;
+   }
+   if (isEventPending(%this.rangedImpactTimeoutEvent))
+   {
+      cancel(%this.rangedImpactTimeoutEvent);
+      %this.rangedImpactTimeoutEvent = 0;
+   }
+
+   if (!isObject(%this.activeProjectiles))
+      return;
+
+   while (%this.activeProjectiles.getCount() > 0)
+   {
+      %proj = %this.activeProjectiles.getObject(0);
+      %this.activeProjectiles.remove(%proj);
+      if (isObject(%proj))
+         %proj.cleanup("battle_end");
+   }
+   %this.activeCombatProjectile = "";
+}
+
 function CombatEngine::cancelDiceRoll(%this)
 {
    if (isEventPending(%this.diceRollEvent))
@@ -88,6 +130,16 @@ function CombatEngine::cancelDiceRoll(%this)
    {
       cancel(%this.diceStopEvent);
       %this.diceStopEvent = 0;
+   }
+   if (isEventPending(%this.rangedLaunchEvent))
+   {
+      cancel(%this.rangedLaunchEvent);
+      %this.rangedLaunchEvent = 0;
+   }
+   if (isEventPending(%this.rangedImpactTimeoutEvent))
+   {
+      cancel(%this.rangedImpactTimeoutEvent);
+      %this.rangedImpactTimeoutEvent = 0;
    }
    %this.stopDiceAnimation();
    %this.unlockInput();
@@ -226,6 +278,10 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    // Play spell resolution SFX upon valid target confirmation
    playSpellCastSound(%spellFrame);
 
+   // Trigger spell particle effect before lethal damage can mark units dead
+   if (isObject(SpellEffectManager))
+      SpellEffectManager.playSpellEffect(%spellFrame, %targetPiece);
+
    %hero = HeroGroup.getObject(0);
 
    switch (%spellFrame)
@@ -356,39 +412,115 @@ function CombatEngine::doAttack(%this, %targetEnemy, %turn)
    if (%selectedPiece $= "" || !isObject($nappulaSprite[%selectedPiece]))
       return;
 
-   $nappulaSprite[%selectedPiece].hasDoneAction = 1;
+   %attacker = $nappulaSprite[%selectedPiece];
+   %attacker.hasDoneAction = 1;
 
    echo("function doAttack(" @ %targetEnemy @ "," @ %turn @ ")");  
    
-   %pos1 = $nappulaSprite[%selectedPiece].positionOnBoard;
+   %pos1 = %attacker.positionOnBoard;
    %pos2 = %targetEnemy.positionOnBoard;
 
-   $nappulaSprite[%selectedPiece].facing = %this.facing(%pos1, %pos2);
+   %attacker.facing = %this.facing(%pos1, %pos2);
    %targetEnemy.facing = %this.facing(%pos2, %pos1);
    
-   echo("setPieceState(" @ $nappulaSprite[%selectedPiece] @ "," @ $olentoAttackState[$nappulaSprite[%selectedPiece].creatureID] @ ")");
-   %this.setPieceState($nappulaSprite[%selectedPiece], $olentoAttackState[$nappulaSprite[%selectedPiece].creatureID]);
-    
-   echo("setPieceState(" @ %targetEnemy @ "," @ $olentoBeenHitState[%targetEnemy.creatureID] @ ")");
-   schedule(50, 0, "setPieceState", %targetEnemy, $olentoBeenHitState[%targetEnemy.creatureID]);
-  
-   // Lock player input & clear selection grids during the 500ms roll window
+   echo("setPieceState(" @ %attacker @ "," @ $olentoAttackState[%attacker.creatureID] @ ")");
+   %this.setPieceState(%attacker, $olentoAttackState[%attacker.creatureID]);
+
+   // Lock player input & clear selection grids during the roll / projectile window
    %this.lockInput();
    deleteGrids(1);
 
    if (game.getActivePlayer() == 0) {
-      %result = %this.rollAttackDice($nappulaSprite[%selectedPiece], %targetEnemy);
+      %result = %this.rollAttackDice(%attacker, %targetEnemy);
    } else {
-      %result = %this.rollDefenseDice(%targetEnemy, $nappulaSprite[%selectedPiece]);
+      %result = %this.rollDefenseDice(%targetEnemy, %attacker);
+   }
+
+   %this.pendingAttackId++;
+   %attackId = %this.pendingAttackId;
+   %this.pendingAttackAttacker = %attacker;
+   %this.pendingAttackTarget = %targetEnemy;
+   %this.pendingAttackResult = %result;
+   %this.pendingAttackTurn = %turn;
+   %this.pendingRollComplete = 0;
+   %this.pendingProjectileImpacted = 0;
+   %this.pendingAttackResolved = 0;
+   %this.activeCombatProjectile = "";
+
+   if (%attacker.missile == 1)
+   {
+      %this.pendingAttackIsRanged = 1;
+      %this.launchRangedAttackProjectile(%attacker, %targetEnemy, %attackId);
+   }
+   else
+   {
+      %this.pendingAttackIsRanged = 0;
+      echo("setPieceState(" @ %targetEnemy @ "," @ $olentoBeenHitState[%targetEnemy.creatureID] @ ")");
+      schedule(50, 0, "setPieceState", %targetEnemy, $olentoBeenHitState[%targetEnemy.creatureID]);
    }
 
    // Defer combat damage / outcome resolution by 500ms
    if (isEventPending(%this.diceRollEvent))
       cancel(%this.diceRollEvent);
+   if (isEventPending(%this.rangedImpactTimeoutEvent))
+   {
+      cancel(%this.rangedImpactTimeoutEvent);
+      %this.rangedImpactTimeoutEvent = 0;
+   }
 
    %this.diceRollEvent = %this.schedule(500, "onAttackRollComplete", %targetEnemy, %result, %turn);
    $scheduleID = %this.diceRollEvent;
    $diceRollScheduleID = %this.diceRollEvent;
+}
+
+function CombatEngine::launchRangedAttackProjectile(%this, %attacker, %targetEnemy, %attackId)
+{
+   if (!isObject(%attacker) || !isObject(%targetEnemy))
+      return "";
+
+   %startPos = %attacker.getPosition();
+   %targetPos = %targetEnemy.getPosition();
+   %tx = getWord(%targetPos, 0);
+   %ty = getWord(%targetPos, 1);
+
+   %dist = VectorDist(%startPos, %targetPos);
+   %flightSpeed = (%dist > 0.1) ? (%dist / 0.35) : 45.0;
+   if (%flightSpeed < 35.0)
+      %flightSpeed = 35.0;
+   if (%flightSpeed > 120.0)
+      %flightSpeed = 120.0;
+
+   %savedSpeed = %attacker.projectileSpeed;
+   %attacker.projectileSpeed = %flightSpeed;
+   %proj = RangedUnit::fireProjectile(%attacker, %tx, %ty, 1, %targetEnemy);
+   %attacker.projectileSpeed = %savedSpeed;
+   if (isObject(%proj))
+   {
+      %proj.combatEngine = %this;
+      %proj.isCombatAttack = 1;
+      %proj.combatAttackId = %attackId;
+      %proj.trackTargetUnit = 1;
+      %this.activeCombatProjectile = %proj;
+   }
+   return %proj;
+}
+
+function CombatEngine::onProjectileImpact(%this, %projectile)
+{
+   if (!isObject(%projectile) || %projectile.combatAttackId != %this.pendingAttackId)
+      return;
+
+   %this.pendingProjectileImpacted = 1;
+   %targetEnemy = %this.pendingAttackTarget;
+
+   if (isObject(%targetEnemy) && %targetEnemy.alive != 0)
+   {
+      echo("setPieceState(" @ %targetEnemy @ "," @ $olentoBeenHitState[%targetEnemy.creatureID] @ ")");
+      %this.setPieceState(%targetEnemy, $olentoBeenHitState[%targetEnemy.creatureID]);
+   }
+
+   if (%this.pendingRollComplete && !%this.pendingAttackResolved)
+      %this.finalizeCombatAttack(%this.pendingAttackTarget, %this.pendingAttackResult, %this.pendingAttackTurn);
 }
 
 function CombatEngine::onAttackRollComplete(%this, %targetEnemy, %result, %turn)
@@ -396,9 +528,32 @@ function CombatEngine::onAttackRollComplete(%this, %targetEnemy, %result, %turn)
    %this.diceRollEvent = 0;
    $scheduleID = 0;
    $diceRollScheduleID = 0;
+   %this.pendingRollComplete = 1;
 
    // Stop dice animation and set static rolled frame
    %this.stopDiceAnimation();
+
+   if (%this.pendingAttackIsRanged && !%this.pendingProjectileImpacted && isObject(%this.activeCombatProjectile))
+   {
+      // Wait for projectile impact to apply damage/hit reaction (with safety timeout)
+      %this.rangedImpactTimeoutEvent = %this.schedule(800, "finalizeCombatAttack", %targetEnemy, %result, %turn);
+      return;
+   }
+
+   %this.finalizeCombatAttack(%targetEnemy, %result, %turn);
+}
+
+function CombatEngine::finalizeCombatAttack(%this, %targetEnemy, %result, %turn)
+{
+   if (%this.pendingAttackResolved)
+      return;
+   %this.pendingAttackResolved = 1;
+
+   if (isEventPending(%this.rangedImpactTimeoutEvent))
+   {
+      cancel(%this.rangedImpactTimeoutEvent);
+      %this.rangedImpactTimeoutEvent = 0;
+   }
 
    // Unlock input
    %this.unlockInput();
@@ -413,8 +568,11 @@ function CombatEngine::onAttackRollComplete(%this, %targetEnemy, %result, %turn)
          echo("damagePiece(" @ %targetEnemy @ ")");
          %this.damagePiece(%targetEnemy);
          $fxbeen2 = playArchonSound(fxBeenHit);
-         blood.setPosition(%targetEnemy.getPosition());
-         %this.hideBloodEvent = schedule(300, 0, hideBlood);
+         if (isObject(blood))
+         {
+            blood.setPosition(%targetEnemy.getPosition());
+            %this.hideBloodEvent = schedule(300, 0, hideBlood);
+         }
       } else {
          $fxsoita = playArchonSound(fxSword);
       }
@@ -425,8 +583,11 @@ function CombatEngine::onAttackRollComplete(%this, %targetEnemy, %result, %turn)
          echo("damagePiece(" @ %targetEnemy @ ")");
          %this.damagePiece(%targetEnemy);
          $fx2 = playArchonSound(fxBeenHit);
-         blood.setPosition(%targetEnemy.getPosition());
-         %this.hideBloodEvent = schedule(300, 0, hideBlood);
+         if (isObject(blood))
+         {
+            blood.setPosition(%targetEnemy.getPosition());
+            %this.hideBloodEvent = schedule(300, 0, hideBlood);
+         }
       } else {
          $fxsoita = playArchonSound(fxSword);
       }
@@ -702,7 +863,7 @@ function CombatEngine::movePiece(%this, %pos, %boardpos)
    %piece.setSceneLayerDepthFront();
 
    %piece.facing = %this.facing(%piece.positionOnBoard, %boardpos);
-   %piece.moveto(%pos, 10, true, true, 0.1);
+   %piece.moveto(%pos, 10, true, true, true);
    
    %this.setPieceState(%piece, $olentoWalkState[%piece.creatureID]);
    $fxfoot = playArchonSound(fxFootStep);

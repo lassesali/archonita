@@ -1,0 +1,133 @@
+<ParticleAsset
+    AssetName="projectile_trail">
+    <ParticleAssetEmitter
+        EmitterName="TrailDustMotes"
+        EmitterType="POINT"
+        IntenseParticles="0"
+        OldestInFront="1"
+        Image="@asset=Archon:particles2ImageMap"
+        Frame="0">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="28" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="0.35" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="0.15" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="2.5" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="1.0" />
+            </SpeedVariation>
+            <EmissionAngle>
+                <Key Time="0" Value="180" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="30" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="1.6" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="0.4" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="1.0" />
+                <Key Time="0.5" Value="0.8" />
+                <Key Time="1" Value="0.2" />
+            </SizeXLife>
+            <SpinVariation>
+                <Key Time="0" Value="90" />
+            </SpinVariation>
+            <AlphaChannel>
+                <Key Time="0" Value="0.0" />
+                <Key Time="0.15" Value="0.75" />
+                <Key Time="0.7" Value="0.35" />
+                <Key Time="1" Value="0.0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="0.95" />
+                <Key Time="0.5" Value="0.85" />
+                <Key Time="1" Value="0.6" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.88" />
+                <Key Time="0.5" Value="0.75" />
+                <Key Time="1" Value="0.5" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.72" />
+                <Key Time="0.5" Value="0.55" />
+                <Key Time="1" Value="0.4" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+    <ParticleAssetEmitter
+        EmitterName="TrailSparklets"
+        EmitterType="POINT"
+        IntenseParticles="1"
+        OldestInFront="1"
+        Image="@asset=Archon:particles3ImageMap"
+        Frame="0">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="22" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="0.28" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="0.1" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="3.5" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="1.5" />
+            </SpeedVariation>
+            <EmissionAngle>
+                <Key Time="0" Value="180" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="40" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="1.4" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="0.4" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="1.0" />
+                <Key Time="1" Value="0.1" />
+            </SizeXLife>
+            <SpinVariation>
+                <Key Time="0" Value="180" />
+            </SpinVariation>
+            <AlphaChannel>
+                <Key Time="0" Value="0.9" />
+                <Key Time="0.6" Value="0.5" />
+                <Key Time="1" Value="0.0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1.0" />
+                <Key Time="0.5" Value="1.0" />
+                <Key Time="1" Value="0.9" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="0.9" />
+                <Key Time="0.5" Value="0.75" />
+                <Key Time="1" Value="0.4" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="0.55" />
+                <Key Time="0.5" Value="0.3" />
+                <Key Time="1" Value="0.1" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+</ParticleAsset>

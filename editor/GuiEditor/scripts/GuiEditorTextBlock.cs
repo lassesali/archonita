@@ -19,8 +19,7 @@
 //                   Three lines tall, because one line of a heading is a poor
 //                   view of a paragraph.
 //     align grid    the two alignments, as segmented rows labelled "H:" and
-//                   "V:" -- one decision each, and the icons say the rest --
-//                   and the quarter turn, "R:", where the class honors it.
+//                   "V:" -- one decision each, and the icons say the rest.
 //     font grid     size and color, the pair anyone reaching for "this text is
 //                   too small" wants.
 //
@@ -203,8 +202,7 @@ function GuiEditorTextBlock::endTyping(%this)
 //-----------------------------------------------------------------------------
 // Alignment. Two segmented rows with the narrowest labels the row supports --
 // eight buttons and two captions have to fit a Properties frame someone has
-// dragged narrow. Rotation shares their grid: it decides which way align and
-// vAlign run, so it belongs beside them.
+// dragged narrow.
 //-----------------------------------------------------------------------------
 
 function GuiEditorTextBlock::buildAlign(%this)
@@ -222,26 +220,13 @@ function GuiEditorTextBlock::buildAlign(%this)
 		"top" TAB $EditorIcon::align_top TAB "Align text to the top" NL
 		"middle" TAB $EditorIcon::align_middle TAB "Centre text vertically" NL
 		"bottom" TAB $EditorIcon::align_bottom TAB "Align text to the bottom");
-
-	// "none" is the unturned value rather than an inherited one: a profile has
-	// no rotation of its own to defer to.
-	%this.rotationRow = %this.makeChoiceRow(%grid, "textRotation", "R:",
-		"ccw" TAB $EditorIcon::undo TAB "Turn text 90 degrees counter-clockwise, reading bottom to top. H: then runs up the control and V: across it." NL
-		"cw" TAB $EditorIcon::redo TAB "Turn text 90 degrees clockwise, reading top to bottom. H: then runs down the control and V: across it.",
-		"none" TAB "Text is not turned");
 }
 
-// %choices is one record per value: value TAB icon TAB tooltip. An iconless
-// choice leads every row -- the value a control starts on. For the alignments
-// that is "default", which is not an absence but getAlignmentType resolving to
-// the profile's own alignment; %first (value TAB tooltip) names another.
-function GuiEditorTextBlock::makeChoiceRow(%this, %grid, %field, %label, %choices, %first)
+// %choices is one record per value: value TAB icon TAB tooltip. "default" leads
+// every row and wears no icon -- it is not an absence but the value a control
+// starts on, which getAlignmentType resolves to the profile's own alignment.
+function GuiEditorTextBlock::makeChoiceRow(%this, %grid, %field, %label, %choices)
 {
-	if(%first $= "")
-	{
-		%first = "default" TAB "Use the profile's alignment";
-	}
-
 	%row = new GuiControl()
 	{
 		class = "EditorChoiceRow";
@@ -253,7 +238,7 @@ function GuiEditorTextBlock::makeChoiceRow(%this, %grid, %field, %label, %choice
 	};
 	%grid.add(%row);
 
-	%row.addChoice(getField(%first, 0), "", getField(%first, 1));
+	%row.addChoice("default", "", "Use the profile's alignment");
 	%count = getRecordCount(%choices);
 	for(%i = 0; %i < %count; %i++)
 	{
@@ -346,12 +331,10 @@ function GuiEditorTextBlock::bindClass(%this, %ctrl, %class)
 
 	%this.alignRow.setVisible(%spec.isFieldVisible(%class, "align"));
 	%this.vAlignRow.setVisible(%spec.isFieldVisible(%class, "vAlign"));
-	%this.rotationRow.setVisible(%spec.isFieldVisible(%class, "textRotation"));
 
 	// A container that lays out only the children it can see needs telling when
 	// one of them comes or goes; nothing re-runs the layout on setVisible.
-	%this.alignGrid.setVisible(%this.alignRow.isVisible() || %this.vAlignRow.isVisible() ||
-		%this.rotationRow.isVisible());
+	%this.alignGrid.setVisible(%this.alignRow.isVisible() || %this.vAlignRow.isVisible());
 	%this.fontGrid.setVisible(%spec.isFieldVisible(%class, "fontSizeAdjust") ||
 		%spec.isFieldVisible(%class, "fontColor"));
 
@@ -408,7 +391,6 @@ function GuiEditorTextBlock::load(%this, %ctrl)
 
 	%this.alignRow.setValue(%ctrl.getFieldValue("align"));
 	%this.vAlignRow.setValue(%ctrl.getFieldValue("vAlign"));
-	%this.rotationRow.setValue(%ctrl.getFieldValue("textRotation"));
 
 	%this.wrapButton.setValue(%ctrl.textWrap);
 	%this.extendButton.setValue(%ctrl.textExtend);

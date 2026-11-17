@@ -1,0 +1,107 @@
+====================================================================================
+ARCHONITA CREATURE SPRITE SHEET COMPILATION REPORT: ANCIENTGHOST
+====================================================================================
+
+1. MASTER TEXTURE ATLAS SPECIFICATIONS
+------------------------------------------------------------------------------------
+  Output File:           imagemap.png
+  Pixel Dimensions:      1248 x 1536 px
+  Cell Dimensions:       96 x 96 px
+  Grid Dimensions:       13 cols x 16 rows
+  Total Cells / Frames:  208 frames
+  Color Format:          RGBA (32-bit RGBA with full alpha transparency)
+  Layout Mode:           uniform
+
+2. ACTION SEQUENCING & VERTICAL GRID LAYOUT
+------------------------------------------------------------------------------------
+Action Name            Source File              Rows     Y-Offset (px)  Frames   Padded   Frame IDs
+------------------------------------------------------------------------------------
+Stopped / Idle         stoppedImageMap.png      0..2     0..288         39       0        0..38
+Walking / Locomotion   walkingImageMap.png      3..5     288..576       39       0        39..77
+Attack / Combat        attackImageMap.png       6..9     576..960       52       0        78..129
+Been Hit / Pain        beenImageMap.png         10..12   960..1248      39       0        130..168
+Tipping Over / Death   disappearImageMap.png    13..15   1248..1536     39       0        169..207
+------------------------------------------------------------------------------------
+
+3. SOURCE RECTANGLES & CLIPPING BOUNDS
+------------------------------------------------------------------------------------
+  [stopped] Stopped / Idle
+    Source File:      stoppedImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=0, Width=1248, Height=288
+    Grid Rows:        Start=0, Count=3
+    Frame Index Range:0 to 38
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+  [walking] Walking / Locomotion
+    Source File:      walkingImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=288, Width=1248, Height=288
+    Grid Rows:        Start=3, Count=3
+    Frame Index Range:39 to 77
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+  [attack] Attack / Combat
+    Source File:      attackImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=576, Width=1248, Height=384
+    Grid Rows:        Start=6, Count=4
+    Frame Index Range:78 to 129
+    Active / Padded:  52 active frames, 0 transparent padding cells
+
+  [beenHit] Been Hit / Pain
+    Source File:      beenImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=960, Width=1248, Height=288
+    Grid Rows:        Start=10, Count=3
+    Frame Index Range:130 to 168
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+  [tippingOver] Tipping Over / Death
+    Source File:      disappearImageMap.png (source cell 96x96)
+    Master Rectangle: X=0, Y=1248, Width=1248, Height=288
+    Grid Rows:        Start=13, Count=3
+    Frame Index Range:169 to 207
+    Active / Padded:  39 active frames, 0 transparent padding cells
+
+4. DIRECTIONAL ANIMATION FRAME MAPPINGS FOR GAME ENGINE
+------------------------------------------------------------------------------------
+  Stopped / Idle Animations:
+    - Direction East   (ancientghostStoppedAnimation_e) -> Frames: 0 1 2 3 4 5 6 7
+    - Direction North  (ancientghostStoppedAnimation_n) -> Frames: 8 9 10 11 12 13 14 15
+    - Direction South  (ancientghostStoppedAnimation_s) -> Frames: 16 17 18 19 20 21 22 23
+    - Direction West   (ancientghostStoppedAnimation_w) -> Frames: 24 25 26 27 28 29 30 31
+
+  Walking / Locomotion Animations:
+    - Direction East   (ancientghostWalkingAnimation_e) -> Frames: 39 40 41 42 43 44 45 46
+    - Direction North  (ancientghostWalkingAnimation_n) -> Frames: 47 48 49 50 51 52 53 54
+    - Direction South  (ancientghostWalkingAnimation_s) -> Frames: 55 56 57 58 59 60 61 62
+    - Direction West   (ancientghostWalkingAnimation_w) -> Frames: 63 64 65 66 67 68 69 70
+
+  Attack / Combat Animations:
+    - Direction East   (ancientghostAttackAnimation_e) -> Frames: 78 79 80 81 82 83 84 85 86 87 88 89 90
+    - Direction North  (ancientghostAttackAnimation_n) -> Frames: 91 92 93 94 95 96 97 98 99 100 101 102 103
+    - Direction South  (ancientghostAttackAnimation_s) -> Frames: 104 105 106 107 108 109 110 111 112 113 114 115 116
+    - Direction West   (ancientghostAttackAnimation_w) -> Frames: 116 117 118 119 120 121 122 123 124 125 126 127 128 129
+
+  Been Hit / Pain Animations:
+    - Direction East   (ancientghostBeenHitAnimation_e) -> Frames: 130 131 132 133 134 135 136 137 138
+    - Direction North  (ancientghostBeenHitAnimation_n) -> Frames: 139 140 141 142 143 144 145 146 147
+    - Direction South  (ancientghostBeenHitAnimation_s) -> Frames: 148 149 150 151 152 153 154 155 156
+    - Direction West   (ancientghostBeenHitAnimation_w) -> Frames: 157 158 159 160 161 162 163 164 165
+
+  Tipping Over / Death Animations:
+    - Direction East   (ancientghostTippingOverAnimation_e) -> Frames: 169 170 171 172 173 174 175 176 177
+    - Direction North  (ancientghostTippingOverAnimation_n) -> Frames: 178 179 180 181 182 183 184 185 186
+    - Direction South  (ancientghostTippingOverAnimation_s) -> Frames: 187 188 189 190 191 192 193 194 195
+    - Direction West   (ancientghostTippingOverAnimation_w) -> Frames: 196 197 198 199 200 201 202 203 204
+
+5. TORQUE2D 4.0 ASSET INTEGRATION SNIPPET
+------------------------------------------------------------------------------------
+<ImageAsset
+    AssetName="ancientghostMasterImageMap"
+    ImageFile="imagemap.png"
+    CellCountX="13"
+    CellCountY="16"
+    CellWidth="96"
+    CellHeight="96" />
+
+====================================================================================
+END OF MANIFEST REPORT
+====================================================================================

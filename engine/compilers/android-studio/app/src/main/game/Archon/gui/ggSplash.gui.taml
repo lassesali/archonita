@@ -1,0 +1,12 @@
+<GuiFadeinBitmapCtrl
+    Name="ggSplash"
+    Profile="GuiDefaultProfile"
+    HorizSizing="width"
+    VertSizing="height"
+    Position="0 0"
+    Extent="1024 768"
+    bitmap="Archon/data/images/logoblack.png"
+    fadeinTime="1000"
+    waitTime="2000"
+    fadeoutTime="1000"
+    done="false" />

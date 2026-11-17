@@ -1,0 +1,15 @@
+$pref::PlanetX::MasterVolume = "1";
+$pref::PlanetX::MusicVolume = "0.600000024";
+$pref::PlanetX::P1Aim = "mouse";
+$pref::PlanetX::P1Down = "down";
+$pref::PlanetX::P1Fire = "return";
+$pref::PlanetX::P1Left = "left";
+$pref::PlanetX::P1Right = "right";
+$pref::PlanetX::P1Up = "up";
+$pref::PlanetX::P2Aim = "auto";
+$pref::PlanetX::P2Down = "s";
+$pref::PlanetX::P2Fire = "space";
+$pref::PlanetX::P2Left = "a";
+$pref::PlanetX::P2Right = "d";
+$pref::PlanetX::P2Up = "w";
+$pref::PlanetX::SoundVolume = "1";

@@ -1,0 +1,124 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-RelWithDebInfo-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "engine/lib",
+					"jsonFile" : "directory-engine.lib-RelWithDebInfo-098e824abe6758cc6fd6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "engine/lib",
+					"targetIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "Torque2D",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Torque2D::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Torque2D-RelWithDebInfo-b2ad7dfb5379eb8bb789.json",
+					"name" : "Torque2D",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "libogg::@47d3557a5d1c64bb14ad",
+					"jsonFile" : "target-libogg-RelWithDebInfo-c4e44f057bff479d9c6d.json",
+					"name" : "libogg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "libvorbis::@47d3557a5d1c64bb14ad",
+					"jsonFile" : "target-libvorbis-RelWithDebInfo-98c9568c25c18c392ac5.json",
+					"name" : "libvorbis",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ljpeg::@47d3557a5d1c64bb14ad",
+					"jsonFile" : "target-ljpeg-RelWithDebInfo-274689e83bd5dd1524c8.json",
+					"name" : "ljpeg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "lpng::@47d3557a5d1c64bb14ad",
+					"jsonFile" : "target-lpng-RelWithDebInfo-28162cc856e63db677cd.json",
+					"name" : "lpng",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "openal::@47d3557a5d1c64bb14ad",
+					"jsonFile" : "target-openal-RelWithDebInfo-68f7dbefb0018b9eff58.json",
+					"name" : "openal",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/RelWithDebInfo/3p1n5h72/arm64-v8a",
+		"source" : "C:/Users/lkarh/Downloads/archonita"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

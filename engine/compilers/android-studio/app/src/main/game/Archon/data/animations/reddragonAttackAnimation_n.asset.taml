@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="reddragonAttackAnimation_n"
+    Image="@asset=Archon:reddragonAttackImageMap"
+    AnimationFrames="10 11 12 13 14 15 16 17 18 19"
+    AnimationTime="1"
+    AnimationCycle="0" />

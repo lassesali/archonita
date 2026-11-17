@@ -1,0 +1,795 @@
+================================================================================
+ARCHONITA - ANDROID OPENGL ES CONFIGURATION & RUNTIME VERIFICATION GUIDE
+================================================================================
+
+Document:      ANDROID_OPENGL_ES_CONFIGURATION_AND_VERIFICATION
+Project:       Archonita (Torque2D Engine)
+Game Root:     C:\Users\lkarh\Downloads\archonita
+Engine Root:   C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master
+Active Target: OpenGL ES 1.1 Fixed-Function Pipeline (0x00010001 / GLESv1_CM)
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. PROJECT STRUCTURE OVERVIEW (GAME MODULE VS. ENGINE TREE)
+2. PART 1: WHERE OPENGL ES VERSION SUPPORT IS DECLARED & CONFIGURED
+   2.1 Android Manifest (AndroidManifest.xml)
+   2.2 CMake Build Configuration (CMakeLists.txt & PlatformSources.cmake)
+   2.3 Gradle Build Configuration (build.gradle & app/build.gradle)
+   2.4 Native EGL Context Creation & GL Headers (T2DActivity.cpp & AndroidGL2ES.h)
+   2.5 Configuration Summary & ES 2.0/3.x Upgrade Warning
+3. PART 2: RUNTIME VERIFICATION VIA TORQUE2D BUILT-IN DIAGNOSTICS
+   3.1 Existing Driver Query (getGLCapabilities)
+   3.2 Logcat Routing (adprintf & AndroidConsole)
+   3.3 TorqueScript Caveat (getVideoDriverInfo returns NULL on Android)
+4. PART 3: RUNTIME VERIFICATION SNIPPETS (C++ / JAVA / KOTLIN)
+   4.1 Active Context Version vs. Maximum Device-Supported Version
+   4.2 C++ (Android NDK - EGL + GLES)
+   4.3 Java (Android SDK - ActivityManager & EGL14 Offscreen Probe)
+   4.4 Kotlin (Android SDK - Gradle Note & GlEsVersionHelper)
+5. COMPARISON MATRIX & QUICK CHECKLIST
+
+
+================================================================================
+1. PROJECT STRUCTURE OVERVIEW (GAME MODULE VS. ENGINE TREE)
+================================================================================
+The Archonita Android configuration is split across two locations:
+
+- Game workspace (C:\Users\lkarh\Downloads\archonita):
+  Contains the root CMakeLists.txt, cmake/PlatformSources.cmake,
+  cmake/EngineSources.cmake, and cmake/BUILD-PLATFORM-NOTES.md. The engine/
+  directory is not checked out inside this game-module directory.
+
+- Torque2D engine tree (C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master):
+  Contains the full engine source, identical Android CMake blocks in its root
+  CMakeLists.txt, the Android Studio Gradle/Manifest project under
+  engine/compilers/android-studio/, and native Android platform code under
+  engine/source/platformAndroid/.
+
+Across both trees, Archonita is currently configured end-to-end for
+OpenGL ES 1.1 (fixed-function pipeline).
+
+
+================================================================================
+2. PART 1: WHERE OPENGL ES VERSION SUPPORT IS DECLARED & CONFIGURED
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 Android Manifest (AndroidManifest.xml)
+--------------------------------------------------------------------------------
+File:
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\compilers\
+  android-studio\app\src\main\AndroidManifest.xml
+
+Relevant excerpt (lines 11, 19-26):
+
+    <uses-feature android:glEsVersion="0x00010001" />
+    ...
+        <activity
+            android:name="com.garagegames.torque2d.MyNativeActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="sensorLandscape"
+            android:exported="true">
+            <!-- Tell NativeActivity the name of our .so -->
+            <meta-data android:name="android.app.lib_name"
+                    android:value="torque2d" />
+
+Configuration details:
+- android:glEsVersion uses a 32-bit packed hexadecimal integer:
+    Upper 16 bits = Major version
+    Lower 16 bits = Minor version
+- Reference values:
+    0x00010001 -> OpenGL ES 1.1 (currently declared; line 11)
+    0x00020000 -> OpenGL ES 2.0
+    0x00030000 -> OpenGL ES 3.0
+    0x00030001 -> OpenGL ES 3.1
+    0x00030002 -> OpenGL ES 3.2
+- Google Play & Android PackageManager use this <uses-feature> tag for device
+  compatibility filtering. Note that changing AndroidManifest.xml alone only
+  changes OS/Play Store filtering; it does not alter the EGL context version
+  or linked NDK libraries.
+
+--------------------------------------------------------------------------------
+2.2 CMake Build Configuration (CMakeLists.txt & PlatformSources.cmake)
+--------------------------------------------------------------------------------
+Files:
+  C:\Users\lkarh\Downloads\archonita\CMakeLists.txt
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\CMakeLists.txt
+  (Identical Android CMake blocks around lines 180-215 and 505-535)
+  C:\Users\lkarh\Downloads\archonita\cmake\PlatformSources.cmake
+
+Relevant excerpts from C:\Users\lkarh\Downloads\archonita\CMakeLists.txt:
+
+  Lines 202-204:
+    target_compile_definitions(Torque2D PRIVATE
+        TORQUE_OS_ANDROID GL_GLEXT_PROTOTYPES ENABLE_CONSOLE_MSGS HAVE_NEON=1)
+    target_compile_options(Torque2D PRIVATE -fsigned-char)
+
+  Lines 521-524:
+    # Android system libraries (z = NDK libz; GLESv1_CM matches the engine GL path).
+    target_link_libraries(Torque2D PRIVATE
+        android_freetype android_openal
+        log android EGL GLESv1_CM OpenSLES z)
+
+  Line 593:
+    set_target_properties(Torque2D PROPERTIES OUTPUT_NAME "torque2d")
+
+Configuration details:
+- Links against NDK EGL and GLESv1_CM (OpenGL ES 1.1 Common profile), matching
+  the engine's fixed-function GL path, and outputs libtorque2d.so.
+- Enables GL_GLEXT_PROTOTYPES, TORQUE_OS_ANDROID, ENABLE_CONSOLE_MSGS, and
+  HAVE_NEON=1.
+- cmake/PlatformSources.cmake populates TORQUE_PLATFORM_SOURCES_ANDROID from
+  ${TORQUE_SRC}/platformAndroid/.
+- Linker note: ES 2.0 uses GLESv2 and ES 3.x uses GLESv3 in NDK CMake, but see
+  Section 2.5 before altering GLESv1_CM.
+
+--------------------------------------------------------------------------------
+2.3 Gradle Build Configuration (build.gradle & app/build.gradle)
+--------------------------------------------------------------------------------
+Files:
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\compilers\
+  android-studio\build.gradle (AGP 8.6.0; no Kotlin plugin configured)
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\compilers\
+  android-studio\app\build.gradle
+
+Relevant excerpt from app/build.gradle (lines 5-35):
+
+  android {
+      namespace 'com.garagegames.torque2d'
+      compileSdk 34
+      ndkVersion '25.2.9519653'
+      ...
+      externalNativeBuild {
+          cmake {
+              path '../../../../CMakeLists.txt'
+          }
+      }
+      ...
+      defaultConfig {
+          applicationId "com.garagegames.torque2d"
+          minSdk 21
+          targetSdk 34
+          ...
+          ndk {
+              abiFilters 'arm64-v8a'
+          }
+          externalNativeBuild {
+              cmake {
+                  arguments '-DANDROID_STL=c++_static'
+                  cppFlags '-std=c++17'
+              }
+          }
+      }
+
+Configuration details:
+- Gradle invokes root CMakeLists.txt via externalNativeBuild.cmake.path.
+- Compiles with C++17 (-std=c++17), c++_static STL, NDK 25.2.9519653,
+  compileSdk/targetSdk 34, minSdk 21, and arm64-v8a ABI filter.
+- Because minSdk is 21 (Android 5.0), modern Java/Kotlin APIs such as
+  android.opengl.EGL14, EGLExt.EGL_OPENGL_ES3_BIT_KHR, GLES20, and GLES30 are
+  available unconditionally without legacy API guards.
+
+--------------------------------------------------------------------------------
+2.4 Native EGL Context Creation & GL Headers (T2DActivity.cpp & AndroidGL2ES.h)
+--------------------------------------------------------------------------------
+Native EGL configuration file:
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\source\
+  platformAndroid\T2DActivity.cpp
+
+Relevant excerpt (engine_init_display, lines 731-745, 770-773):
+
+  const EGLint attribs[] = {
+          EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+          EGL_BLUE_SIZE, 8,
+          EGL_GREEN_SIZE, 8,
+          EGL_RED_SIZE, 8,
+          EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
+          EGL_NONE
+  };
+  static const EGLint ctx_attribs[] = {
+        EGL_CONTEXT_CLIENT_VERSION, 1,
+        EGL_NONE
+      };
+  ...
+  surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+  context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctx_attribs);
+  if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
+
+Native GLES headers file:
+  C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\source\
+  platformAndroid\AndroidGL2ES.h (lines 35-37):
+
+  #include "platform/types.h"
+  #include <GLES/gl.h>
+  #include <GLES/glext.h>
+
+Configuration details:
+- eglChooseConfig explicitly filters configs using EGL_OPENGL_ES_BIT (ES 1.x).
+  (ES 2.0 uses EGL_OPENGL_ES2_BIT; ES 3.x uses EGL_OPENGL_ES3_BIT_KHR or
+  EGL_OPENGL_ES3_BIT.)
+- eglCreateContext requests EGL_CONTEXT_CLIENT_VERSION = 1.
+- The engine includes <GLES/gl.h> and <GLES/glext.h> via AndroidGL2ES.h alongside
+  the AndroidGL2ES compatibility shim.
+
+--------------------------------------------------------------------------------
+2.5 Configuration Summary & ES 2.0/3.x Upgrade Warning
+--------------------------------------------------------------------------------
+Layer              | File / Location                      | Current Setting
+-------------------+--------------------------------------+-----------------------------
+Play / OS Manifest | AndroidManifest.xml (line 11)        | glEsVersion="0x00010001"
+CMake Linker       | CMakeLists.txt (lines 522-524)       | EGL + GLESv1_CM
+Gradle / NDK       | app/build.gradle (lines 5-35)        | NDK 25.2.9519653, minSdk 21
+EGL Config & Ctx   | T2DActivity.cpp (lines 731-745)      | EGL_OPENGL_ES_BIT, ver=1
+C++ GL Headers     | AndroidGL2ES.h (lines 35-37)         | <GLES/gl.h>, <GLES/glext.h>
+
+IMPORTANT COMPATIBILITY WARNING:
+Torque2D's Android renderer uses the fixed-function OpenGL ES 1.1 path (wrapped
+via the AndroidGL2ES shim). Raising EGL_CONTEXT_CLIENT_VERSION to 2 or 3, or
+switching linkage from GLESv1_CM to GLESv2/GLESv3, without rewriting the engine
+rendering pipeline to programmable GLSL shaders will fail fixed-function GL
+calls at compile time or runtime.
+
+
+================================================================================
+3. PART 2: RUNTIME VERIFICATION VIA TORQUE2D BUILT-IN DIAGNOSTICS
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 Existing Driver Query (getGLCapabilities)
+--------------------------------------------------------------------------------
+Torque2D already queries and prints OpenGL ES driver metadata during video
+activation:
+- C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\source\
+  platformAndroid\AndroidOGLVideo.cpp (line 129):
+    OpenGLDevice::activate() calls getGLCapabilities();
+- C:\Users\lkarh\Downloads\Torque2D-master\Torque2D-master\engine\source\
+  platformAndroid\AndroidGL.cpp (lines 60, 80-92):
+
+    const char* pVendString    = (const char*) glGetString( GL_VENDOR );
+    const char* pRendString    = (const char*) glGetString( GL_RENDERER );
+    const char* pVersString    = (const char*) glGetString( GL_VERSION );
+    const char* pExtString     = (const char*) glGetString( GL_EXTENSIONS );
+    // Output some driver info to the console:
+    Con::printf( "OpenGL driver information:" );
+    if ( pVendString )
+       Con::printf( "  Vendor: %s", pVendString );
+    if ( pRendString )
+       Con::printf( "  Renderer: %s", pRendString );
+    if ( pVersString )
+       Con::printf( "  Version: %s", pVersString );
+
+--------------------------------------------------------------------------------
+3.2 Logcat Routing (adprintf & AndroidConsole)
+--------------------------------------------------------------------------------
+- AndroidConsole.cpp (lines 35-45, 122-128) routes Con::printf output through
+  adprintf() when enableWinConsole(true) or enableDebugOutput(true) is enabled.
+- T2DActivity.cpp (line 2623) implements adprintf via:
+    __android_log_print(ANDROID_LOG_INFO, "Torque2D", "%s", ss.str().c_str());
+
+You can view this directly on a connected device via ADB:
+    adb logcat -s Torque2D
+
+For reference, cmake/BUILD-PLATFORM-NOTES.md (lines 397-434) records verified
+Pixel 7 Pro logcat output under the "Torque2D" tag showing:
+    Mali-G710 / OpenGL ES-CM 1.1
+
+--------------------------------------------------------------------------------
+3.3 TorqueScript Caveat (getVideoDriverInfo returns NULL on Android)
+--------------------------------------------------------------------------------
+Do NOT rely on TorqueScript getVideoDriverInfo() (defined via
+platformVideo_ScriptBinding.h -> Video::getDriverInfo()) on Android.
+In AndroidOGLVideo.cpp (lines 239-242):
+
+    const char *OpenGLDevice::getDriverInfo()
+    {
+        return NULL;
+    }
+
+Because getDriverInfo() returns NULL, TorqueScript receives an empty/null
+value instead of vendor/renderer/version strings. Use native logs (adprintf /
+logcat) or the native/SDK runtime queries below instead.
+
+
+================================================================================
+4. PART 3: RUNTIME VERIFICATION SNIPPETS (C++ / JAVA / KOTLIN)
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 Active Context Version vs. Maximum Device-Supported Version
+--------------------------------------------------------------------------------
+When verifying OpenGL ES at runtime on Android, distinguish two different
+questions:
+
+1. "What OpenGL ES version is the running Torque2D EGL context using?"
+   Because T2DActivity.cpp requests EGL_CONTEXT_CLIENT_VERSION = 1, calling
+   glGetString(GL_VERSION) inside the active engine context reports the ES 1.1
+   compatibility profile (e.g., "OpenGL ES-CM 1.1"), even on a modern GPU that
+   supports OpenGL ES 3.2.
+
+2. "What is the maximum OpenGL ES version supported by the target device?"
+   To discover whether the hardware/driver supports ES 2.0, 3.0, 3.1, or 3.2:
+   - Quick OS query: ActivityManager.getDeviceConfigurationInfo().reqGlEsVersion
+     (fast, no EGL context needed, though some drivers/OS images only advertise
+     major/minor up to 3.0 or 3.2 in system properties).
+   - Authoritative GPU driver query: Create an offscreen 1x1 EGL pbuffer context
+     trying ES 3 (and falling back to ES 2 / ES 1) and query GL_VERSION (and
+     GL_MAJOR_VERSION / GL_MINOR_VERSION under ES 3.0+).
+
+--------------------------------------------------------------------------------
+4.2 C++ (Android NDK - EGL + GLES)
+--------------------------------------------------------------------------------
+OPTION A: Querying the Active Engine Context
+Place after eglMakeCurrent() in T2DActivity.cpp (or inspect in AndroidGL.cpp):
+
+```cpp
+#include <EGL/egl.h>
+#include <GLES/gl.h>
+#include <android/log.h>
+
+void LogActiveTorqueGlesContext(EGLDisplay display, EGLContext context)
+{
+    EGLint eglClientVersion = 0;
+    if (display != EGL_NO_DISPLAY && context != EGL_NO_CONTEXT) {
+        eglQueryContext(display, context, EGL_CONTEXT_CLIENT_VERSION, &eglClientVersion);
+    }
+
+    const char* vendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const char* version  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+
+    __android_log_print(
+        ANDROID_LOG_INFO, "Torque2D",
+        "Active EGL client=%d | Vendor=%s | Renderer=%s | GL_VERSION=%s",
+        eglClientVersion,
+        vendor   ? vendor   : "(null)",
+        renderer ? renderer : "(null)",
+        version  ? version  : "(null)");
+}
+```
+
+OPTION B: Probing Maximum Device-Supported OpenGL ES Version via Offscreen Pbuffer
+Safe standalone probe using a 1x1 pbuffer surface. Preserves and restores any
+currently active EGL context/surfaces, and avoids terminating the shared
+EGLDisplay if an engine context is already active.
+
+```cpp
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES/gl.h>
+#include <android/log.h>
+
+struct GlesProbeResult {
+    int eglClientMajor;       // Highest EGL context client version created (3, 2, or 1)
+    int glMajor;              // GL_MAJOR_VERSION (when >= 3) or parsed fallback
+    int glMinor;              // GL_MINOR_VERSION (when >= 3) or parsed fallback
+    const char* versionStr;   // Driver GL_VERSION string (static driver storage while initialized)
+    const char* rendererStr;  // Driver GL_RENDERER string
+};
+
+GlesProbeResult ProbeMaxSupportedGlesVersion()
+{
+    GlesProbeResult result = {0, 0, 0, nullptr, nullptr};
+
+    EGLDisplay prevDisplay = eglGetCurrentDisplay();
+    EGLSurface prevDraw    = eglGetCurrentSurface(EGL_DRAW);
+    EGLSurface prevRead    = eglGetCurrentSurface(EGL_READ);
+    EGLContext prevContext = eglGetCurrentContext();
+
+    EGLDisplay display = (prevDisplay != EGL_NO_DISPLAY)
+        ? prevDisplay
+        : eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display == EGL_NO_DISPLAY) {
+        return result;
+    }
+
+    const bool hadActiveContext = (prevContext != EGL_NO_CONTEXT);
+    if (!hadActiveContext) {
+        if (!eglInitialize(display, nullptr, nullptr)) {
+            return result;
+        }
+    }
+
+    // Try ES 3 first (via ES2-compatible config or ES3 bit), then fall back to 2 and 1.
+    const int candidates[] = {3, 2, 1};
+    for (int ver : candidates) {
+        const EGLint renderableBit = (ver >= 2) ? EGL_OPENGL_ES2_BIT : EGL_OPENGL_ES_BIT;
+        const EGLint cfgAttribs[] = {
+            EGL_SURFACE_TYPE,    EGL_PBUFFER_BIT,
+            EGL_RENDERABLE_TYPE, renderableBit,
+            EGL_RED_SIZE,        8,
+            EGL_GREEN_SIZE,      8,
+            EGL_BLUE_SIZE,       8,
+            EGL_NONE
+        };
+
+        EGLConfig config = nullptr;
+        EGLint numConfigs = 0;
+        if (!eglChooseConfig(display, cfgAttribs, &config, 1, &numConfigs) || numConfigs == 0) {
+            continue;
+        }
+
+        const EGLint pbufferAttribs[] = {
+            EGL_WIDTH,  1,
+            EGL_HEIGHT, 1,
+            EGL_NONE
+        };
+        EGLSurface pbuffer = eglCreatePbufferSurface(display, config, pbufferAttribs);
+        if (pbuffer == EGL_NO_SURFACE) {
+            continue;
+        }
+
+        const EGLint ctxAttribs[] = {
+            EGL_CONTEXT_CLIENT_VERSION, ver,
+            EGL_NONE
+        };
+        EGLContext probeCtx = eglCreateContext(display, config, EGL_NO_CONTEXT, ctxAttribs);
+        if (probeCtx == EGL_NO_CONTEXT) {
+            eglDestroySurface(display, pbuffer);
+            continue;
+        }
+
+        if (eglMakeCurrent(display, pbuffer, pbuffer, probeCtx)) {
+            result.eglClientMajor = ver;
+            result.versionStr     = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+            result.rendererStr    = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+
+            if (ver >= 3) {
+                // GL_MAJOR_VERSION (0x821B) and GL_MINOR_VERSION (0x821C) exist in ES 3.0+
+                GLint maj = 0, min = 0;
+                glGetIntegerv(0x821B, &maj);
+                glGetIntegerv(0x821C, &min);
+                if (glGetError() == GL_NO_ERROR && maj > 0) {
+                    result.glMajor = maj;
+                    result.glMinor = min;
+                }
+            }
+            if (result.glMajor == 0) {
+                result.glMajor = ver;
+                result.glMinor = (ver == 1) ? 1 : 0;
+            }
+
+            __android_log_print(
+                ANDROID_LOG_INFO, "Torque2D",
+                "Max Supported GLES Probe: client=%d (%d.%d) | Renderer=%s | Version=%s",
+                result.eglClientMajor, result.glMajor, result.glMinor,
+                result.rendererStr ? result.rendererStr : "(null)",
+                result.versionStr  ? result.versionStr  : "(null)");
+
+            // Restore prior context cleanly before tearing down probe resources.
+            if (hadActiveContext) {
+                eglMakeCurrent(prevDisplay, prevDraw, prevRead, prevContext);
+            } else {
+                eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            }
+            eglDestroyContext(display, probeCtx);
+            eglDestroySurface(display, pbuffer);
+            break;
+        }
+
+        eglDestroyContext(display, probeCtx);
+        eglDestroySurface(display, pbuffer);
+    }
+
+    // Never terminate the shared EGLDisplay while an engine context is live.
+    if (!hadActiveContext) {
+        eglTerminate(display);
+    }
+    return result;
+}
+```
+
+--------------------------------------------------------------------------------
+4.3 Java (Android SDK - ActivityManager & EGL14 Offscreen Probe)
+--------------------------------------------------------------------------------
+Can be placed inside MyNativeActivity.java or T2DUtilities.java under:
+  engine/compilers/android-studio/app/src/main/java/com/garagegames/torque2d/
+
+Note: Call the EGL14 probe during Activity startup before native engine EGL
+initialization (or skip eglTerminate() if the native thread has already
+initialized EGL_DEFAULT_DISPLAY).
+
+```java
+package com.garagegames.torque2d;
+
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.pm.ConfigurationInfo;
+import android.opengl.EGL14;
+import android.opengl.EGLConfig;
+import android.opengl.EGLContext;
+import android.opengl.EGLDisplay;
+import android.opengl.EGLSurface;
+import android.opengl.GLES20;
+import android.opengl.GLES30;
+import android.util.Log;
+
+public final class GlEsVersionHelper {
+    private static final String TAG = "Torque2D";
+
+    private GlEsVersionHelper() {}
+
+    /**
+     * Fast OS-reported check via ActivityManager ConfigurationInfo.
+     * Returns packed hex version (e.g. 0x00030002 -> "3.2").
+     */
+    public static int getOsReportedGlEsVersion(Context context) {
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        if (am == null) {
+            return ConfigurationInfo.GL_ES_VERSION_UNDEFINED;
+        }
+        ConfigurationInfo info = am.getDeviceConfigurationInfo();
+        int packed = info.reqGlEsVersion;
+        int major = (packed & 0xffff0000) >> 16;
+        int minor = packed & 0x0000ffff;
+        Log.i(TAG, "ConfigurationInfo reqGlEsVersion=" + info.getGlEsVersion()
+                + " (" + major + "." + minor + ", hex=0x" + Integer.toHexString(packed) + ")");
+        return packed;
+    }
+
+    /**
+     * Exact GPU driver query using an offscreen 1x1 EGL14 pbuffer context.
+     * Proves whether ES 3.x (including 3.0 / 3.1 / 3.2) or ES 2.0 works on the GPU.
+     */
+    public static String queryExactGpuGlEsVersionString() {
+        EGLDisplay prevDisplay = EGL14.eglGetCurrentDisplay();
+        EGLSurface prevDraw    = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW);
+        EGLSurface prevRead    = EGL14.eglGetCurrentSurface(EGL14.EGL_READ);
+        EGLContext prevContext = EGL14.eglGetCurrentContext();
+
+        boolean hadActiveContext = prevContext != null && !prevContext.equals(EGL14.EGL_NO_CONTEXT);
+        EGLDisplay display = (prevDisplay != null && !prevDisplay.equals(EGL14.EGL_NO_DISPLAY))
+                ? prevDisplay
+                : EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
+        if (display == null || display.equals(EGL14.EGL_NO_DISPLAY)) {
+            return null;
+        }
+
+        if (!hadActiveContext) {
+            int[] eglVer = new int[2];
+            if (!EGL14.eglInitialize(display, eglVer, 0, eglVer, 1)) {
+                return null;
+            }
+        }
+
+        String detectedVersion = null;
+        int[] candidates = new int[]{3, 2};
+        for (int clientVer : candidates) {
+            int[] cfgAttribs = new int[]{
+                    EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+                    EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+                    EGL14.EGL_RED_SIZE, 8,
+                    EGL14.EGL_GREEN_SIZE, 8,
+                    EGL14.EGL_BLUE_SIZE, 8,
+                    EGL14.EGL_NONE
+            };
+            EGLConfig[] configs = new EGLConfig[1];
+            int[] numConfigs = new int[1];
+            if (!EGL14.eglChooseConfig(display, cfgAttribs, 0, configs, 0, 1, numConfigs, 0)
+                    || numConfigs[0] == 0) {
+                continue;
+            }
+
+            int[] pbufAttribs = new int[]{
+                    EGL14.EGL_WIDTH, 1,
+                    EGL14.EGL_HEIGHT, 1,
+                    EGL14.EGL_NONE
+            };
+            EGLSurface pbuffer = EGL14.eglCreatePbufferSurface(display, configs[0], pbufAttribs, 0);
+            if (pbuffer == null || pbuffer.equals(EGL14.EGL_NO_SURFACE)) {
+                continue;
+            }
+
+            int[] ctxAttribs = new int[]{
+                    EGL14.EGL_CONTEXT_CLIENT_VERSION, clientVer,
+                    EGL14.EGL_NONE
+            };
+            EGLContext ctx = EGL14.eglCreateContext(
+                    display, configs[0], EGL14.EGL_NO_CONTEXT, ctxAttribs, 0);
+            if (ctx == null || ctx.equals(EGL14.EGL_NO_CONTEXT)) {
+                EGL14.eglDestroySurface(display, pbuffer);
+                continue;
+            }
+
+            if (EGL14.eglMakeCurrent(display, pbuffer, pbuffer, ctx)) {
+                String versionStr  = GLES20.glGetString(GLES20.GL_VERSION);
+                String vendorStr   = GLES20.glGetString(GLES20.GL_VENDOR);
+                String rendererStr = GLES20.glGetString(GLES20.GL_RENDERER);
+
+                if (clientVer >= 3) {
+                    int[] major = new int[1];
+                    int[] minor = new int[1];
+                    GLES30.glGetIntegerv(GLES30.GL_MAJOR_VERSION, major, 0);
+                    GLES30.glGetIntegerv(GLES30.GL_MINOR_VERSION, minor, 0);
+                    Log.i(TAG, "Exact GPU GLES=" + major[0] + "." + minor[0]
+                            + " | Vendor=" + vendorStr
+                            + " | Renderer=" + rendererStr
+                            + " | GL_VERSION=" + versionStr);
+                } else {
+                    Log.i(TAG, "Exact GPU GLES=2.0 | Vendor=" + vendorStr
+                            + " | Renderer=" + rendererStr
+                            + " | GL_VERSION=" + versionStr);
+                }
+                detectedVersion = versionStr;
+
+                if (hadActiveContext) {
+                    EGL14.eglMakeCurrent(prevDisplay, prevDraw, prevRead, prevContext);
+                } else {
+                    EGL14.eglMakeCurrent(
+                            display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
+                }
+                EGL14.eglDestroyContext(display, ctx);
+                EGL14.eglDestroySurface(display, pbuffer);
+                break;
+            }
+
+            EGL14.eglDestroyContext(display, ctx);
+            EGL14.eglDestroySurface(display, pbuffer);
+        }
+
+        if (!hadActiveContext) {
+            EGL14.eglTerminate(display);
+        }
+        return detectedVersion;
+    }
+}
+```
+
+--------------------------------------------------------------------------------
+4.4 Kotlin (Android SDK - Gradle Note & GlEsVersionHelper)
+--------------------------------------------------------------------------------
+GRADLE PREREQUISITE:
+The current Gradle setup (engine/compilers/android-studio/build.gradle and
+app/build.gradle) does NOT apply the Kotlin Android Gradle plugin. If you add
+Kotlin source files to app/src/main/java or app/src/main/kotlin, enable
+'org.jetbrains.kotlin.android' in your Gradle configuration first.
+
+```kotlin
+package com.garagegames.torque2d
+
+import android.app.ActivityManager
+import android.content.Context
+import android.opengl.EGL14
+import android.opengl.EGLConfig
+import android.opengl.GLES20
+import android.opengl.GLES30
+import android.util.Log
+
+data class GlesDeviceInfo(
+    val osReportedPacked: Int,
+    val exactMajor: Int,
+    val exactMinor: Int,
+    val versionString: String?,
+    val rendererString: String?,
+    val vendorString: String?
+)
+
+object GlEsVersionHelperKt {
+    private const val TAG = "Torque2D"
+
+    fun query(context: Context): GlesDeviceInfo {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+        val osPacked = am?.deviceConfigurationInfo?.reqGlEsVersion ?: 0
+
+        val prevDisplay = EGL14.eglGetCurrentDisplay()
+        val prevDraw = EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW)
+        val prevRead = EGL14.eglGetCurrentSurface(EGL14.EGL_READ)
+        val prevContext = EGL14.eglGetCurrentContext()
+        val hadActiveContext = prevContext != null && prevContext != EGL14.EGL_NO_CONTEXT
+
+        val display = if (prevDisplay != null && prevDisplay != EGL14.EGL_NO_DISPLAY) {
+            prevDisplay
+        } else {
+            EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
+        }
+        if (display == null || display == EGL14.EGL_NO_DISPLAY) {
+            return GlesDeviceInfo(osPacked, (osPacked ushr 16), osPacked and 0xFFFF, null, null, null)
+        }
+
+        if (!hadActiveContext) {
+            val ver = IntArray(2)
+            if (!EGL14.eglInitialize(display, ver, 0, ver, 1)) {
+                return GlesDeviceInfo(osPacked, (osPacked ushr 16), osPacked and 0xFFFF, null, null, null)
+            }
+        }
+
+        var exactMajor = 0
+        var exactMinor = 0
+        var versionStr: String? = null
+        var rendererStr: String? = null
+        var vendorStr: String? = null
+
+        for (clientVer in intArrayOf(3, 2)) {
+            val cfgAttribs = intArrayOf(
+                EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+                EGL14.EGL_RED_SIZE, 8,
+                EGL14.EGL_GREEN_SIZE, 8,
+                EGL14.EGL_BLUE_SIZE, 8,
+                EGL14.EGL_NONE
+            )
+            val configs = arrayOfNulls<EGLConfig>(1)
+            val numConfigs = IntArray(1)
+            if (!EGL14.eglChooseConfig(display, cfgAttribs, 0, configs, 0, 1, numConfigs, 0)
+                || numConfigs[0] == 0
+            ) {
+                continue
+            }
+
+            val config = configs[0] ?: continue
+            val pbuffer = EGL14.eglCreatePbufferSurface(
+                display, config, intArrayOf(EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE), 0
+            )
+            if (pbuffer == null || pbuffer == EGL14.EGL_NO_SURFACE) continue
+
+            val ctx = EGL14.eglCreateContext(
+                display, config, EGL14.EGL_NO_CONTEXT,
+                intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, clientVer, EGL14.EGL_NONE), 0
+            )
+            if (ctx == null || ctx == EGL14.EGL_NO_CONTEXT) {
+                EGL14.eglDestroySurface(display, pbuffer)
+                continue
+            }
+
+            if (EGL14.eglMakeCurrent(display, pbuffer, pbuffer, ctx)) {
+                versionStr = GLES20.glGetString(GLES20.GL_VERSION)
+                rendererStr = GLES20.glGetString(GLES20.GL_RENDERER)
+                vendorStr = GLES20.glGetString(GLES20.GL_VENDOR)
+
+                if (clientVer >= 3) {
+                    val maj = IntArray(1)
+                    val min = IntArray(1)
+                    GLES30.glGetIntegerv(GLES30.GL_MAJOR_VERSION, maj, 0)
+                    GLES30.glGetIntegerv(GLES30.GL_MINOR_VERSION, min, 0)
+                    exactMajor = maj[0]
+                    exactMinor = min[0]
+                } else {
+                    exactMajor = 2
+                    exactMinor = 0
+                }
+
+                Log.i(TAG, "GLES probe=$exactMajor.$exactMinor | OS=0x${osPacked.toString(16)} | $versionStr")
+
+                if (hadActiveContext) {
+                    EGL14.eglMakeCurrent(prevDisplay, prevDraw, prevRead, prevContext)
+                } else {
+                    EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+                }
+                EGL14.eglDestroyContext(display, ctx)
+                EGL14.eglDestroySurface(display, pbuffer)
+                break
+            }
+
+            EGL14.eglDestroyContext(display, ctx)
+            EGL14.eglDestroySurface(display, pbuffer)
+        }
+
+        if (!hadActiveContext) {
+            EGL14.eglTerminate(display)
+        }
+        return GlesDeviceInfo(osPacked, exactMajor, exactMinor, versionStr, rendererStr, vendorStr)
+    }
+}
+```
+
+
+================================================================================
+5. COMPARISON MATRIX & QUICK CHECKLIST
+================================================================================
+Method                         | What It Reports                  | Needs EGL Context?
+-------------------------------+----------------------------------+--------------------
+Torque2D getGLCapabilities()   | Active context (ES-CM 1.1)       | Uses engine context
+TorqueScript getVideoDriverInfo| Returns NULL on Android          | N/A (not implemented)
+C++ NDK eglQueryContext+glGet  | Active context version/renderer  | Uses engine context
+C++ NDK Pbuffer Probe (EGL)    | Max GPU-supported ES (1/2/3.x)   | Creates 1x1 pbuffer
+Java/Kotlin ConfigurationInfo  | OS-reported reqGlEsVersion       | No
+Java/Kotlin EGL14 Pbuffer      | Exact GPU driver ES (2.0/3.0-3.2)| Creates 1x1 pbuffer
+
+Quick Verification Checklist:
+[x] Manifest <uses-feature android:glEsVersion="0x00010001" /> -> OpenGL ES 1.1
+[x] CMake target_link_libraries -> EGL + GLESv1_CM -> libtorque2d.so
+[x] Native T2DActivity.cpp -> EGL_OPENGL_ES_BIT + EGL_CONTEXT_CLIENT_VERSION=1
+[x] Native AndroidGL2ES.h -> <GLES/gl.h> + <GLES/glext.h>
+[x] Runtime built-in -> adb logcat -s Torque2D (shows getGLCapabilities output)
+[x] Do not rely on TorqueScript getVideoDriverInfo() on Android (returns NULL)
+================================================================================

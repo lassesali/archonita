@@ -1,0 +1,3850 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/build/intermediates/cxx/Debug/1z6j5q14/obj/arm64-v8a/libtorque2d.so"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"target_link_libraries",
+			"target_compile_options",
+			"target_compile_definitions",
+			"target_include_directories",
+			"target_sources"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 150,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 232,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 517,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 204,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 228,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 202,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 195,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 159,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 189,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 154,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++17 -fno-limit-debug-info  -fPIC"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-fsigned-char"
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-Wno-register"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 6,
+					"define" : "ENABLE_CONSOLE_MSGS"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "GL_GLEXT_PROTOTYPES"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "HAVE_NEON=1"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "TORQUE_DEBUG"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "TORQUE_OS_ANDROID"
+				},
+				{
+					"define" : "Torque2D_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/persistence/rapidjson"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/persistence/rapidjson/include"
+				},
+				{
+					"backtrace" : 9,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/platformAndroid"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/libogg/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/libvorbis/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/lpng"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/ljpeg"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/openal/Android/openal-soft-master/jni/OpenAL/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/freetype/android/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/freetype/android/include/freetype2"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67,
+				68,
+				69,
+				70,
+				71,
+				72,
+				73,
+				74,
+				75,
+				76,
+				77,
+				78,
+				79,
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101,
+				102,
+				103,
+				104,
+				105,
+				106,
+				107,
+				108,
+				109,
+				110,
+				111,
+				112,
+				113,
+				114,
+				115,
+				116,
+				117,
+				118,
+				119,
+				120,
+				121,
+				122,
+				123,
+				124,
+				125,
+				126,
+				127,
+				128,
+				129,
+				130,
+				131,
+				132,
+				133,
+				134,
+				135,
+				136,
+				137,
+				138,
+				139,
+				140,
+				141,
+				142,
+				143,
+				144,
+				145,
+				146,
+				147,
+				148,
+				149,
+				150,
+				151,
+				152,
+				153,
+				154,
+				155,
+				156,
+				157,
+				158,
+				159,
+				160,
+				161,
+				162,
+				163,
+				164,
+				165,
+				166,
+				167,
+				168,
+				169,
+				170,
+				171,
+				172,
+				173,
+				174,
+				175,
+				176,
+				177,
+				178,
+				179,
+				180,
+				181,
+				182,
+				183,
+				184,
+				185,
+				186,
+				187,
+				188,
+				189,
+				190,
+				191,
+				192,
+				193,
+				194,
+				195,
+				196,
+				197,
+				198,
+				199,
+				200,
+				201,
+				202,
+				203,
+				204,
+				205,
+				206,
+				207,
+				208,
+				209,
+				210,
+				211,
+				212,
+				213,
+				214,
+				215,
+				216,
+				217,
+				218,
+				219,
+				220,
+				221,
+				222,
+				223,
+				224,
+				225,
+				226,
+				227,
+				228,
+				229,
+				230,
+				231,
+				232,
+				233,
+				234,
+				235,
+				236,
+				237,
+				238,
+				239,
+				240,
+				241,
+				242,
+				243,
+				244,
+				245,
+				246,
+				247,
+				248,
+				249,
+				250,
+				251,
+				252,
+				253,
+				254,
+				255,
+				256,
+				257,
+				258,
+				259,
+				260,
+				261,
+				262,
+				263,
+				264,
+				265,
+				266,
+				267,
+				268,
+				269,
+				270,
+				271,
+				272,
+				273,
+				274,
+				275,
+				276,
+				277,
+				278,
+				279,
+				280,
+				281,
+				282,
+				283,
+				284,
+				285,
+				286,
+				287,
+				288,
+				289,
+				290,
+				291,
+				292,
+				293,
+				294,
+				295,
+				296,
+				297,
+				298,
+				299,
+				300,
+				301,
+				302,
+				303,
+				304,
+				305,
+				306,
+				307,
+				308,
+				309,
+				310,
+				311,
+				312,
+				313,
+				314,
+				315,
+				316,
+				317,
+				318,
+				319,
+				320,
+				321,
+				322,
+				323,
+				324,
+				325,
+				326,
+				327,
+				328,
+				329,
+				330,
+				331,
+				332,
+				333,
+				334,
+				335,
+				336,
+				337,
+				338,
+				339,
+				340,
+				341,
+				342,
+				343,
+				344,
+				345,
+				346,
+				347,
+				348,
+				349,
+				350,
+				351,
+				352,
+				353,
+				354,
+				355,
+				356,
+				357,
+				358,
+				359,
+				360,
+				361,
+				362,
+				363,
+				364,
+				365,
+				366,
+				367,
+				368,
+				369,
+				370,
+				371,
+				372,
+				373,
+				374,
+				375,
+				376,
+				377,
+				378,
+				379,
+				380,
+				381,
+				383,
+				384
+			],
+			"sysroot" : 
+			{
+				"path" : "C:/Users/lkarh/AppData/Local/Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+			}
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-fsigned-char"
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-Wno-register"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 6,
+					"define" : "ENABLE_CONSOLE_MSGS"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "GL_GLEXT_PROTOTYPES"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "HAVE_NEON=1"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "TORQUE_DEBUG"
+				},
+				{
+					"backtrace" : 6,
+					"define" : "TORQUE_OS_ANDROID"
+				},
+				{
+					"define" : "Torque2D_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/persistence/rapidjson"
+				},
+				{
+					"backtrace" : 8,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/persistence/rapidjson/include"
+				},
+				{
+					"backtrace" : 9,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/source/platformAndroid"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/libogg/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/libvorbis/include"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/lpng"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/ljpeg"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/openal/Android/openal-soft-master/jni/OpenAL/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/freetype/android/include"
+				},
+				{
+					"backtrace" : 3,
+					"isSystem" : true,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/freetype/android/include/freetype2"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				51,
+				382
+			],
+			"sysroot" : 
+			{
+				"path" : "C:/Users/lkarh/AppData/Local/Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+			}
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 2,
+			"id" : "lpng::@47d3557a5d1c64bb14ad"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "ljpeg::@47d3557a5d1c64bb14ad"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "libogg::@47d3557a5d1c64bb14ad"
+		},
+		{
+			"backtrace" : 2,
+			"id" : "libvorbis::@47d3557a5d1c64bb14ad"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "openal::@47d3557a5d1c64bb14ad"
+		}
+	],
+	"id" : "Torque2D::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "engine\\lib\\liblibogg.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "engine\\lib\\liblibvorbis.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "engine\\lib\\liblpng.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "engine\\lib\\libljpeg.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "..\\..\\..\\..\\..\\..\\..\\lib\\freetype\\android\\lib\\arm64-v8a\\libfreetype.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "..\\..\\..\\..\\build\\intermediates\\cxx\\Debug\\1z6j5q14\\obj\\arm64-v8a\\libopenal.so",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-llog",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-landroid",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-lEGL",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-lGLESv3",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-lOpenSLES",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 3,
+				"fragment" : "-lz",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "engine\\lib\\liblibogg.a",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-latomic -lm",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX",
+		"sysroot" : 
+		{
+			"path" : "C:/Users/lkarh/AppData/Local/Android/Sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+		}
+	},
+	"name" : "Torque2D",
+	"nameOnDisk" : "libtorque2d.so",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "engine\\2d\\assets",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6
+			]
+		},
+		{
+			"name" : "engine\\2d\\controllers",
+			"sourceIndexes" : 
+			[
+				7,
+				8,
+				9
+			]
+		},
+		{
+			"name" : "engine\\2d\\controllers\\core",
+			"sourceIndexes" : 
+			[
+				10,
+				11
+			]
+		},
+		{
+			"name" : "engine\\2d\\core",
+			"sourceIndexes" : 
+			[
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23
+			]
+		},
+		{
+			"name" : "engine\\2d\\editorToy",
+			"sourceIndexes" : 
+			[
+				24,
+				25
+			]
+		},
+		{
+			"name" : "engine\\2d\\experimental\\composites",
+			"sourceIndexes" : 
+			[
+				26
+			]
+		},
+		{
+			"name" : "engine\\2d\\gui",
+			"sourceIndexes" : 
+			[
+				27,
+				28,
+				29
+			]
+		},
+		{
+			"name" : "engine\\2d\\scene",
+			"sourceIndexes" : 
+			[
+				30,
+				31,
+				32,
+				33,
+				34,
+				35
+			]
+		},
+		{
+			"name" : "engine\\2d\\sceneobject",
+			"sourceIndexes" : 
+			[
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47
+			]
+		},
+		{
+			"name" : "engine\\algorithm",
+			"sourceIndexes" : 
+			[
+				48,
+				49,
+				50,
+				51
+			]
+		},
+		{
+			"name" : "engine\\assets",
+			"sourceIndexes" : 
+			[
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58
+			]
+		},
+		{
+			"name" : "engine\\audio",
+			"sourceIndexes" : 
+			[
+				59,
+				60,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				67
+			]
+		},
+		{
+			"name" : "engine\\bitmapFont",
+			"sourceIndexes" : 
+			[
+				68,
+				69
+			]
+		},
+		{
+			"name" : "engine\\collection",
+			"sourceIndexes" : 
+			[
+				70,
+				71,
+				72,
+				73,
+				74
+			]
+		},
+		{
+			"name" : "engine\\component",
+			"sourceIndexes" : 
+			[
+				75,
+				76
+			]
+		},
+		{
+			"name" : "engine\\component\\behaviors",
+			"sourceIndexes" : 
+			[
+				77,
+				78,
+				79
+			]
+		},
+		{
+			"name" : "engine\\console",
+			"sourceIndexes" : 
+			[
+				80,
+				81,
+				82,
+				83,
+				84,
+				85,
+				86,
+				87,
+				88,
+				89,
+				90,
+				91,
+				92,
+				93,
+				94,
+				95,
+				96,
+				97,
+				98,
+				99,
+				100,
+				101
+			]
+		},
+		{
+			"name" : "engine\\debug",
+			"sourceIndexes" : 
+			[
+				102,
+				103
+			]
+		},
+		{
+			"name" : "engine\\debug\\remote",
+			"sourceIndexes" : 
+			[
+				104,
+				105,
+				106
+			]
+		},
+		{
+			"name" : "engine\\delegates",
+			"sourceIndexes" : 
+			[
+				107
+			]
+		},
+		{
+			"name" : "engine\\game",
+			"sourceIndexes" : 
+			[
+				108,
+				109,
+				110,
+				111
+			]
+		},
+		{
+			"name" : "engine\\graphics",
+			"sourceIndexes" : 
+			[
+				112,
+				113,
+				114,
+				115,
+				116,
+				117,
+				118,
+				119,
+				120,
+				121,
+				122,
+				123,
+				124,
+				125,
+				126,
+				127,
+				128
+			]
+		},
+		{
+			"name" : "engine\\gui",
+			"sourceIndexes" : 
+			[
+				129,
+				130,
+				131,
+				132,
+				133,
+				134,
+				135,
+				136,
+				137,
+				138,
+				139,
+				140,
+				141,
+				142,
+				143,
+				144,
+				145,
+				146,
+				147
+			]
+		},
+		{
+			"name" : "engine\\gui\\buttons",
+			"sourceIndexes" : 
+			[
+				148,
+				149,
+				150,
+				151
+			]
+		},
+		{
+			"name" : "engine\\gui\\containers",
+			"sourceIndexes" : 
+			[
+				152,
+				153,
+				154,
+				155,
+				156,
+				157,
+				158,
+				159,
+				160,
+				161,
+				162
+			]
+		},
+		{
+			"name" : "engine\\gui\\editor",
+			"sourceIndexes" : 
+			[
+				163,
+				164,
+				165,
+				166,
+				167,
+				168,
+				169,
+				170,
+				171,
+				172,
+				173,
+				174,
+				175
+			]
+		},
+		{
+			"name" : "engine\\gui\\language",
+			"sourceIndexes" : 
+			[
+				176
+			]
+		},
+		{
+			"name" : "engine\\input",
+			"sourceIndexes" : 
+			[
+				177
+			]
+		},
+		{
+			"name" : "engine\\io",
+			"sourceIndexes" : 
+			[
+				178,
+				179,
+				180,
+				181,
+				182,
+				183,
+				184,
+				185,
+				186,
+				187,
+				188,
+				189
+			]
+		},
+		{
+			"name" : "engine\\io\\resource",
+			"sourceIndexes" : 
+			[
+				190,
+				191
+			]
+		},
+		{
+			"name" : "engine\\io\\zip",
+			"sourceIndexes" : 
+			[
+				192,
+				193,
+				194,
+				195,
+				196,
+				197,
+				198,
+				199,
+				200,
+				201,
+				202
+			]
+		},
+		{
+			"name" : "engine\\math",
+			"sourceIndexes" : 
+			[
+				203,
+				204,
+				205,
+				206,
+				207,
+				208,
+				209,
+				210,
+				211,
+				212,
+				213,
+				214,
+				215,
+				216,
+				217,
+				218,
+				219,
+				220,
+				221
+			]
+		},
+		{
+			"name" : "engine\\math\\noise",
+			"sourceIndexes" : 
+			[
+				222,
+				223
+			]
+		},
+		{
+			"name" : "engine\\memory",
+			"sourceIndexes" : 
+			[
+				224,
+				225
+			]
+		},
+		{
+			"name" : "engine\\messaging",
+			"sourceIndexes" : 
+			[
+				226,
+				227,
+				228,
+				229,
+				230
+			]
+		},
+		{
+			"name" : "engine\\module",
+			"sourceIndexes" : 
+			[
+				231,
+				232,
+				233
+			]
+		},
+		{
+			"name" : "engine\\network",
+			"sourceIndexes" : 
+			[
+				234,
+				235,
+				236,
+				237,
+				238,
+				239,
+				240,
+				241,
+				242,
+				243,
+				244,
+				245,
+				246,
+				247,
+				248,
+				249
+			]
+		},
+		{
+			"name" : "engine\\persistence",
+			"sourceIndexes" : 
+			[
+				250
+			]
+		},
+		{
+			"name" : "engine\\persistence\\taml",
+			"sourceIndexes" : 
+			[
+				251,
+				252,
+				253
+			]
+		},
+		{
+			"name" : "engine\\persistence\\taml\\binary",
+			"sourceIndexes" : 
+			[
+				254,
+				255
+			]
+		},
+		{
+			"name" : "engine\\persistence\\taml\\json",
+			"sourceIndexes" : 
+			[
+				256,
+				257,
+				258
+			]
+		},
+		{
+			"name" : "engine\\persistence\\taml\\xml",
+			"sourceIndexes" : 
+			[
+				259,
+				260,
+				261
+			]
+		},
+		{
+			"name" : "engine\\persistence\\tinyXML",
+			"sourceIndexes" : 
+			[
+				262,
+				263,
+				264,
+				265
+			]
+		},
+		{
+			"name" : "engine\\sim",
+			"sourceIndexes" : 
+			[
+				266,
+				267,
+				268,
+				269,
+				270,
+				271,
+				272,
+				273,
+				274,
+				275,
+				276,
+				277,
+				278
+			]
+		},
+		{
+			"name" : "engine\\string",
+			"sourceIndexes" : 
+			[
+				279,
+				280,
+				281,
+				282,
+				283,
+				284
+			]
+		},
+		{
+			"name" : "engine\\platform",
+			"sourceIndexes" : 
+			[
+				285,
+				286,
+				287,
+				288,
+				289,
+				290,
+				291,
+				292,
+				293,
+				294,
+				295,
+				296,
+				297
+			]
+		},
+		{
+			"name" : "engine\\platform\\menus",
+			"sourceIndexes" : 
+			[
+				298
+			]
+		},
+		{
+			"name" : "engine\\platform\\nativeDialogs",
+			"sourceIndexes" : 
+			[
+				299,
+				300
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Collision\\Shapes",
+			"sourceIndexes" : 
+			[
+				301,
+				302,
+				303,
+				304
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Collision",
+			"sourceIndexes" : 
+			[
+				305,
+				306,
+				307,
+				308,
+				309,
+				310,
+				311,
+				312
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Common",
+			"sourceIndexes" : 
+			[
+				313,
+				314,
+				315,
+				316,
+				317,
+				318,
+				319,
+				320,
+				321
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Dynamics\\Contacts",
+			"sourceIndexes" : 
+			[
+				322,
+				323,
+				324,
+				325,
+				326,
+				327,
+				328,
+				329,
+				330
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Dynamics\\Joints",
+			"sourceIndexes" : 
+			[
+				331,
+				332,
+				333,
+				334,
+				335,
+				336,
+				337,
+				338,
+				339,
+				340,
+				341,
+				342
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Dynamics",
+			"sourceIndexes" : 
+			[
+				343,
+				344,
+				345,
+				346,
+				347,
+				348
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Particle",
+			"sourceIndexes" : 
+			[
+				349,
+				350,
+				351,
+				352,
+				353
+			]
+		},
+		{
+			"name" : "engine\\Box2D\\Rope",
+			"sourceIndexes" : 
+			[
+				354
+			]
+		},
+		{
+			"name" : "engine\\platformAndroid",
+			"sourceIndexes" : 
+			[
+				355,
+				356,
+				357,
+				358,
+				359,
+				360,
+				361,
+				362,
+				363,
+				364,
+				365,
+				366,
+				367,
+				368,
+				369,
+				370,
+				371,
+				372,
+				373,
+				374,
+				375,
+				376,
+				377,
+				378,
+				379,
+				380,
+				381,
+				382,
+				383
+			]
+		},
+		{
+			"name" : "engine\\platformAndroid\\menus",
+			"sourceIndexes" : 
+			[
+				384
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/AnimationAsset.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/FontAsset.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/ImageAsset.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/ParticleAsset.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/ParticleAssetEmitter.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/ParticleAssetField.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/assets/ParticleAssetFieldCollection.cc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/controllers/AmbientForceController.cc",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/controllers/BuoyancyController.cc",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/controllers/PointForceController.cc",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/controllers/core/GroupedSceneController.cc",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/controllers/core/PickingSceneController.cc",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/BatchRender.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/CoreMath.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/ImageFrameProvider.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/ImageFrameProviderCore.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/ParticleSystem.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/RenderProxy.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/SpriteBase.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/SpriteBatch.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/SpriteBatchItem.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/SpriteBatchQuery.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/Utility.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/core/Vector2.cc",
+			"sourceGroupIndex" : 3
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/editorToy/EditorToySceneWindow.cc",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/editorToy/EditorToyTool.cc",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/experimental/composites/WaveComposite.cc",
+			"sourceGroupIndex" : 5
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/gui/SceneWindow.cc",
+			"sourceGroupIndex" : 6
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/gui/guiSceneObjectCtrl.cc",
+			"sourceGroupIndex" : 6
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/gui/guiSpriteCtrl.cc",
+			"sourceGroupIndex" : 6
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/ContactFilter.cc",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/DebugDraw.cc",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/Scene.cc",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/SceneRenderFactories.cpp",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/SceneRenderQueue.cpp",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/scene/WorldQuery.cc",
+			"sourceGroupIndex" : 7
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/CompositeSprite.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/LightObject.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/ParticlePlayer.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/Path.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/SceneObject.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/SceneObjectList.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/SceneObjectSet.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/Scroller.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/ShapeVector.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/Sprite.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/TextSprite.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/2d/sceneobject/Trigger.cc",
+			"sourceGroupIndex" : 8
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/algorithm/Perlin.cc",
+			"sourceGroupIndex" : 9
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/algorithm/crc.cc",
+			"sourceGroupIndex" : 9
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/algorithm/hashFunction.cc",
+			"sourceGroupIndex" : 9
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 1,
+			"path" : "engine/source/algorithm/pcg_basic.c",
+			"sourceGroupIndex" : 9
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/assetBase.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/assetFieldTypes.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/assetManager.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/assetQuery.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/assetTagsManifest.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/declaredAssets.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/assets/referencedAssets.cc",
+			"sourceGroupIndex" : 10
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/AudioAsset.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audio.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audioBuffer.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audioDataBlock.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audioDescriptions.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audioStreamSourceFactory.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/audio_ScriptBinding.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/vorbisStreamSource.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/audio/wavStreamSource.cc",
+			"sourceGroupIndex" : 11
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/bitmapFont/BitmapFont.cc",
+			"sourceGroupIndex" : 12
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/bitmapFont/BitmapFontCharacter.cc",
+			"sourceGroupIndex" : 12
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/collection/bitTables.cc",
+			"sourceGroupIndex" : 13
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/collection/hashTable.cc",
+			"sourceGroupIndex" : 13
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/collection/nameTags.cpp",
+			"sourceGroupIndex" : 13
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/collection/undo.cc",
+			"sourceGroupIndex" : 13
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/collection/vector.cc",
+			"sourceGroupIndex" : 13
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/component/dynamicConsoleMethodComponent.cpp",
+			"sourceGroupIndex" : 14
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/component/simComponent.cpp",
+			"sourceGroupIndex" : 14
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/component/behaviors/behaviorComponent.cpp",
+			"sourceGroupIndex" : 15
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/component/behaviors/behaviorInstance.cpp",
+			"sourceGroupIndex" : 15
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/component/behaviors/behaviorTemplate.cpp",
+			"sourceGroupIndex" : 15
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/CMDscan.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/ConsoleTypeValidators.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/Package.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/arrayObject.cpp",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/astAlloc.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/astNodes.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/cmdgram.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/codeBlock.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/compiledEval.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/compiler.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/console.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleBaseType.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleDictionary.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleDoc.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleExprEvalState.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleFunctions.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleLogger.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleNamespace.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleObject.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleParser.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/consoleTypes.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/console/metaScripting_ScriptBinding.cc",
+			"sourceGroupIndex" : 16
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/debug/profiler.cc",
+			"sourceGroupIndex" : 17
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/debug/telnetDebugger.cc",
+			"sourceGroupIndex" : 17
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/debug/remote/RemoteDebugger1.cc",
+			"sourceGroupIndex" : 18
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/debug/remote/RemoteDebuggerBase.cc",
+			"sourceGroupIndex" : 18
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/debug/remote/RemoteDebuggerBridge.cc",
+			"sourceGroupIndex" : 18
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/delegates/delegateSignal.cpp",
+			"sourceGroupIndex" : 19
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/game/defaultGame.cc",
+			"sourceGroupIndex" : 20
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/game/gameConnection.cc",
+			"sourceGroupIndex" : 20
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/game/gameInterface.cc",
+			"sourceGroupIndex" : 20
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/game/version.cc",
+			"sourceGroupIndex" : 20
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/DynamicTexture.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/PNGImage.cpp",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/ShaderManager.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/TextureDictionary.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/TextureHandle.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/TextureManager.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/glDSA.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/bitmapBmp.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/bitmapJpeg.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/bitmapPng.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/dgl.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/dglMatrix.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/gBitmap.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/gColor.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/gFont.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/gPalette.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/graphics/splineUtil.cc",
+			"sourceGroupIndex" : 21
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiArrayCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiCanvas.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiColorPickerCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiColorPopupCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiConsole.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiConsoleEditCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiControl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiDefaultControlRender.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiInputCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiListBoxCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiMessageVectorCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiProfileTheme.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiProgressCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiSliderCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiTextEditCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiTextEditSliderCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiTreeViewCtrl.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/guiTypes.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/messageVector.cc",
+			"sourceGroupIndex" : 22
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/buttons/guiButtonCtrl.cc",
+			"sourceGroupIndex" : 23
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/buttons/guiCheckBoxCtrl.cc",
+			"sourceGroupIndex" : 23
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/buttons/guiDropDownCtrl.cc",
+			"sourceGroupIndex" : 23
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/buttons/guiRadioCtrl.cc",
+			"sourceGroupIndex" : 23
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiChainCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiDragAndDropCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiExpandCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiFrameSetCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiGridCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiPanelCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiSceneScrollCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiScrollCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiTabBookCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiTabPageCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/containers/guiWindowCtrl.cc",
+			"sourceGroupIndex" : 24
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditorCursorCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiDebugger.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditFramePaletteCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditFrameStripCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditFrameTimelineCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditParticleColorGraph.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiEditorExplorerTree.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiGraphCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiInspector.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiInspectorTypes.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiMenuBarCtrl.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/editor/guiParticleGraphInspector.cc",
+			"sourceGroupIndex" : 25
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/gui/language/lang.cc",
+			"sourceGroupIndex" : 26
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/input/actionMap.cc",
+			"sourceGroupIndex" : 27
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/bitStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/bufferStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/byteBuffer.cpp",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/fileObject.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/fileStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/fileStreamObject.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/fileSystem_ScriptBinding.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/filterStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/memStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/nStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/resizeStream.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/streamObject.cc",
+			"sourceGroupIndex" : 28
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/resource/resourceDictionary.cc",
+			"sourceGroupIndex" : 29
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/resource/resourceManager.cc",
+			"sourceGroupIndex" : 29
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/centralDir.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/compressor.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/deflate.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/extraField.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/fileHeader.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/stored.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/zipArchive.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/zipCryptStream.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/zipObject.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/zipSubStream.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/io/zip/zipTempStream.cc",
+			"sourceGroupIndex" : 30
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mBox.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mFluid.cpp",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMathAMD.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMathAltivec.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMathFn.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMathSSE.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMath_C.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mMatrix.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mPlaneTransformer.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mPoint.cpp",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mQuadPatch.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mQuat.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mRandom.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mSolver.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mSplinePatch.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mathTypes.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/mathUtils.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/math_ScriptBinding.cc",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/rectClipper.cpp",
+			"sourceGroupIndex" : 31
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/noise/NoiseGenerator.cc",
+			"sourceGroupIndex" : 32
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/math/noise/RandomNumberGenerator.cc",
+			"sourceGroupIndex" : 32
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/memory/dataChunker.cc",
+			"sourceGroupIndex" : 33
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/memory/frameAllocator_ScriptBinding.cc",
+			"sourceGroupIndex" : 33
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/messaging/dispatcher.cc",
+			"sourceGroupIndex" : 34
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/messaging/eventManager.cc",
+			"sourceGroupIndex" : 34
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/messaging/message.cc",
+			"sourceGroupIndex" : 34
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/messaging/messageForwarder.cc",
+			"sourceGroupIndex" : 34
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/messaging/scriptMsgListener.cc",
+			"sourceGroupIndex" : 34
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/module/moduleDefinition.cc",
+			"sourceGroupIndex" : 35
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/module/moduleManager.cc",
+			"sourceGroupIndex" : 35
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/module/moduleMergeDefinition.cc",
+			"sourceGroupIndex" : 35
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/RemoteCommandEvent.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/connectionProtocol.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/connectionStringTable.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/httpObject.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netConnection.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netDownload.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netEvent.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netGhost.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netInterface.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netObject.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netStringTable.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/netTest.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/networkProcessList.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/serverQuery.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/tcpObject.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/network/telnetConsole.cc",
+			"sourceGroupIndex" : 36
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/SimXMLDocument.cpp",
+			"sourceGroupIndex" : 37
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/taml.cc",
+			"sourceGroupIndex" : 38
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/tamlCustom.cc",
+			"sourceGroupIndex" : 38
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/tamlWriteNode.cc",
+			"sourceGroupIndex" : 38
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/binary/tamlBinaryReader.cc",
+			"sourceGroupIndex" : 39
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/binary/tamlBinaryWriter.cc",
+			"sourceGroupIndex" : 39
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/json/tamlJSONParser.cc",
+			"sourceGroupIndex" : 40
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/json/tamlJSONReader.cc",
+			"sourceGroupIndex" : 40
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/json/tamlJSONWriter.cc",
+			"sourceGroupIndex" : 40
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/xml/tamlXmlParser.cc",
+			"sourceGroupIndex" : 41
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/xml/tamlXmlReader.cc",
+			"sourceGroupIndex" : 41
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/taml/xml/tamlXmlWriter.cc",
+			"sourceGroupIndex" : 41
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/tinyXML/tinystr.cpp",
+			"sourceGroupIndex" : 42
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/tinyXML/tinyxml.cpp",
+			"sourceGroupIndex" : 42
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/tinyXML/tinyxmlerror.cpp",
+			"sourceGroupIndex" : 42
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/persistence/tinyXML/tinyxmlparser.cpp",
+			"sourceGroupIndex" : 42
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/SimObjectList.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/scriptGroup.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/scriptObject.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simBase.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simConsoleEvent.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simConsoleThreadExecEvent.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simDatablock.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simDictionary.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simFieldDictionary.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simManager.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simObject.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simSerialize.cpp",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/sim/simSet.cc",
+			"sourceGroupIndex" : 43
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/findMatch.cc",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/stringBuffer.cc",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/stringStack.cc",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/stringTable.cc",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/stringUnit.cpp",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/string/unicode.cc",
+			"sourceGroupIndex" : 44
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/CursorManager.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/Tickable.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platform.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformAssert.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformCPU.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformFileIO.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformFont.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformMemory.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformNet.cpp",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformNetAsync.cpp",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformNet_ScriptBinding.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformString.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/platformVideo.cc",
+			"sourceGroupIndex" : 45
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/menus/popupMenu.cc",
+			"sourceGroupIndex" : 46
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/nativeDialogs/fileDialog.cc",
+			"sourceGroupIndex" : 47
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platform/nativeDialogs/msgBox.cpp",
+			"sourceGroupIndex" : 47
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/Shapes/b2ChainShape.cpp",
+			"sourceGroupIndex" : 48
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/Shapes/b2CircleShape.cpp",
+			"sourceGroupIndex" : 48
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/Shapes/b2EdgeShape.cpp",
+			"sourceGroupIndex" : 48
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/Shapes/b2PolygonShape.cpp",
+			"sourceGroupIndex" : 48
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2BroadPhase.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2CollideCircle.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2CollideEdge.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2CollidePolygon.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2Collision.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2Distance.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2DynamicTree.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Collision/b2TimeOfImpact.cpp",
+			"sourceGroupIndex" : 49
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2BlockAllocator.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2Draw.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2FreeList.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2Math.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2Settings.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2StackAllocator.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2Stat.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2Timer.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Common/b2TrackedBlock.cpp",
+			"sourceGroupIndex" : 50
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2CircleContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2Contact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2ContactSolver.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Contacts/b2PolygonContact.cpp",
+			"sourceGroupIndex" : 51
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2DistanceJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2FrictionJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2GearJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2Joint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2MotorJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2MouseJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2PulleyJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2RopeJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2WeldJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/Joints/b2WheelJoint.cpp",
+			"sourceGroupIndex" : 52
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2Body.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2ContactManager.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2Fixture.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2Island.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2World.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Dynamics/b2WorldCallbacks.cpp",
+			"sourceGroupIndex" : 53
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Particle/b2Particle.cpp",
+			"sourceGroupIndex" : 54
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Particle/b2ParticleAssembly.cpp",
+			"sourceGroupIndex" : 54
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Particle/b2ParticleGroup.cpp",
+			"sourceGroupIndex" : 54
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Particle/b2ParticleSystem.cpp",
+			"sourceGroupIndex" : 54
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Particle/b2VoronoiDiagram.cpp",
+			"sourceGroupIndex" : 54
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/Box2D/Rope/b2Rope.cpp",
+			"sourceGroupIndex" : 55
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidAlerts.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidAudio.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidCPUInfo.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidConsole.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidDialogs.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidEvents.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidFileio.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidFont.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidGL.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidGL2ES.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidInput.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidMath.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidMemory.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidMutex.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidOGLVideo.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidOutlineGL.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidPlatform.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidProcessControl.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidProfiler.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidSemaphore.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidStreamSource.cc",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidStrings.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidThread.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidTime.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidUtil.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/AndroidWindow.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/T2DActivity.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 1,
+			"path" : "engine/source/platformAndroid/android_native_app_glue.c",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/main.cpp",
+			"sourceGroupIndex" : 56
+		},
+		{
+			"backtrace" : 10,
+			"compileGroupIndex" : 0,
+			"path" : "engine/source/platformAndroid/menus/popupMenu.cpp",
+			"sourceGroupIndex" : 57
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

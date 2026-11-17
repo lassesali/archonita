@@ -38,10 +38,47 @@ function Piece::onAnimationEnd(%this, %animationAssetID)
    }
 }
 
+function Piece::getMuzzlePosition(%this, %targetPos)
+{
+   return RangedUnit::getMuzzlePosition(%this, %targetPos);
+}
+
+function Piece::resolveVisualType(%this)
+{
+   return RangedUnit::resolveVisualType(%this);
+}
+
+function Piece::fireProjectile(%this, %targetX, %targetY, %damage, %targetUnit)
+{
+   return RangedUnit::fireProjectile(%this, %targetX, %targetY, %damage, %targetUnit);
+}
+
+function Piece::armAttackProjectile(%this, %targetX, %targetY, %releaseFrame, %damage, %targetUnit, %fallbackDelayMs)
+{
+   RangedUnit::armAttackProjectile(%this, %targetX, %targetY, %releaseFrame, %damage, %targetUnit, %fallbackDelayMs);
+}
+
+function Piece::playAttackWithProjectile(%this, %animName, %targetX, %targetY, %releaseFrame, %damage, %targetUnit)
+{
+   RangedUnit::playAttackWithProjectile(%this, %animName, %targetX, %targetY, %releaseFrame, %damage, %targetUnit);
+}
+
+function Piece::releaseArmedProjectile(%this)
+{
+   return RangedUnit::releaseArmedProjectile(%this);
+}
+
+function Piece::onAnimationFrame(%this, %frameIndex)
+{
+   return RangedUnit::onAnimationFrame(%this, %frameIndex);
+}
+
 // Backward-compatible Nappula class delegation
 function Nappula::onPositionTarget(%this, %mod, %worldPos) { Piece::onPositionTarget(%this, %mod, %worldPos); }
 function Nappula::onMoveToComplete(%this)                  { Piece::onMoveToComplete(%this); }
 function Nappula::onAnimationEnd(%this, %animId)           { Piece::onAnimationEnd(%this, %animId); }
+function Nappula::fireProjectile(%this, %tx, %ty, %d, %t)  { return Piece::fireProjectile(%this, %tx, %ty, %d, %t); }
+function Nappula::onAnimationFrame(%this, %frameIndex)     { return Piece::onAnimationFrame(%this, %frameIndex); }
 
 //---------------------------------------------------------------------------------------------
 // Card Class Callbacks (formerly Kortti)

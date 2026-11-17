@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="hornedoneyeStoppedAnimation_s"
+    Image="@asset=Archon:hornedoneyeStoppedImageMap"
+    AnimationFrames="0"
+    AnimationTime="1"
+    AnimationCycle="1" />

@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="archerStoppedAnimation_n"
+    Image="@asset=Archon:archerStoppedImageMap"
+    AnimationFrames="4"
+    AnimationTime="1"
+    AnimationCycle="1" />

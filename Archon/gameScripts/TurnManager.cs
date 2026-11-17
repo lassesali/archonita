@@ -174,7 +174,7 @@ function TurnManager::dealCards(%this)
    $specialcard[%i].setLayer(10 - %i);
    $specialcard[%i].setUseMouseEvents(0);
    $specialcard[%i].isSelectable = false;
-   $specialcard[%i].moveto("-40" SPC (0 + (%i * 0.5)), 50, true, true, 0.1);
+   $specialcard[%i].moveto("-40" SPC (0 + (%i * 0.5)), 50, true, true, true);
 }
 
 function TurnManager::updateActionIcons(%this)
@@ -386,6 +386,8 @@ function TurnManager::nextTurn(%this)
             $nappulaSprite[%pieceId].skipNextTurn = 0;
             $nappulaSprite[%pieceId].hasMoved = 1;
             $nappulaSprite[%pieceId].hasDoneAction = 1;
+            if (isObject(SpellEffectManager))
+               SpellEffectManager.spawnEffectOnPiece($nappulaSprite[%pieceId], "Archon:spell_disease");
             sceneWindow2D.setUseWindowMouseEvents(false);
             schedule(800, 0, "doDefence", game.getTurn());
             return;
@@ -412,11 +414,16 @@ function TurnManager::endBattle(%this)
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(false);
    if (isObject(CombatEngine))
+   {
       CombatEngine.cancelDiceRoll();
+      CombatEngine.cleanupProjectiles();
+   }
    sceneWindow2D.setUseWindowMouseEvents(false);
    updateMagicButtonParticleState();
    if (isObject(FloatingTextManager))
       FloatingTextManager.clearAll();
+   if (isObject(SpellEffectManager))
+      SpellEffectManager.clearAll();
    %this.endBattleEvent = schedule(2000, 0, mainmenuScreen);
 }
 
