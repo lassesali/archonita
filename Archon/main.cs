@@ -90,6 +90,11 @@ function initializeProject()
    exec("./gameScripts/FloatingTextManager.cs");
    if (!isObject($FloatingTextManager))
       $FloatingTextManager = FloatingTextManager;
+   exec("./gameScripts/SpellEffectManager.cs");
+   if (!isObject($SpellEffectManager))
+      $SpellEffectManager = SpellEffectManager;
+   exec("./gameScripts/Projectile.cs");
+   exec("./gameScripts/RangedUnit.cs");
    exec("./gameScripts/metrics.cs");
    if (!isObject($Metrics))
       $Metrics = Metrics;
@@ -153,6 +158,8 @@ function shutdownProject()
       $AssetResolutionManager.delete();
    if (isObject($FloatingTextManager))
       $FloatingTextManager.delete();
+   if (isObject($SpellEffectManager))
+      $SpellEffectManager.delete();
    if (isObject($Metrics))
       $Metrics.delete();
    endGame();

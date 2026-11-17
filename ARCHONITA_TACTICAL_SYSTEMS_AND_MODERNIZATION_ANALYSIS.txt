@@ -1,0 +1,341 @@
+================================================================================
+ARCHONITA (2006-2026): TACTICAL SYSTEMS & MODERNIZATION ANALYSIS
+GAME DESIGN PARALLELS, ARCHITECTURAL EVALUATION & STRATEGIC ENHANCEMENTS
+================================================================================
+
+Document:      ARCHONITA_TACTICAL_SYSTEMS_AND_MODERNIZATION_ANALYSIS
+Project:       Archonita 20th Anniversary Edition (Build 111 / 2.0.3-ea4)
+Engine:        Torque2D 4.0 (EA4) 64-bit (Migrated from 2006 TGB 1.1)
+Pillars:       Heroes of Might & Magic III | Hearthstone | GWENT | HeroQuest
+Date:          November 2026
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. EXECUTIVE OVERVIEW & COMPARATIVE DNA MATRIX
+2. SECTION 1: GRID & SPATIAL TACTICS
+3. SECTION 2: FACTION ASYMMETRY & ARCHETYPES
+4. SECTION 3: PACING, INITIATIVE & RESOURCE/SPELL ECONOMY
+5. SECTION 4: MODERNIZATION & QUALITY OF LIFE (2006 JAM VS. 2026 EVOLUTION)
+6. SECTION 5: DELIVERABLE SYNTHESIS (STRENGTHS, FRICTION & ENHANCEMENTS)
+
+
+================================================================================
+1. EXECUTIVE OVERVIEW & COMPARATIVE DNA MATRIX
+================================================================================
+Originally created in June 2006 by Gamelon Productions for the Suomipelit.com
+Pikkukesakilpailu game jam on Torque Game Builder 1.1 and now ported to
+64-bit Torque2D 4.0 (EA4), Archonita is a compact micro-tactical hybrid. Under
+the hood, its architecture merges a point-buy army draft, a 4x4 orthogonal
+grid, HeroQuest-style opposed combat dice, and a 6-card spell deck into fast
+skirmishes.
+
++-------------------+---------------------------+------------------------------+
+| Design Vector     | Archonita (2.0.3-ea4)     | Four-Pillar Parallels        |
++-------------------+---------------------------+------------------------------+
+| Spatial Topology  | 4x4 orthogonal grid;      | HoMM3: 15x11 hex + obstacles |
+|                   | 1 random obstacle/pit;    | Hearthstone: 1D adjacency    |
+|                   | rook-line ranged fire     | GWENT: 2-row Melee/Ranged    |
+|                   | (BoardManager.cs)         | HeroQuest: LoS & doorways    |
++-------------------+---------------------------+------------------------------+
+| Army & Faction    | 5-6 Creature Points (CP)  | HoMM3: Asymmetric town tiers |
+| Setup             | draft across Lvl 1-4;     | Hearthstone: Class + HeroPwr |
+|                   | 4 rosters (units.cs,      | GWENT: Provision deckbuild   |
+|                   | FactionManager.cs)        | HeroQuest: Asymmetric roles  |
++-------------------+---------------------------+------------------------------+
+| Turn & Initiative | Strict 1-for-1 interleaved| HoMM3: Speed initiative +    |
+| Loop              | round-robin queue; dead   |        Wait/Defend phases    |
+|                   | units stripped mid-round  | GWENT: Alternating 1-card    |
+|                   | (TurnManager.cs)          |        turns & action adv.   |
++-------------------+---------------------------+------------------------------+
+| Combat & Variance | Opposed 4-state dice pools| HeroQuest: Opposed combat    |
+|                   | (50% hit vs. 25% block);  |            dice (Skulls vs.  |
+|                   | clamped 1 HP damage/hit   |            Shields)          |
+|                   | (CombatEngine.cs)         | HoMM3: Predictable attrition |
++-------------------+---------------------------+------------------------------+
+| Spell Economy     | 6-card shuffled deck;     | Hearthstone: Mana curve      |
+|                   | 1 top-deck reveal & free  | GWENT: Finite hand economy   |
+|                   | cast per round            | HeroQuest: One-shot school   |
+|                   | (TurnManager/CombatEngine)|            spell cards       |
++-------------------+---------------------------+------------------------------+
+
+
+================================================================================
+2. SECTION 1: GRID & SPATIAL TACTICS
+================================================================================
+
+2.1 How Archonita's 4x4 Grid Operates
+    In Archon/gameScripts/BoardManager.cs, BoardConfig defines a compact 4x4
+    grid (16 total tiles), partitioned into two 4x2 deployment zones:
+    - AI Deployment Zone:     Rows Y in {0, 1} (aiPlacementMinY..MaxY)
+    - Player Deployment Zone: Rows Y in {2, 3} (playerPlacementMinY..MaxY)
+
+    Procedural Terrain (BoardManager::initBoard):
+    Places exactly one random obstacle (%obsx, %obsy) on the board: either a
+    missing floor pit (%obstacletype == 1, hiding $floor[%ox, %oy]) or a
+    blocking pillar/statue sprite (%obstacletype > 1).
+
+    Movement & Targeting Topology (TacticalAI::evaluateTacticalMoves):
+    Units move 1 tile orthogonally (N/S/E/W) per turn (hasMoved == 0) and
+    attack orthogonally adjacent enemies (hasDoneAction == 0). Ranged units
+    (missile == 1) project attack grids along their entire current row
+    (X in [0..3]) and column (Y in [0..3]) like a chess Rook.
+
+2.2 Comparison Against the Four Pillars
+    - vs. Heroes of Might & Magic III:
+      HoMM3 uses a 15x11 hex grid where unit Speed governs both initiative and
+      cross-map reach. Archonita eliminates the neutral no-man's-land: AI
+      frontline (Y=1) and Player frontline (Y=2) start orthogonally adjacent
+      on Turn 1, forcing immediate tactical engagement.
+
+    - vs. GWENT:
+      GWENT divides each player's side into a Melee Row and a Ranged Row.
+      Archonita's 4x2 deployment zone naturally mirrors this two-row split:
+      Row Y=2 functions as the Melee vanguard, while Row Y=3 functions as the
+      Ranged/Backline row. Because missile == 1 units shoot along full
+      columns without range falloff, an Archer at (x, 3) safely fires past a
+      friendly Warrior tanking at (x, 2).
+
+    - vs. HeroQuest:
+      HeroQuest derives deep tension from 1-tile doorway choke points and
+      strict Line-of-Sight (LoS). In Archonita, melee body-blocking works
+      identically ($board.obstacles[x, y] = 255 blocks movement through
+      occupied tiles), but ranged fire currently ignores LoS: the loops in
+      TacticalAI::evaluateTacticalMoves check every tile in row/column without
+      stopping at pillar obstacles or intervening units.
+
+    - vs. Hearthstone:
+      Hearthstone turns a 1D line into a spatial puzzle through adjacency buffs
+      and Taunt. Archonita supports full 2D orthogonal adjacency, yet all
+      current spells in CombatEngine.cs target either "all", "unit", or
+      "avatar", leaving spatial adjacency buffs/cleaves untapped.
+
+2.3 Spatial Depth Opportunities
+    1. True Line-of-Sight (LoS) & Hard Cover:
+       Having pillar obstacles and enemy vanguard units block ranged rays
+       along rows/columns immediately converts the single procedural obstacle
+       into HeroQuest-style cover against Archers, Red Dragons, and Horned
+       One-Eyes.
+    2. Activating Dormant Power Tiles:
+       BoardManager::initBoard explicitly sets distinct tile frames on
+       $floor[0, 2].setFrame(1) and $floor[1, 0].setFrame(2)--an homage to
+       classic Archon's luminance power points--but currently attaches no
+       combat bonus to those coordinates. Granting +1 Attack or +1 Defence
+       dice to occupants creates instant King-of-the-Hill board contestation.
+
+
+================================================================================
+3. SECTION 2: FACTION ASYMMETRY & ARCHETYPES
+================================================================================
+
+3.1 Current Hero & Faction Structure
+    Archonita separates player archetype choice (Hero Class) from army roster
+    selection (FactionManager.cs and units.cs):
+
+    Hero Selection (TurnManager::initNewGame):
+    - Warrior Hero ($selectedHero == 1): +1 Creature Point (6 CP total).
+    - Wizard/Mage Hero ($selectedHero == 2): +1 Mana, heroClass = 1 (5 CP).
+    - AI Hero: Always receives +1 Creature Point (6 CP total).
+
+    Four 4-Unit Faction Rosters (units.cs):
+    +-------+--------------------+--------------------+--------------------+--------------------+
+    | Tier  | Human Order (0..3) | Undead Legion (4..7) | Dragonfolk (8..11) | Gremlin Horde (12+) |
+    +-------+--------------------+--------------------+--------------------+--------------------+
+    | Lvl 1 | Warrior            | Skeleton Warrior   | Dragon Folk        | Gremlin            |
+    | Melee | 1HP 2Att 3Def      | 1HP 2Att 3Def      | 2HP 2Att 3Def      | 1HP 2Att 2Def      |
+    +-------+--------------------+--------------------+--------------------+--------------------+
+    | Lvl 2 | Archer             | Skeleton Archer    | Red Dragon         | Horned One-Eye     |
+    | Ranged| 1HP 2Att 2Def (Arw)| 2HP 1Att 2Def (Arw)| 2HP 2Att 3Def (Fir)| 2HP 2Att 2Def (Bm) |
+    +-------+--------------------+--------------------+--------------------+--------------------+
+    | Lvl 3 | Cleric             | Dread Zombie       | Air Dragon         | Mistress           |
+    | Caster| 1HP 2Att 4Def 1Mn  | 3HP 3Att 3Def Sp:2 | 3HP 3Att 4Def Sp:1 | 2HP 3Att 4Def Sp:1 |
+    +-------+--------------------+--------------------+--------------------+--------------------+
+    | Lvl 4 | Paladin            | Ancient Ghost      | Gold Dragon        | Demon              |
+    | Boss  | 3HP 4Att 5Def 1Mn  | 3HP 3Att 6Def Sp:1 | 4HP 4Att 5Def Sp:2 | 4HP 4Att 5Def Sp:2 |
+    +-------+--------------------+--------------------+--------------------+--------------------+
+
+3.2 Comparison & Structural Gaps
+    - HoMM3 Town Archetype Parallels:
+      Human Order maps to Castle, Undead Legion to Necropolis, Dragonfolk to
+      Dungeon/Fortress, and Gremlin Horde to Inferno. Build 111 added distinct
+      projectile visual styles in RangedUnit.cs ("arrow", "fire", "beam").
+
+    - Unwired Unit Spells & Mana:
+      units.cs defines spells[6] = "2" (Disease: -1 attack) and
+      spells[7] = "1" (Ghostly Touch: -2 defence) on Tier 3-4 units across
+      Undead, Dragonfolk, and Gremlins, plus mana = 1 on Human Cleric/Paladin.
+      BoardManager::spawnPieceOnBoard copies .spells and .mana onto spawned
+      pieces, yet CombatEngine.cs never triggers unit-level spells or mana.
+
+    - Tier Homogenization & Asymmetric Power Creep:
+      Every faction uses the exact same tier template (Lvl 1 Melee, Lvl 2
+      Ranged, Lvl 3 Melee, Lvl 4 Melee). Moreover, Dragonfolk strictly
+      out-stats Human Order at every tier (e.g., Dragon Folk 2 HP vs. Warrior
+      1 HP; Gold Dragon 4 HP vs. Paladin 3 HP), while Gremlin (1 HP, 2 Def)
+      is strictly weaker than Warrior (1 HP, 3 Def) at the same 1 CP cost.
+      Additionally, BoardManager.cs locks the human player to Human Order
+      (offset 0) while FactionManager only swaps the AI's roster.
+
+3.3 Deepening Faction Mechanical Identity
+    1. Wire Unit-Level Active/On-Hit Spells:
+       Hook spells == "1" (Ghostly Touch: -1/-2 Defence on hit) and
+       spells == "2" (Disease: -1 Attack on hit) into
+       CombatEngine::finalizeCombatAttack, and allow Cleric (mana = 1) to
+       spend Mana to heal an adjacent friendly unit for +1 HP.
+    2. Differentiate Faction Movement & Swarm Mechanics:
+       - Dragonfolk: Grant Air Dragon / Gold Dragon HoMM3-style Flying
+         (diagonal/obstacle-ignoring movement), balanced by a 5 CP army cap.
+       - Gremlin Horde: Lean into HeroQuest Goblin swarm tempo (2-tile
+         movement or spawning 2 Gremlins for 1 CP).
+       - Undead Legion: Immunity to biological debuffs such as Vatsatauti.
+
+
+================================================================================
+4. SECTION 3: PACING, INITIATIVE & RESOURCE/SPELL ECONOMY
+================================================================================
+
+4.1 Turn Pacing & the GWENT Action Advantage Effect
+    TurnManager::distributeTurnQueue collects living Player and AI units and
+    interleaves them 1-for-1 (Player_1, AI_1, Player_2, AI_2...), padding the
+    shorter side with "0"s if unit counts differ.
+
+    - Emergent Wide-vs-Tall Tension:
+      Drafting a wide army (e.g., five 1-CP Warriors) against a tall AI army
+      (e.g., Gold Dragon + Red Dragon) yields 3 consecutive uncontested player
+      turns at the end of the round--directly echoing GWENT's card-advantage
+      passing leverage.
+    - Initiative Denial (HoMM3 / HeroQuest):
+      When a unit dies mid-round, CombatEngine::damagePiece calls
+      removePieceTurn(%piece.index), stripping that unit's remaining
+      activation from the current round's queue.
+
+4.2 Resource & Spell Deck Economy
+    TurnManager::shuffleSpellDeck deals 6 shuffled spell cards (frames 3..8):
+    - Frame 3 (Taikamakkara):   [all]    +1 Defence & defenceMAX to all allies
+    - Frame 4 (Taikahattu):     [avatar] +1 Mana to player hero
+    - Frame 5 (Taikatikkari):   [avatar] +1 Spell Damage to player hero
+    - Frame 6 (Tulivuori):      [all]    Deals (1 + spellDamage) HP to enemies
+    - Frame 7 (Voikukan juuri): [avatar] +1 Mana to player hero
+    - Frame 8 (Vatsatauti):     [unit]   Target unit skips next turn
+
+    Two Critical Economy Disconnects:
+    1. Inert Mana Loop:
+       Choosing the Mage Hero sacrifices 1 Creature Point (5 CP vs. 6 CP) for
+       +1 Mana, and 2 of the 6 spell cards (Taikahattu, Voikukan juuri) grant
+       +1 Mana. However, no function in CombatEngine.cs currently checks or
+       spends hero.getMana(), making Mage Hero and 33% of the deck non-
+       functional in combat.
+    2. Order-Dependent Combo Sequencing:
+       Taikatikkari (+1 Spell Damage) only empowers Tulivuori (Volcano AoE).
+       Because the 6-card deck is strictly top-decked one card at a time,
+       there is a 50% chance Tulivuori appears above Taikatikkari, rendering
+       Taikatikkari inert when drawn afterward.
+
+4.3 Dice Variance vs. Tactical Determinism
+    CombatEngine::rollAttackDice and rollDefenseDice implement opposed 4-state
+    dice pools (getRandom(3) in {0, 1, 2, 3}):
+    - Attacker Hit Probability:   50% per Attack die  (Player: 0,2; AI: 0,1)
+    - Defender Block Probability: 25% per Defence die (Player: 1; AI: 3)
+    - Player Attack succeeds if Hits > Blocks; AI Attack succeeds if Hits > Blocks.
+
+    Clamped 1 HP Damage Guarantee:
+    Unlike HeroQuest where excess skulls deal burst multi-wound damage,
+    Archonita clamps every successful attack to exactly 1 HP damage
+    (damagePiece). High-HP units (3 HP Paladin, 4 HP Gold Dragon) are
+    guaranteed to survive at least 3-4 attacks, preserving multi-turn
+    tactical determinism. However, against 6-Defence targets (Ancient Ghost
+    or Taikamakkara-buffed Paladin), a 2-Attack Warrior has only a 22.2%
+    chance to land a wound, making wide +1 Defence buffs heavily snowbally.
+
+
+================================================================================
+5. SECTION 4: MODERNIZATION & QUALITY OF LIFE (2006 JAM VS. 2026 EVOLUTION)
+================================================================================
+
+5.1 Modernization Achievements in Torque2D 4.0 (2.0.3-ea4)
+    - Tactile Feedback & Juice (Hearthstone-grade readability):
+      FloatingTextManager.cs (+1 Defence Roll, -X HP, Skip Turn!),
+      SpellEffectManager.cs particle emitters, and Projectile.cs / RangedUnit.cs
+      travelling projectiles (arrows, fire, eye-beams) make board state shifts
+      immediately legible.
+    - 500ms Dice Roll Suspense Gate:
+      Input locking during the 500ms animated roll with 9 pooled dice SFX
+      (AudioManager.cs) before snapping upright to the rolled face preserves
+      physical tabletop drama.
+    - Physical Card Discard Trajectory:
+      Card::discardAfterCast (240 deg/s spin, 135 deg polar launch, scale ramp)
+      and magicButtonEffect glow give the HUD responsive physical presence.
+
+5.2 Archaic 2006 Pain Points Remaining
+    1. Hidden Unit Stats on Board:
+       No hover tooltip or micro-HP/dice readout exists on grid pieces, forcing
+       players to memorize current HP and Attack/Defence dice modifiers.
+    2. Passive Melee AI Stalling (TacticalAI.cs, lines 211-407):
+       When an AI unit has no adjacent melee target or ranged line-of-fire,
+       movement only triggers if (%inDangerHorizontal == 1 || %inDangerVertical
+       == 1)--meaning it only moves to dodge player ranged units. Against an
+       all-melee player army stationed in Row Y=3, AI melee units repeatedly
+       call doDefence and never advance.
+    3. Abrupt Post-Battle Exit (TurnManager::endBattle):
+       Ending a match waits 2000ms and returns straight to mainmenuScreen
+       without a Victory/Defeat summary banner or surviving unit tally.
+
+5.3 Nostalgic Charm to Fiercely Preserve
+    - Cult-Classic Finnish Identity: The quirky Finnish spell themes on
+      cards_2.png (Taikamakkara / Magic Sausage, Taikahattu, Taikatikkari,
+      Tulivuori, Voikukan juuri, Vatsatauti) give Archonita unmistakable soul.
+    - Retro 2006 Aesthetic: The 4-directional pre-rendered sprites, multiply-
+      blended gold scroll intro (intro.scene.taml), and visible red/blue dice
+      rows at Y = +30 and Y = -30 define its tactile retro identity.
+
+
+================================================================================
+6. SECTION 5: DELIVERABLE SYNTHESIS (STRENGTHS, FRICTION & ENHANCEMENTS)
+================================================================================
+
+6.1 Core Strengths
+    - Zero-Filler Immediacy (Hearthstone / HeroQuest): 5-6 CP draft plus
+      adjacent starting frontlines delivers immediate Turn 1 combat tension.
+    - Clamped Opposed Dice Drama (HeroQuest): Physical dice pools paired with
+      1 HP damage clamping yield exciting rolls without sudden RNG blowouts.
+    - Emergent Action Advantage & Turn Denial (GWENT / HoMM3): Interleaved
+      turn queues + removePieceTurn create real wide-vs-tall trade-offs.
+
+6.2 Design Friction
+    - Dead Mana resource breaks the Mage Hero choice and 2 of 6 spell cards.
+    - Blind single-card top-decking prevents strategic holding or combo setup.
+    - Melee AI refuses to advance unless threatened by player ranged fire.
+    - Missing board stat tooltips and post-match Victory/Defeat reporting.
+
+6.3 Three High-Impact Actionable Enhancements
+
+    ENHANCEMENT 1: Active "Hero Mana Overcharge & Unit Spells" (Hearthstone / HoMM3)
+    - Fix: Wire hero.getMana() into CombatEngine::castRevealedSpell so
+      spending 1 Mana overcharges any cast spell card:
+      * Taikamakkara: Also grants +1 Attack to all friendly units.
+      * Tulivuori:    Adds +1 Bonus Damage per Mana spent (solving draw order).
+      * Vatsatauti:   Inflicts 1 HP poison damage alongside Skip Turn.
+    - Wire UnitProperties.spells ("1" Ghostly Touch: -1 Defence on hit; "2"
+      Disease: -1 Attack on hit) in finalizeCombatAttack and enable Cleric
+      adjacent healing.
+
+    ENHANCEMENT 2: "2-Card Draw & Hold" + Active Defence Stance (GWENT / HoMM3)
+    - Fix: Reveal the top 2 spell cards (or allow holding 1 revealed card
+      across rounds) in CombatEngine::doMagic so players can time Vatsatauti
+      and sequence Taikatikkari before Tulivuori.
+    - Fix: Upgrade CombatEngine::doDefence (Shield hexagon) when used before
+      attacking (hasDoneAction == 0) to grant +1 temporary Defence die until the
+      unit's next activation ("+1 Guard" floating text), mirroring HoMM3 Defend.
+
+    ENHANCEMENT 3: True LoS Cover, Power Tiles & Melee AI Advance (HeroQuest / Archon)
+    - Fix: Replace full-row/column ranged scanning in TacticalAI.cs with
+      cardinal raycasts that stop on pillar obstacles and frontline units,
+      turning terrain and tank positioning into real HeroQuest LoS shields.
+    - Fix: Activate $floor[0, 2] and $floor[1, 0] luminance tiles to confer
+      +1 Attack and +1 Defence dice to occupants.
+    - Fix: Add Manhattan-distance melee advance in TacticalAI.cs when no
+      target is in range and no ranged threat is active, preventing AI stalls.
+
+================================================================================
+END OF ANALYSIS REPORT
+================================================================================
