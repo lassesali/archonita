@@ -52,12 +52,11 @@ jobs:
   # ===========================================================================
   linux-x64:
     name: Linux x86_64
-    # Not pinned. SDL 2 is vendored in engine/lib/sdl and compiled by the
-    # configure step, so there is no SDL package to install -- only SDL's X11
-    # build dependencies, every one of which configure requires
-    # (engine/lib/CMakeLists.txt): SDL itself insists only on libxext-dev, and
-    # would quietly leave out the feature each of the others turns on.
-    runs-on: ubuntu-latest
+    # Pinned to 22.04: the engine's X11 back-end needs GENUINE SDL 1.2 (it links
+    # the SDL-1.2 X11 driver symbol X11_KeyToUnicode and calls 1.2-only APIs).
+    # On 24.04, libsdl1.2-dev is the SDL2-based sdl12-compat shim, which does NOT
+    # export those symbols, so the link fails.
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: lukka/get-cmake@latest
@@ -65,8 +64,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential \
-            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
-            libxft-dev libfreetype6-dev libopenal-dev libgl1-mesa-dev
+            libsdl1.2-dev libx11-dev libxft-dev libfreetype6-dev libopenal-dev libgl1-mesa-dev
       - name: Build Debug
         run: |
           cmake -S . -B build/linux-debug -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug
@@ -90,11 +88,9 @@ jobs:
 
   linux-x86:
     name: Linux x86 (32-bit)
-    # Still pinned to 22.04, but for the :i386 dev packages rather than for SDL:
-    # newer Debian/Ubuntu drop the 32-bit dev symlinks the configure step needs
-    # (see the multilib gotchas in cmake/BUILD-PLATFORM-NOTES.md). The 32-bit build
-    # additionally needs NASM: platform/platformCPUInfo.asm (detectX86CPUInfo) is
-    # compiled only on 32-bit (it is x86-only and is skipped on 64-bit via
+    # Pinned to 22.04 for genuine SDL 1.2 (see the linux-x64 job). The 32-bit
+    # build additionally needs NASM: platform/platformCPUInfo.asm (detectX86CPUInfo)
+    # is compiled only on 32-bit (it is x86-only and is skipped on 64-bit via
     # TORQUE_64).
     runs-on: ubuntu-22.04
     steps:
@@ -106,9 +102,8 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y gcc-multilib g++-multilib nasm \
-            libx11-dev:i386 libxext-dev:i386 libxrandr-dev:i386 libxcursor-dev:i386 \
-            libxfixes-dev:i386 libxi-dev:i386 libxss-dev:i386 \
-            libxft-dev:i386 libfreetype6-dev:i386 libopenal-dev:i386 libgl1-mesa-dev:i386
+            libsdl1.2-dev:i386 libx11-dev:i386 libxft-dev:i386 libfreetype6-dev:i386 \
+            libopenal-dev:i386 libgl1-mesa-dev:i386
       - name: Build Release (-m32)
         env:
           # Point pkg-config / find_package at the 32-bit libraries.
@@ -185,14 +180,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      # v4, not v3: v3 installs the SDK's "tools" package, which Google has
-      # removed, so the action now fails before the build starts ("Failed to
-      # find package 'tools'"). v4 installs platform-tools alone (its v4.0.2,
-      # "Fix for removed tools package"), and moves to node24 and a current
-      # cmdline-tools. sdkmanager is still on the path for the step below.
-      - uses: android-actions/setup-android@v4
+      - uses: android-actions/setup-android@v3
       - name: Install NDK + CMake (match app/build.gradle ndkVersion)
-        run: sdkmanager "ndk;27.0.12077973" "cmake;3.22.1"
+        run: sdkmanager "ndk;25.2.9519653" "cmake;3.22.1"
       - name: Build APK (assembleDebug)
         working-directory: engine/compilers/android-studio
         run: |
