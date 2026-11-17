@@ -1,6 +1,0 @@
-<AnimationAsset
-    AssetName="skeletonarcherBeenHitAnimation_s"
-    Image="@asset=Archon:skeletonarcherBeenHitImageMap"
-    AnimationFrames="14 15 16 17 18 19 20"
-    AnimationTime="1"
-    AnimationCycle="0" />

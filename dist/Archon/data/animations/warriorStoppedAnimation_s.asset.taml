@@ -1,6 +1,0 @@
-<AnimationAsset
-    AssetName="warriorStoppedAnimation_s"
-    Image="@asset=Archon:warriorStoppedImageMap"
-    AnimationFrames="0"
-    AnimationTime="1"
-    AnimationCycle="1" />

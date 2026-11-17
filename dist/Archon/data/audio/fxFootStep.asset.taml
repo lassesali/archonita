@@ -1,5 +1,0 @@
-<AudioAsset
-    AssetName="fxFootStep"
-    AssetAutoUnload="0"
-    AudioFile="footstep.wav"
-    Looping="false" />
