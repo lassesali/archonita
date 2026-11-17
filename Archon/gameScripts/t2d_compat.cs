@@ -32,14 +32,18 @@ function boardToWorldUnit(%bx, %by)
 }
 
 // Sprite image and animation setters
-function Sprite::setImageMap(%this, %map)
+function Sprite::setImageMap(%this, %map, %frame)
 {
    if (%map $= "")
       return;
    %name = %map;
    if (isObject(%map))
       %name = %map.getName();
-   %this.setImage("Archon:" @ %name);
+   if (strstr(%name, ":") == -1)
+      %name = "Archon:" @ %name;
+   %this.setImage(%name);
+   if (%frame !$= "")
+      %this.setImageFrame(%frame);
 }
 
 function isDiceRollAnimation(%anim)
@@ -144,6 +148,38 @@ function SceneObject::setCollisionActiveReceive(%this, %val)
 }
 
 function SceneObject::setFrameChangeCallback(%this, %val)
+{
+   %this.frameChangeCallbackEnabled = %val ? 1 : 0;
+   if (isEventPending(%this.frameWatchSchedule))
+   {
+      cancel(%this.frameWatchSchedule);
+      %this.frameWatchSchedule = "";
+   }
+
+   if (%this.frameChangeCallbackEnabled)
+   {
+      %this.lastWatchedFrame = %this.getAnimationFrame();
+      %this.frameWatchSchedule = %this.schedule(32, "pollAnimationFrame");
+   }
+}
+
+function SceneObject::pollAnimationFrame(%this)
+{
+   if (!isObject(%this) || !%this.frameChangeCallbackEnabled)
+      return;
+
+   %curFrame = %this.getAnimationFrame();
+   if (%curFrame !$= "" && %curFrame != %this.lastWatchedFrame)
+   {
+      %this.lastWatchedFrame = %curFrame;
+      %this.onAnimationFrame(%curFrame);
+   }
+
+   if (isObject(%this) && %this.frameChangeCallbackEnabled)
+      %this.frameWatchSchedule = %this.schedule(32, "pollAnimationFrame");
+}
+
+function SceneObject::onAnimationFrame(%this, %frame)
 {
 }
 
@@ -338,22 +374,12 @@ function SceneWindow::onTouchDragged(%this, %touchID, %worldPos)
 
 function SceneWindow::setUseWindowMouseEvents(%this, %val)
 {
-   %this.setUseWindowInputEvents(%val);
-}
-
-function SceneWindow::getUseWindowMouseEvents(%this)
-{
-   return %this.getUseWindowInputEvents();
+   %this.useWindowMouseEvents = %val;
 }
 
 function SceneWindow::setUseObjectMouseEvents(%this, %val)
 {
-   %this.setUseObjectInputEvents(%val);
-}
-
-function SceneWindow::getUseObjectMouseEvents(%this)
-{
-   return %this.getUseObjectInputEvents();
+   %this.useObjectMouseEvents = %val;
 }
 
 // Vector math compatibility functions
@@ -379,6 +405,32 @@ function t2dVectorDistance(%v1, %v2)
    %dx = %x2 - %x1;
    %dy = %y2 - %y1;
    return mSqrt((%dx * %dx) + (%dy * %dy));
+}
+
+// Four-quadrant arctangent returning radians [-pi, pi] (Torque2D's mAtan(x, y) returns degrees)
+function mAtan2(%y, %x)
+{
+   if (%x $= "" && getWordCount(%y) >= 2)
+   {
+      %x = getWord(%y, 1);
+      %y = getWord(%y, 0);
+   }
+   if (%x == 0 && %y == 0)
+      return 0;
+   return mDegToRad(mAtan(%x, %y));
+}
+
+// Four-quadrant arctangent returning degrees [-180, 180]
+function mAtan2Deg(%y, %x)
+{
+   if (%x $= "" && getWordCount(%y) >= 2)
+   {
+      %x = getWord(%y, 1);
+      %y = getWord(%y, 0);
+   }
+   if (%x == 0 && %y == 0)
+      return 0;
+   return mAtan(%x, %y);
 }
 
 // Audio helper for Archon assets

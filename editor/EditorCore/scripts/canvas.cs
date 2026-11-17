@@ -53,8 +53,7 @@ function EditorCore::initializeCanvas(%this, %windowName)
 	            %resolution = $pref::Video::defaultResolution;
 	    }
 
-	    // $platformUnixType, not $platform: the web build calls itself x86UNIX too.
-	    if ($platform $= "windows" || $platform $= "macos" || $platformUnixType $= "Linux")
+	    if ($platform $= "windows" || $platform $= "macos")
 	    {
 	        setScreenMode( %resolution._0, %resolution._1, %resolution._2, $pref::Video::fullScreen );
 	    }

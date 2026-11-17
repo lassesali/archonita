@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="warriorTippingOverAnimation_e"
+    Image="@asset=Archon:warriorTippingOverImageMap"
+    AnimationFrames="0 1 2 3 4 5 6 7 8"
+    AnimationTime="1"
+    AnimationCycle="0" />

@@ -15,13 +15,10 @@
 #
 #  Requires CMake, a C/C++ toolchain, and the dev packages. On Debian/Ubuntu:
 #    sudo apt install build-essential cmake \
-#         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
-#         libxi-dev libxss-dev libxft-dev libfreetype6-dev \
+#         libsdl1.2-dev libx11-dev libxft-dev libfreetype6-dev \
 #         libopenal-dev libgl1-mesa-dev
-#  SDL 2 is not among them: it is vendored in engine/lib/sdl and built by the
-#  configure step, and the libx*-dev packages are what it needs to build;
-#  configure stops and names any that are missing.
-#  For a 32-bit build see cmake/BUILD-PLATFORM-NOTES.md.
+#  Note: GENUINE SDL 1.2 is required (NOT the SDL2-based sdl12-compat shim that
+#  ships on Ubuntu 24.04+). For a 32-bit build see cmake/BUILD-PLATFORM-NOTES.md.
 # ---------------------------------------------------------------------------
 set -e
 

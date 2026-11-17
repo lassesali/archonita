@@ -159,8 +159,6 @@ target_compile_features(Torque2D PRIVATE cxx_std_17)
 target_include_directories(Torque2D PRIVATE
     ${TORQUE_SRC}
     ${TORQUE_LIB}
-)
-target_include_directories(Torque2D SYSTEM PRIVATE
     ${TORQUE_SRC}/persistence/rapidjson
     ${TORQUE_SRC}/persistence/rapidjson/include
 )
@@ -229,18 +227,6 @@ else()
     # tolerates it; Clang (Android NDK, and macOS/iOS) makes -Wregister an error.
     target_compile_options(Torque2D PRIVATE -Wno-register)
 endif()
-
-# Suppress compiler warnings in vendored Box2D sources while keeping them enabled for Torque2D code.
-set(_torque_box2d_sources ${TORQUE_ENGINE_SOURCES})
-list(FILTER _torque_box2d_sources INCLUDE REGEX "/Box2D/")
-if(_torque_box2d_sources)
-    if(MSVC)
-        set_source_files_properties(${_torque_box2d_sources} PROPERTIES COMPILE_OPTIONS "/W0")
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-        set_source_files_properties(${_torque_box2d_sources} PROPERTIES COMPILE_OPTIONS "-w")
-    endif()
-endif()
-unset(_torque_box2d_sources)
 
 # Link: third-party libs built from source (transitively bring their includes).
 target_link_libraries(Torque2D PRIVATE libogg libvorbis lpng ljpeg)
@@ -463,29 +449,33 @@ if(TORQUE_IOS)
 endif()
 
 if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
-    # Linux desktop build: platformX86UNIX on SDL 2, with platformSDL -- the code
-    # it shares with the other back-ends on SDL 2. NOTES for the on-platform
-    # session:
-    #   * SDL 2 is vendored (engine/lib/sdl, the same 2.32.10 Torque3D builds) and
-    #     built by engine/lib/CMakeLists.txt as a static library, so there is no
-    #     SDL to install and the engine still ships as one executable. SDL's CMake
-    #     needs the X11 development headers to build its X11 driver, which is the
-    #     driver the back-end runs on (InitSDL in x86UNIXWindow.cc).
+    # Linux / X11 desktop build (platformX86UNIX). NOTES for the on-platform
+    # (WSL/Linux) session:
+    #   * SDL 1.2 is REQUIRED, not optional: the platform back-end calls 1.2-only
+    #     APIs (SDL_GetVideoSurface, SDL_WM_*, SDL_*GammaRamp, SDL_GL_SwapBuffers)
+    #     and pulls X11_KeyToUnicode out of libSDL. This is NOT SDL2.
     #   * `rt` is a no-op on modern glibc but harmless.
     #   * OpenGL/FreeType are resolved via find_package (more robust than the old
     #     hard-coded /usr/include/freetype2 paths). Install dev packages, e.g. on
-    #     Debian/Ubuntu: libx11-dev libxext-dev libxrandr-dev libxcursor-dev
-    #     libxfixes-dev libxi-dev libxss-dev libxft-dev libfontconfig1-dev
+    #     Debian/Ubuntu: libsdl1.2-dev libx11-dev libxft-dev libfontconfig1-dev
     #     libfreetype6-dev libopenal-dev libgl1-mesa-dev (and nasm for the 32-bit
     #     build).
-    #   * X11 is linked directly as well as through SDL: the fonts (x86UNIXFont.cc)
-    #     use Xft on a display connection of their own, and the back-end reads the
-    #     window manager's _NET_WM_STATE through SDL's (x86UNIXOGLVideo.cc).
     #   * fontconfig is linked explicitly, not left to Xft: x86UNIXFont.cc calls
     #     Fc* directly for PlatformFont::enumeratePlatformFonts.
     find_package(Threads REQUIRED)
     find_package(OpenGL REQUIRED)
     find_package(Freetype REQUIRED)
+
+    # SDL 1.2 (legacy). Resolve it directly rather than via FindSDL: the sources
+    # use `#include <SDL/SDL.h>`, which needs the PARENT of the SDL header dir on
+    # the include path (find_path on SDL/SDL.h returns exactly that directory).
+    find_library(SDL12_LIBRARY NAMES SDL SDL-1.2)
+    find_path(SDL12_INCLUDE_DIR NAMES SDL/SDL.h)
+    if(NOT SDL12_LIBRARY OR NOT SDL12_INCLUDE_DIR)
+        message(FATAL_ERROR
+            "SDL 1.2 not found. Install it (Debian/Ubuntu: 'sudo apt install libsdl1.2-dev').")
+    endif()
+    target_include_directories(Torque2D PRIVATE ${SDL12_INCLUDE_DIR})
 
     target_link_libraries(Torque2D PRIVATE
         Threads::Threads
@@ -493,13 +483,8 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
         Freetype::Freetype
         m dl rt
         X11 Xft fontconfig
-        SDL2::SDL2-static
+        ${SDL12_LIBRARY}
         openal)
-
-    # TORQUE_SDL: the platform layer is built on SDL 2 and compiles
-    # engine/source/platformSDL -- Torque3D's name for the same switch. The unit
-    # tests of that shared code are compiled only where it is.
-    target_compile_definitions(Torque2D PRIVATE TORQUE_SDL)
 
     # CPU / bitness. detectX86CPUInfo() (platform/platformCPUInfo.asm — 32-bit
     # NASM, it does NOT assemble for elf64) is referenced only when TORQUE_64 is
@@ -520,17 +505,23 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT EMSCRIPTEN)
 endif()
 
 if(ANDROID)
-    # Prebuilt FreeType (arm64-v8a static .a); OpenAL Soft is built from source
-    # via engine/lib/CMakeLists.txt so libopenal.so tracks the active ABI and fixes.
+    # Prebuilt third-party libs (arm64-v8a only — the other ABIs have no prebuilts).
+    # FreeType is an ancient (2.4.12) static .a; OpenAL is a shared .so that must
+    # also be packaged into the APK (see the Gradle jniLibs config).
     add_library(android_freetype STATIC IMPORTED)
     set_target_properties(android_freetype PROPERTIES
         IMPORTED_LOCATION "${TORQUE_LIB}/freetype/android/lib/${ANDROID_ABI}/libfreetype.a"
         INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/freetype/android/include;${TORQUE_LIB}/freetype/android/include/freetype2")
 
-    # Android system libraries (z = NDK libz; GLESv3 provides OpenGL ES 3.2).
+    add_library(android_openal SHARED IMPORTED)
+    set_target_properties(android_openal PROPERTIES
+        IMPORTED_LOCATION "${TORQUE_LIB}/openal/Android/${ANDROID_ABI}/libopenal.so"
+        INTERFACE_INCLUDE_DIRECTORIES "${TORQUE_LIB}/openal/Android/openal-soft-master/jni/OpenAL/include")
+
+    # Android system libraries (z = NDK libz; GLESv1_CM matches the engine GL path).
     target_link_libraries(Torque2D PRIVATE
-        android_freetype openal
-        log android EGL GLESv3 OpenSLES z)
+        android_freetype android_openal
+        log android EGL GLESv1_CM OpenSLES z)
 endif()
 
 if(EMSCRIPTEN)
@@ -541,16 +532,10 @@ if(EMSCRIPTEN)
     # engine's types.gcc.h and some vendored libs both key off bare EMSCRIPTEN.
     # That's what makes the engine select TORQUE_OS_EMSCRIPTEN / platformEmscripten.)
 
-    # SDL 2 is Emscripten's own port -- 2.32.10, the version the Linux build
-    # vendors -- which emcc fetches and builds the first time it is asked for.
-    # It makes the canvas and its WebGL context, and delivers every key,
-    # character, mouse and wheel event. -sUSE_SDL=2 is needed when compiling
-    # as well as when linking: it puts the port's headers on the include path,
-    # so that <SDL.h> is found -- the form platformSDL and the Linux back-end
-    # include. TORQUE_SDL: the platform layer is built on SDL 2 and compiles
-    # engine/source/platformSDL, as on Linux.
-    target_compile_options(Torque2D PRIVATE "-sUSE_SDL=2")
-    target_compile_definitions(Torque2D PRIVATE TORQUE_SDL)
+    # SDL 1.2 (input/video back-end, like the desktop X11 build) is provided by
+    # emscripten's bundled SDL1 port; USE_SDL=1 is the default but set it explicitly
+    # for both compile (headers: #include <SDL/SDL.h>) and link.
+    target_compile_options(Torque2D PRIVATE "-sUSE_SDL=1")
 
     # FreeType (built from source in engine/lib for the web build only) — the
     # rasterizer EmscriptenFont uses to synthesize glyphs from a bundled .ttf when a
@@ -569,21 +554,23 @@ if(EMSCRIPTEN)
 
     # Script/asset trees packaged into the MEMFS virtual filesystem by the emcc file
     # packager (--preload-file SRC@DST -> a .data sidecar). The engine runs from cwd
-    # "/" in the browser, so main.cs lands at /main.cs and the runtime trees under
-    # /library and /Archon. Everything the Archon web build touches must be preloaded
-    # (there's no host FS to lazy-load from); editor/, toybox/, PlanetX/, and tools/
-    # are excluded because main.cs boots Archon directly on Emscripten and excluding
-    # unused trees keeps Torque2D.data under GitHub's 100 MB limit.
+    # "/" in the browser, so main.cs lands at /main.cs and the trees under /editor,
+    # /library, /toybox. Everything a web build can touch must be preloaded (there's
+    # no host FS to lazy-load from), so the runtime content trees are all bundled.
+    # NOTE: tools/ is deliberately EXCLUDED — unlike the iOS bundle it is not shipped,
+    # because it is build-time-only tooling (TexturePacker, and ~90 MB of generated
+    # doxygen HTML under tools/doxygen/output) that the engine never loads at runtime.
     # (SHELL: keeps each option+path pair together and unde-duplicated by CMake.)
     set(_emPreload
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/main.cs@/main.cs"
+        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/editor@/editor"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/library@/library"
-        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/Archon@/Archon")
+        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/toybox@/toybox"
+        "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/PlanetX@/PlanetX")
 
     target_link_options(Torque2D PRIVATE
-        "-sUSE_SDL=2"
-        "-sMIN_WEBGL_VERSION=2"
-        "-sMAX_WEBGL_VERSION=2"      # programmable shader GL over WebGL 2 (replaces LEGACY_GL_EMULATION)
+        "-sUSE_SDL=1"
+        "-sLEGACY_GL_EMULATION=1"      # fixed-function GL over WebGL (at-risk flag; see notes)
         # Fixed 512 MB heap: with ALLOW_MEMORY_GROWTH the WASM heap ArrayBuffer is
         # resizable, and Chrome's texImage2D rejects typed-array views into a
         # resizable buffer (seen with emscripten 6.x + LEGACY_GL_EMULATION).
@@ -598,8 +585,6 @@ if(EMSCRIPTEN)
     # emcc picks the output format from the target suffix: .html emits the HTML
     # shell + .js + .wasm (+ .data from the preload). -> Torque2D_DEBUG.html etc.
     set_target_properties(Torque2D PROPERTIES SUFFIX ".html")
-    # Repackage the .data sidecar whenever the root boot script changes.
-    set_property(TARGET Torque2D APPEND PROPERTY LINK_DEPENDS "${CMAKE_SOURCE_DIR}/main.cs")
 endif()
 
 # Output name. On Android the NativeActivity loads "torque2d" -> libtorque2d.so.

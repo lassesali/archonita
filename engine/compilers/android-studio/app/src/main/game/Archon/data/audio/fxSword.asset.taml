@@ -1,0 +1,5 @@
+<AudioAsset
+    AssetName="fxSword"
+    AssetAutoUnload="0"
+    AudioFile="sword.wav"
+    Looping="false" />

@@ -1,0 +1,10 @@
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/CMakeFiles/Torque2D.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/lpng.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/ljpeg.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/libogg.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/libvorbis.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/openal.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/edit_cache.dir
+C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/.cxx/Debug/1z6j5q14/arm64-v8a/engine/lib/CMakeFiles/rebuild_cache.dir

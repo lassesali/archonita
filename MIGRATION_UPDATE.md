@@ -8,7 +8,7 @@
 
 Initially engineered on GarageGames' early 32-bit **Torque Game Builder 1.1** (TGB / TGE2D), the original codebase established the iconic Finnish-language domain architecture that still powers the game under the hood (`sankari`, `nappula`, `olento`, `lisaaUusiNappulaLaudalle`, `sekuntiLaskuri`, `valittuRuutu`).
 
-Twenty years later, this **Migration Update** bridges two decades of engine evolution, porting Archonita from legacy Windows XP-era tech to the modern, open-source, 64-bit **Torque2D 4.0 (OpenGL 4.6 Core / ES 3.2)** engine runtime.
+Twenty years later, this **Migration Update** bridges two decades of engine evolution, porting Archonita from legacy Windows XP-era tech to the modern, open-source, 64-bit **Torque2D 4.0 (EA4)** engine runtime.
 
 ---
 
@@ -95,10 +95,10 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 ## 🚀 Performance Upgrades
 
 ### 1. Rendering & Graphics Pipeline
-| Component | 2006 Legacy (TGB 1.1) | 2026 Migration (Torque2D 4.0 OpenGL 4.6 Core) |
+| Component | 2006 Legacy (TGB 1.1) | 2026 Migration (Torque2D 4.0 EA4) |
 | :--- | :--- | :--- |
 | **Architecture** | 32-bit x86 | Native 64-bit x86_64 |
-| **Graphics API** | Fixed-function legacy OpenGL | Modern OpenGL 4.6 Core Profile (Shader Pipeline) / ES 3.2 |
+| **Graphics API** | Fixed-function legacy OpenGL | Modern OpenGL 4.6 Core / Compatibility |
 | **Resolution Support** | Fixed 4:3 (800x600, 1024x768) | Multi-resolution windowed & widescreen display scaling |
 | **Layer Rendering** | CPU-sorted 32-layer Z-buffer | SceneLayer depth batching ($0$ front to $31$ back) |
 | **Frame Rates** | Clamped VSync / software timer | Smooth vsync uncoupled logic ticks |
@@ -356,23 +356,39 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
-### Build 112 (2.1.0-ea4) — 2026-11-15
-- **Release Build & Distribution Sync:**
-  - Rebuilt the local release distribution (`dist/`) against the migrated OpenGL 4.6 Core runtime (`make_dist.ps1 -DeployToParentDist:$false`, compiling 47 `.dso` bytecode files and stripping raw `.cs` sources) and verified `dist/Archonita.exe` startup.
+### Build 111 (2.0.3-ea4) — 2026-11-14
+- **Flying Projectiles & Particle Trails System (`Projectile.cs`, `RangedUnit.cs`, `projectile_trail.asset.taml`, `projectile_hit.asset.taml`):**
+  - Added [`projectile_trail.asset.taml`](Archon/data/particles/projectile_trail.asset.taml) (`TrailDustMotes` and `TrailSparklets` emitters) and [`projectile_hit.asset.taml`](Archon/data/particles/projectile_hit.asset.taml) (`HitSparks` and `HitBurst` emitters) `<ParticleAsset>` descriptors.
+  - Defined `ParticleData` (`ProjectileTrailParticleData`, `ProjectileSparkParticleData`, `ProjectileHitParticleData`), `ParticleEmitterData` (`ProjectileTrailEmitterData`, `ProjectileSparkEmitterData`, `ProjectileHitEmitterData`), and `DefaultProjectileTemplate` datablocks in [`Projectile.cs`](Archon/gameScripts/Projectile.cs).
+  - Implemented `TORQUE_SCRIPT.md`-compliant [`Projectile.cs`](Archon/gameScripts/Projectile.cs) and [`RangedUnit.cs`](Archon/gameScripts/RangedUnit.cs) modules with `VectorSub`/`VectorNormalize` trajectory calculation, four-quadrant `mAtan2` orientation (`.setAngle()`), per-frame `schedule` movement loop, trailing `ParticlePlayer` synchronization, and unit-specific visual styles (`arrow`, `fire`, `beam`, `stone`).
+  - Implemented leak-free projectile and trail cleanup on target impact, target invalidation, `maxFlightDuration` timeout, battle end (`TurnManager::endBattle`), and scene teardown (`onRemove`), deferring in-tick self-deletion via `deleteSimObject`.
+- **Ranged Combat & Animation Frame Hooks (`CombatEngine.cs`, `TurnManager.cs`, `nappula.cs`, `t2d_compat.cs`):**
+  - Updated [`CombatEngine::doAttack`](Archon/gameScripts/CombatEngine.cs) so ranged units (`missile == 1`) launch traveling projectiles across the board and trigger `BeenHit` reaction, damage, blood, and turn evaluation on projectile impact.
+  - Implemented `SceneObject::setFrameChangeCallback` / `pollAnimationFrame` and `mAtan2` / `mAtan2Deg` in [`t2d_compat.cs`](Archon/gameScripts/t2d_compat.cs), plus `Piece` / `Nappula` ranged delegation in [`nappula.cs`](Archon/gameScripts/nappula.cs) and registration in [`Archon/main.cs`](Archon/main.cs) and [`Archon/gameScripts/exec.cs`](Archon/gameScripts/exec.cs).
+- **Verification (`tests/test_projectiles.cs`):**
+  - Added automated TorqueScript test suite [`tests/test_projectiles.cs`](tests/test_projectiles.cs) verifying datablocks, `ParticleAsset` emitters, `mAtan2` orientation across all quadrants, per-frame flight, impact damage, target invalidation/timeout cleanup, animation frame hooks, and `CombatEngine` integration.
 - **Version Configuration:**
-  - Incremented build number to `112` (version `2.1.0-ea4`) across [`version.json`](version.json) and [`version.env`](version.env) in repository root and `Archon/` module directories.
+  - Incremented build number to `111` (`2.0.3-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
 
-### Build 110 (2.1.0-ea4) — 2026-11-15
-- **Engine Upgrade (OpenGL 4.6 Core / OpenGL ES 3.2 & Torque2D-master Sync):**
-  - Migrated to the upgraded Torque2D `engine/` C++ source tree, CMake build configuration ([`CMakeLists.txt`](CMakeLists.txt), `cmake/`, `tools/CMake/`), and upstream `development` engine improvements.
-  - Adopted the programmable GLSL 460 Core / GLSL 320 ES `ShaderManager` & `GLDSA` rendering pipeline, SDL 2 Linux/Web platform support, and Visual Studio 2026 x64 native builds (`Torque2D.exe` / `Torque2D_DEBUG.exe`) with staged `OpenAL32.dll`.
-- **Editor, Runtime Modules & Test Suites:**
-  - Updated `library/`, `PlanetX/`, `toybox/`, `tutorials/`, `editor/` (scripts, rebaked `.uft` font caches, text rotation and GUI layout fixes), and `tests/` (`tests/smoke/`, `tests/shots/`, `tests/run.ps1`, `tests/run-unit.ps1`), preserving all Archonita gameplay modules, Python tools, and custom tests.
-  - Updated [`run_archon.bat`](run_archon.bat), [`run_editor.bat`](run_editor.bat), [`make_dist.ps1`](make_dist.ps1), [`.gitignore`](.gitignore), and [`.gitattributes`](.gitattributes) to use the local OpenGL 4.6 Core runtime directly without legacy EA4 external path dependencies.
-- **Verification:**
-  - Verified Release and Debug GoogleTest C++ unit suites (`406/406` passed), `tests/test_combine_imagemaps.py` (`10/10` passed), 14 non-interactive Torque2D engine smoke suites, live Archonita scene transitions under `OpenGL 4.6.0 Core Profile Context`, and `dist/Archonita.exe` release packaging.
+### Build 110 (2.0.3-ea4) — 2026-11-14
+- **Spell Particle Assets (`Archon/data/particles/*.asset.taml`):**
+  - Added 5 `<ParticleAsset>` descriptors covering all 6 playable spell cards (`spellFrame` 3–8):
+    - *Taikamakkara* (Frame 3 — [`spell_shield.asset.taml`](Archon/data/particles/spell_shield.asset.taml)): Cyan/gold hexagon ward and sparkles (`WardHexagons`, `ShieldSparkles`) spawned on all living friendly units (`groupid == 0`, Layer `1`).
+    - *Taikahattu* & *Voikukan juuri* (Frames 4 & 7 — [`spell_mana.asset.taml`](Archon/data/particles/spell_mana.asset.taml)): Arcane blue energy swirl and orbs (`ManaSwirl`, `ManaOrbs`) spawned over the hero avatar (`heroicon`, Layer `28`).
+    - *Taikatikkari* (Frame 5 — [`spell_power.asset.taml`](Archon/data/particles/spell_power.asset.taml)): Golden 5-point stars and amber nova sparks (`GoldenStars`, `NovaSparks`) spawned over the hero avatar (`heroicon`, Layer `28`).
+    - *Tulivuori* (Frame 6 — [`spell_volcano.asset.taml`](Archon/data/particles/spell_volcano.asset.taml)): Multi-emitter volcanic eruption (`LavaFlames`, `VolcanicSmoke`, `LavaEmbers`) spawned on all living enemy units (`groupid == 1`, Layer `1`).
+    - *Vatsatauti* (Frame 8 — [`spell_disease.asset.taml`](Archon/data/particles/spell_disease.asset.taml)): Sickly green toxic miasma cloud and bubbles (`MiasmaCloud`, `ToxicBubbles`) spawned on the afflicted unit (Layer `1`).
+- **Managed Spell Effect Playback (`SpellEffectManager.cs`, `exec.cs`, `main.cs`):**
+  - Implemented [`SpellEffectManager.cs`](Archon/gameScripts/SpellEffectManager.cs) (`$SpellEffectManager`) as a `TORQUE_SCRIPT.md`-compliant `ScriptObject` subsystem, registered in [`Archon/gameScripts/exec.cs`](Archon/gameScripts/exec.cs) and managed in [`Archon/main.cs`](Archon/main.cs).
+  - Preloads all 5 `Archon:spell_*` particle assets via `AssetDatabase.acquireAsset` in `init()` and releases them in `onRemove()`.
+  - Tracks spawned `ParticlePlayer` instances in an `activeEffects` `SimSet`, smoothly halting emission via `%effect.stop(true, false)` after `defaultEmitDurationMs` (`650` ms, pause-aware via `pauseRetryDelayMs`) and deleting expired instances after `defaultCleanupDelayMs` (`1900` ms) or via `clearAll()`.
+- **Gameplay & Turn Hooks (`CombatEngine.cs`, `TurnManager.cs`):**
+  - Invoked `SpellEffectManager.playSpellEffect(%spellFrame, %targetPiece)` in [`CombatEngine::castRevealedSpell`](Archon/gameScripts/CombatEngine.cs) before `switch (%spellFrame)` so lethal *Tulivuori* casts trigger volcano effects before targets are marked dead.
+  - Triggered `Archon:spell_disease` playback in [`TurnManager::nextTurn`](Archon/gameScripts/TurnManager.cs) when `skipNextTurn == 1` activates, and hooked `SpellEffectManager.clearAll()` into `TurnManager::endBattle`.
+- **Verification (`tests/test_spell_particles.cs`):**
+  - Added automated TorqueScript integration test suite [`tests/test_spell_particles.cs`](tests/test_spell_particles.cs) verifying asset loading, emitter counts, target/layer placement, pause-aware lifecycle scheduling, and `CombatEngine` / `TurnManager` hooks in `Torque2D.exe`.
 - **Version Configuration:**
-  - Incremented build number to `110` and version to `2.1.0-ea4` in [`version.json`](version.json) and [`version.env`](version.env) across root and `Archon/` module directories.
+  - Incremented build number to `110` (`2.0.3-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
 
 ### Build 109 (2.0.3-ea4) — 2026-11-09
 - **Title Menu, Options Dialog & Multi-Resolution Display Subsystems (`TitleMenuManager.cs`, `OptionsMenuGui.cs`, `ResolutionManager.cs`, `PauseMenuManager.cs`, `BoardAudioHud.cs`):**

@@ -31,23 +31,14 @@ function initializeProject()
    if (!isObject($ResolutionManager))
       $ResolutionManager = new ScriptObject(ResolutionManager) { };
 
-   if ($platform $= "Android")
+   %bootW = getWord($ResolutionManager.currentResolution, 0);
+   %bootH = getWord($ResolutionManager.currentResolution, 1);
+   if (%bootW <= 0 || %bootH <= 0)
    {
-      %androidRes = $ResolutionManager.getAndroidScreenResolution();
-      %bootW = getWord(%androidRes, 0);
-      %bootH = getWord(%androidRes, 1);
+      %bootW = 1280;
+      %bootH = 720;
    }
-   else
-   {
-      %bootW = getWord($ResolutionManager.currentResolution, 0);
-      %bootH = getWord($ResolutionManager.currentResolution, 1);
-      if (%bootW <= 0 || %bootH <= 0)
-      {
-         %bootW = 1280;
-         %bootH = 720;
-      }
-      setScreenMode( %bootW, %bootH, 32, $ResolutionManager.currentFullScreen );
-   }
+   setScreenMode( %bootW, %bootH, 32, $ResolutionManager.currentFullScreen );
 
    OpenALInitDriver();
    Canvas.setCursor(DefaultCursor);
@@ -71,7 +62,7 @@ function initializeProject()
    exec("./gameScripts/game.cs");
    exec("./gameScripts/audiodatablocks.cs");
    exec("./gameScripts/fading.cs");
-   exec("./gameScripts/complexMouse.cs");
+   exec("./gameScripts/complexmouse.cs");
    exec("./gameScripts/units.cs");
    exec("./gameScripts/hero.cs");
    exec("./gameScripts/nappula.cs");
@@ -90,6 +81,11 @@ function initializeProject()
    exec("./gameScripts/FloatingTextManager.cs");
    if (!isObject($FloatingTextManager))
       $FloatingTextManager = FloatingTextManager;
+   exec("./gameScripts/SpellEffectManager.cs");
+   if (!isObject($SpellEffectManager))
+      $SpellEffectManager = SpellEffectManager;
+   exec("./gameScripts/Projectile.cs");
+   exec("./gameScripts/RangedUnit.cs");
    exec("./gameScripts/metrics.cs");
    if (!isObject($Metrics))
       $Metrics = Metrics;
@@ -119,8 +115,7 @@ function initializeProject()
    if (!$Archon::skipSplash)
       loadGGsplash();
 
-   if ($platform $= "Android" && isFunction("hideSplashScreen"))
-      hideSplashScreen();
+   
 }
 
 
@@ -153,6 +148,8 @@ function shutdownProject()
       $AssetResolutionManager.delete();
    if (isObject($FloatingTextManager))
       $FloatingTextManager.delete();
+   if (isObject($SpellEffectManager))
+      $SpellEffectManager.delete();
    if (isObject($Metrics))
       $Metrics.delete();
    endGame();

@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="red_dice_sheetImageMap"
+    ImageFile="red_dice_sheet.png"
+    CellCountX="6"
+    CellCountY="1"
+    CellWidth="336"
+    CellHeight="336" />

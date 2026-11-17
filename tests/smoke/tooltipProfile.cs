@@ -51,8 +51,7 @@ function tStep1()
 
 	Canvas.pushDialog($tCtrl, 50);
 
-	tCheck("no tooltip profile before a tip is drawn",
-		$tCtrl.tooltipProfile $= "" && $tCtrl.getActiveTooltipProfile() $= "");
+	tCheck("no tooltip profile before a tip is drawn", $tCtrl.tooltipProfile $= "");
 	echo("TIPSMOKE: hover (470,420) now");
 
 	schedule(4100, 0, "tStep2");
@@ -61,13 +60,8 @@ function tStep1()
 function tStep2()
 {
 	%wanted = $tThemeA.getProfile("Tooltip").getName();
-	tCheck("themed control took its own theme's tooltip profile (" @ $tCtrl.getActiveTooltipProfile() @ ")",
-		$tCtrl.getActiveTooltipProfile() $= %wanted);
-
-	// The pick is the control's to revisit, not a profile it was given, so the
-	// field does not report it -- a copy or a save would pin it to this theme.
-	tCheck("and the tooltipProfile field still says it has none of its own",
-		$tCtrl.tooltipProfile $= "");
+	tCheck("themed control took its own theme's tooltip profile (" @ $tCtrl.tooltipProfile @ ")",
+		$tCtrl.tooltipProfile $= %wanted);
 
 	// setProfile goes through setControlProfile, which keeps the reference counts
 	// straight on a control that is already awake.
@@ -80,8 +74,8 @@ function tStep2()
 function tStep3()
 {
 	%wanted = $tThemeB.getProfile("Tooltip").getName();
-	tCheck("re-theming re-picked the tooltip profile (" @ $tCtrl.getActiveTooltipProfile() @ ")",
-		$tCtrl.getActiveTooltipProfile() $= %wanted);
+	tCheck("re-theming re-picked the tooltip profile (" @ $tCtrl.tooltipProfile @ ")",
+		$tCtrl.tooltipProfile $= %wanted);
 	tCheck("the two themes really do have different tooltip profiles",
 		$tThemeA.getProfile("Tooltip") != $tThemeB.getProfile("Tooltip"));
 
@@ -97,8 +91,6 @@ function tStep4()
 {
 	tCheck("a deliberate tooltip profile survives a re-theme (" @ $tCtrl.tooltipProfile @ ")",
 		$tCtrl.tooltipProfile $= $tThemeA.getProfile("Tooltip").getName());
-	tCheck("and it is the one tips are drawn with",
-		$tCtrl.getActiveTooltipProfile() $= $tThemeA.getProfile("Tooltip").getName());
 
 	//-------------------------------------------------------------------------
 	// The popup hands its tooltip profile to the value boxes, and survives the

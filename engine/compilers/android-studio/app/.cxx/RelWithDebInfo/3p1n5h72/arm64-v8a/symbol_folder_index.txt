@@ -1,0 +1,1 @@
+C:\Users\lkarh\Downloads\archonita\engine\compilers\android-studio\app\build\intermediates\cxx\RelWithDebInfo\3p1n5h72\obj\arm64-v8a

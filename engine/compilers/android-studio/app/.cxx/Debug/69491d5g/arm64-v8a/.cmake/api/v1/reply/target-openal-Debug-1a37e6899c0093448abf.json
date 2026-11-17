@@ -1,0 +1,411 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "C:/Users/lkarh/Downloads/archonita/engine/compilers/android-studio/app/build/intermediates/cxx/Debug/69491d5g/obj/arm64-v8a/libopenal.so"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"target_link_libraries",
+			"target_compile_options",
+			"torque_thirdparty_lib",
+			"target_compile_definitions",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"engine/lib/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 266,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 308,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 309,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 21,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 299,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 294,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-w"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 5,
+					"define" : "AL_ALEXT_PROTOTYPES"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "AL_BUILD_LIBRARY"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "ANDROID"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "MAX_SOURCES_HIGH=64"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "MAX_SOURCES_LOW=4"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "MAX_SOURCES_START=8"
+				},
+				{
+					"backtrace" : 5,
+					"define" : "POST_FROYO"
+				},
+				{
+					"define" : "openal_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/openal/Android/openal-soft-master/jni/OpenAL/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/openal/Android/openal-soft-master/jni/OpenAL"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/lkarh/Downloads/archonita/engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/Include"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25
+			],
+			"sysroot" : 
+			{
+				"path" : "C:/Users/lkarh/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+			}
+		}
+	],
+	"folder" : 
+	{
+		"name" : "ThirdParty"
+	},
+	"id" : "openal::@47d3557a5d1c64bb14ad",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lOpenSLES",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-llog",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-ldl",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-latomic -lm",
+				"role" : "libraries"
+			}
+		],
+		"language" : "C",
+		"sysroot" : 
+		{
+			"path" : "C:/Users/lkarh/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+		}
+	},
+	"name" : "openal",
+	"nameOnDisk" : "libopenal.so",
+	"paths" : 
+	{
+		"build" : "engine/lib",
+		"source" : "engine/lib"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/android.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/ALc.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcConfig.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcEcho.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcModulator.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcReverb.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcRing.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/alcThread.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/ALu.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/audiotrack.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/bs2b.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/mixer.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/null.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/opensles.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/Alc/panning.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alAuxEffectSlot.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alBuffer.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alDatabuffer.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alEffect.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alError.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alExtension.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alFilter.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alListener.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alSource.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alState.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "engine/lib/openal/Android/openal-soft-master/jni/OpenAL/OpenAL32/alThunk.c",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}

@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="airdragonStoppedImageMap"
+    ImageFile="stoppedImageMap.png"
+    CellCountX="10"
+    CellCountY="1"
+    CellWidth="128"
+    CellHeight="128" />
