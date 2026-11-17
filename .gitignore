@@ -1,4 +1,9 @@
 # Build and distribution output
+gh_pages/*
+gh_pages/
+node_modules/
+package-lock.json
+package.json
 dist/
 dist_*/
 /[Bb]uild/
