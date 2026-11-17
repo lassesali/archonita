@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="gremlinStoppedAnimation_w"
+    Image="@asset=Archon:gremlinStoppedImageMap"
+    AnimationFrames="2"
+    AnimationTime="1"
+    AnimationCycle="1" />

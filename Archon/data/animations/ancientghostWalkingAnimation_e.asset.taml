@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="ancientghostWalkingAnimation_e"
+    Image="@asset=Archon:ancientghostWalkingImageMap"
+    AnimationFrames="0 1 2 3 4 5 6 7"
+    AnimationTime="1"
+    AnimationCycle="1" />

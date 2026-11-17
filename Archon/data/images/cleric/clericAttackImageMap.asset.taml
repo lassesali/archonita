@@ -1,0 +1,7 @@
+<ImageAsset
+    AssetName="clericAttackImageMap"
+    ImageFile="attackImageMap.png"
+    CellCountX="13"
+    CellCountY="4"
+    CellWidth="96"
+    CellHeight="96" />

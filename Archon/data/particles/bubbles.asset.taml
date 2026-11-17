@@ -1,0 +1,149 @@
+<ParticleAsset
+    AssetName="bubbles">
+    <ParticleAssetEmitter
+        EmitterName="Bubbles"
+        OldestInFront="1"
+        Image="@asset=Archon:particles6ImageMap"
+        Frame="0">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="25" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="2.5" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="1.0" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="6.0" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="3.0" />
+            </SpeedVariation>
+            <SpeedLife>
+                <Key Time="0" Value="1.8" />
+                <Key Time="0.2" Value="1.0" />
+                <Key Time="1" Value="0.2" />
+            </SpeedLife>
+            <EmissionAngle>
+                <Key Time="0" Value="90" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="15" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="2.5" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="3.0" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.1" />
+                <Key Time="0.2" Value="0.4" />
+                <Key Time="0.8" Value="1.0" />
+                <Key Time="0.95" Value="1.0" />
+                <Key Time="1" Value="0.0" />
+            </SizeXLife>
+            <RandomMotion>
+                <Key Time="0" Value="15" />
+            </RandomMotion>
+            <RandomMotionVariation>
+                <Key Time="0" Value="10" />
+            </RandomMotionVariation>
+            <AlphaChannel>
+                <Key Time="0" Value="0.9" />
+                <Key Time="0.95" Value="0.9" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="0.2" />
+                <Key Time="1" Value="0" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="0.8" />
+                <Key Time="1" Value="0.7" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="1" />
+                <Key Time="1" Value="0.95" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+    <ParticleAssetEmitter
+        EmitterName="More_Bubbles"
+        OldestInFront="1"
+        Image="@asset=Archon:particles6ImageMap"
+        Frame="1">
+        <ParticleAssetEmitter.Fields>
+            <Quantity>
+                <Key Time="0" Value="8" />
+            </Quantity>
+            <Lifetime>
+                <Key Time="0" Value="3.5" />
+            </Lifetime>
+            <LifetimeVariation>
+                <Key Time="0" Value="1.0" />
+            </LifetimeVariation>
+            <Speed>
+                <Key Time="0" Value="5.0" />
+            </Speed>
+            <SpeedVariation>
+                <Key Time="0" Value="2.0" />
+            </SpeedVariation>
+            <SpeedLife>
+                <Key Time="0" Value="1.8" />
+                <Key Time="0.2" Value="1.0" />
+                <Key Time="1" Value="0.2" />
+            </SpeedLife>
+            <EmissionAngle>
+                <Key Time="0" Value="90" />
+            </EmissionAngle>
+            <EmissionArc>
+                <Key Time="0" Value="20" />
+            </EmissionArc>
+            <SizeX>
+                <Key Time="0" Value="3.5" />
+            </SizeX>
+            <SizeXVariation>
+                <Key Time="0" Value="2.0" />
+            </SizeXVariation>
+            <SizeXLife>
+                <Key Time="0" Value="0.1" />
+                <Key Time="0.2" Value="0.4" />
+                <Key Time="0.8" Value="1.0" />
+                <Key Time="0.95" Value="1.0" />
+                <Key Time="1" Value="0.0" />
+            </SizeXLife>
+            <RandomMotion>
+                <Key Time="0" Value="15" />
+            </RandomMotion>
+            <RandomMotionVariation>
+                <Key Time="0" Value="10" />
+            </RandomMotionVariation>
+            <AlphaChannel>
+                <Key Time="0" Value="0.9" />
+                <Key Time="0.95" Value="0.9" />
+                <Key Time="1" Value="0" />
+            </AlphaChannel>
+            <RedChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="0.2" />
+                <Key Time="1" Value="0" />
+            </RedChannel>
+            <GreenChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="0.8" />
+                <Key Time="1" Value="0.7" />
+            </GreenChannel>
+            <BlueChannel>
+                <Key Time="0" Value="1" />
+                <Key Time="0.5" Value="1" />
+                <Key Time="1" Value="0.95" />
+            </BlueChannel>
+        </ParticleAssetEmitter.Fields>
+    </ParticleAssetEmitter>
+</ParticleAsset>

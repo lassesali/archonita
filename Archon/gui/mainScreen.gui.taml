@@ -1,0 +1,18 @@
+<GuiControl
+    Name="mainScreenGui"
+    Profile="GuiDefaultProfile"
+    HorizSizing="width"
+    VertSizing="height"
+    Position="0 0"
+    Extent="1024 768"
+    cursor="DefaultCursor">
+    <SceneWindow
+        Name="sceneWindow2D"
+        Profile="GuiDefaultProfile"
+        HorizSizing="width"
+        VertSizing="height"
+        Position="0 0"
+        Extent="1024 768"
+        useWindowMouseEvents="true"
+        useObjectMouseEvents="false" />
+</GuiControl>

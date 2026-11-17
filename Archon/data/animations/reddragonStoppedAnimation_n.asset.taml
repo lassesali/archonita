@@ -1,0 +1,6 @@
+<AnimationAsset
+    AssetName="reddragonStoppedAnimation_n"
+    Image="@asset=Archon:reddragonStoppedImageMap"
+    AnimationFrames="4"
+    AnimationTime="1"
+    AnimationCycle="1" />
