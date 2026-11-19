@@ -638,16 +638,29 @@ function SceneTextOverlayGui::setBannerTextAndPos(%this, %text, %wx, %wy, %ww)
    %cx = getWord(%pt, 0);
    %cy = getWord(%pt, 1);
    %sw = getWord(%rightPt, 0) - getWord(%leftPt, 0);
-   if (%sw < 520) %sw = 520;
 
-   %sh = 44;
+   %bannerScale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(560, 44, 24) : 1.0;
+   %minSw = mFloor(520 * %bannerScale + 0.5);
+   if (%sw < %minSw) %sw = %minSw;
+   if (isObject(mainScreenGui))
+   {
+      %mainW = getWord(mainScreenGui.extent, 0);
+      if (%mainW > 24 && %sw > %mainW - 24)
+         %sw = %mainW - 24;
+   }
+
+   %sh = mFloor(44 * %bannerScale + 0.5);
+   if (%sh < 24) %sh = 24;
+   %shadowOff = mFloor(2 * %bannerScale + 0.5);
+   if (%shadowOff < 1) %shadowOff = 1;
    %bx = mFloor(%cx - (%sw * 0.5));
    %by = mFloor(%cy - (%sh * 0.5));
 
    if (isObject(%this.bannerShadow))
    {
-      %this.bannerShadow.Position = (%bx + 2) SPC (%by + 2);
+      %this.bannerShadow.Position = (%bx + %shadowOff) SPC (%by + %shadowOff);
       %this.bannerShadow.Extent = %sw SPC %sh;
+      %this.bannerShadow.fontSizeAdjust = %bannerScale;
       %this.bannerShadow.setText(%text);
       %this.bannerShadow.setVisible(true);
    }
@@ -655,6 +668,7 @@ function SceneTextOverlayGui::setBannerTextAndPos(%this, %text, %wx, %wy, %ww)
    {
       %this.bannerLabel.Position = %bx SPC %by;
       %this.bannerLabel.Extent = %sw SPC %sh;
+      %this.bannerLabel.fontSizeAdjust = %bannerScale;
       %this.bannerLabel.setText(%text);
       %this.bannerLabel.setVisible(true);
    }
@@ -726,6 +740,76 @@ function SceneTextOverlayGui::updateBannerOverlay(%this)
 //---------------------------------------------------------------------------------------------
 // 2. Dynamic Hero & Spell Card Overlays
 //---------------------------------------------------------------------------------------------
+function SceneTextOverlayGui::computeCardFitFontAdjust(%this, %text, %baseFontPx, %desiredScale, %boxW, %boxH, %singleLine)
+{
+   if (%baseFontPx <= 0)
+      return 1.0;
+   if (%desiredScale <= 0)
+      %desiredScale = 1.0;
+   if (%boxW <= 4 || %boxH <= 4)
+      return 1.0;
+
+   %minPx = 8.0;
+   %desiredPx = %baseFontPx * %desiredScale;
+   if (%desiredPx < %minPx)
+      %desiredPx = %minPx;
+
+   if (%singleLine)
+   {
+      %len = strlen(%text);
+      if (%len < 1) %len = 1;
+      %maxByH = %boxH - 2;
+      %maxByW = %boxW / (%len * 0.54);
+      %fitPx = %desiredPx;
+      if (%fitPx > %maxByH) %fitPx = %maxByH;
+      if (%fitPx > %maxByW) %fitPx = %maxByW;
+      if (%fitPx < %minPx) %fitPx = %minPx;
+      return %fitPx / (%baseFontPx * 1.0);
+   }
+
+   %startPx = mFloor(%desiredPx + 0.5);
+   if (%startPx < %minPx)
+      %startPx = %minPx;
+
+   %wCount = getWordCount(%text);
+   %longestWord = 1;
+   for (%i = 0; %i < %wCount; %i++)
+   {
+      %wl = strlen(getWord(%text, %i));
+      if (%wl > %longestWord)
+         %longestWord = %wl;
+   }
+
+   for (%px = %startPx; %px >= %minPx; %px--)
+   {
+      %maxLines = mFloor(%boxH / (%px * 1.05));
+      %cpl = mFloor(%boxW / (%px * 0.48));
+      if (%maxLines < 1 || %cpl < %longestWord)
+         continue;
+
+      %lines = 1;
+      %curLen = 0;
+      for (%w = 0; %w < %wCount; %w++)
+      {
+         %wLen = strlen(getWord(%text, %w));
+         if (%curLen == 0)
+            %curLen = %wLen;
+         else if (%curLen + 1 + %wLen <= %cpl)
+            %curLen += 1 + %wLen;
+         else
+         {
+            %lines++;
+            %curLen = %wLen;
+         }
+      }
+
+      if (%lines <= %maxLines)
+         return %px / (%baseFontPx * 1.0);
+   }
+
+   return %minPx / (%baseFontPx * 1.0);
+}
+
 function SceneTextOverlayGui::renderCardToSlot(%this, %slot, %cardSprite)
 {
    if (%slot < 0 || %slot >= %this.maxCardSlots || !isObject(%cardSprite))
@@ -773,46 +857,59 @@ function SceneTextOverlayGui::renderCardToSlot(%this, %slot, %cardSprite)
    %slotCtrl.Position = %sx SPC %sy;
    %slotCtrl.Extent = %sw SPC %sh;
 
-   // Title pill spans card image interior X=0.238..0.756 (width 0.518), Y=0.131..0.176 (center 0.153)
+   %uiScale = isObject($ResolutionManager) ? $ResolutionManager.getUiScaleFactor() : 1.0;
+
+   if (%frame <= 2)
+   {
+      %refW = 614.0;
+      %titleProfile = %this.cardTitleLargeProfile;
+      %titleBasePx = 18;
+      %bodyProfile = %this.cardDescLargeProfile;
+      %bodyBasePx = 15;
+      %titleH = mFloor(%sh * 0.062);
+      %bodyY = mFloor(%sh * 0.734);
+      %bodyH = mFloor(%sh * 0.144);
+   }
+   else
+   {
+      %refW = 230.0;
+      %titleProfile = %this.cardTitleMedProfile;
+      %titleBasePx = 10;
+      %bodyProfile = %isStat ? %this.cardStatMedProfile : %this.cardDescMedProfile;
+      %bodyBasePx = 10;
+      %titleH = mFloor(%sh * 0.072);
+      %bodyY = mFloor(%sh * 0.594);
+      %bodyH = mFloor(%sh * 0.276);
+   }
+
+   if (%titleH < 14) %titleH = 14;
+   %resScale = %sw / %refW;
+   if (%resScale < 0.65) %resScale = 0.65;
+   if (%resScale > 3.5) %resScale = 3.5;
+   %desiredScale = %resScale * %uiScale;
+
+   // Title pill spans card image interior X=0.238..0.756 (width 0.518), center Y=0.153
    %titleX = mFloor(%sw * 0.238);
    %titleW = mFloor(%sw * 0.518);
-   %titleH = (%sw >= 340) ? mFloor(%sh * 0.050) : 14;
    %titleY = mFloor((%sh * 0.153) - (%titleH * 0.5));
-   if (%titleH < 14) %titleH = 14;
+   if (%titleY < 0) %titleY = 0;
 
-   if (%sw >= 340)
-      %titleCtrl.setProfile(%this.cardTitleLargeProfile);
-   else if (%sw >= 210)
-      %titleCtrl.setProfile(%this.cardTitleMedProfile);
-   else
-      %titleCtrl.setProfile(%this.cardTitleSmallProfile);
-
+   %titleAdj = %this.computeCardFitFontAdjust(%title, %titleBasePx, %desiredScale, %titleW - 4, %titleH, true);
+   %titleCtrl.setProfile(%titleProfile);
+   %titleCtrl.fontSizeAdjust = %titleAdj;
    %titleCtrl.Position = %titleX SPC %titleY;
    %titleCtrl.Extent = %titleW SPC %titleH;
    %titleCtrl.setText(%title);
 
    // Lower text box spans X=0.252..0.742 (width 0.490)
-   // Hero cards (frames 1, 2): Y=0.738..0.873; Spell cards (frames 3..8): Y=0.594..0.871
    %bodyX = mFloor(%sw * 0.252);
    %bodyW = mFloor(%sw * 0.490);
-   if (%frame <= 2)
-   {
-      %bodyY = mFloor(%sh * 0.744);
-      %bodyH = mFloor(%sh * 0.126);
-   }
-   else
-   {
-      %bodyY = mFloor(%sh * 0.596);
-      %bodyH = mFloor(%sh * 0.270);
-   }
+   if (%bodyY + %bodyH > %sh) %bodyH = %sh - %bodyY;
+   if (%bodyH < 14) %bodyH = 14;
 
-   if (%sw >= 340)
-      %bodyCtrl.setProfile(%this.cardDescLargeProfile);
-   else if (%isStat)
-      %bodyCtrl.setProfile((%sw >= 210) ? %this.cardStatMedProfile : %this.cardStatSmallProfile);
-   else
-      %bodyCtrl.setProfile((%sw >= 210) ? %this.cardDescMedProfile : %this.cardDescSmallProfile);
-
+   %bodyAdj = %this.computeCardFitFontAdjust(%body, %bodyBasePx, %desiredScale, %bodyW - 4, %bodyH, false);
+   %bodyCtrl.setProfile(%bodyProfile);
+   %bodyCtrl.fontSizeAdjust = %bodyAdj;
    %bodyCtrl.setTextWrap(true);
    %bodyCtrl.Position = %bodyX SPC %bodyY;
    %bodyCtrl.Extent = %bodyW SPC %bodyH;
@@ -895,20 +992,36 @@ function SceneTextOverlayGui::updateCreditsOverlay(%this)
    %cw = getWord(%br, 0) - %cx;
    %ch = getWord(%br, 1) - %cy;
 
+   %uiScale = isObject($ResolutionManager) ? $ResolutionManager.getUiScaleFactor() : 1.0;
+   %resScale = %ch / 576.0;
+   if (%resScale < 0.65) %resScale = 0.65;
+   if (%resScale > 3.5) %resScale = 3.5;
+   %desiredScale = %resScale * %uiScale;
+
    %titleStr = $LocalizationManager.getText("credits_title");
    %titleY = %cy + mFloor(%ch * 0.055);
    %titleH = mFloor(%ch * 0.12);
+   if (%titleH < 24) %titleH = 24;
+
+   %titleAdj = %desiredScale;
+   %maxTitleAdj = (%titleH - 2) / 28.0;
+   if (%titleAdj > %maxTitleAdj) %titleAdj = %maxTitleAdj;
+   if (%titleAdj < 0.5) %titleAdj = 0.5;
+   %titleOff = mFloor(2 * %titleAdj + 0.5);
+   if (%titleOff < 1) %titleOff = 1;
 
    if (isObject(%this.creditsTitleShadow))
    {
-      %this.creditsTitleShadow.Position = (%cx + 2) SPC (%titleY + 2);
+      %this.creditsTitleShadow.Position = (%cx + %titleOff) SPC (%titleY + %titleOff);
       %this.creditsTitleShadow.Extent = %cw SPC %titleH;
+      %this.creditsTitleShadow.fontSizeAdjust = %titleAdj;
       %this.creditsTitleShadow.setText(%titleStr);
    }
    if (isObject(%this.creditsTitleLabel))
    {
       %this.creditsTitleLabel.Position = %cx SPC %titleY;
       %this.creditsTitleLabel.Extent = %cw SPC %titleH;
+      %this.creditsTitleLabel.fontSizeAdjust = %titleAdj;
       %this.creditsTitleLabel.setText(%titleStr);
    }
 
@@ -918,8 +1031,15 @@ function SceneTextOverlayGui::updateCreditsOverlay(%this)
 
    %rx = %cx + mFloor(%cw * 0.155);
    %rw = mFloor(%cw * 0.450);
-   %rh = mFloor(%ch * 0.068);
+   %rh = mFloor(%ch * 0.080);
    if (%rh < 24) %rh = 24;
+
+   %roleAdj = %desiredScale;
+   %maxRoleAdj = (%rh - 2) / 18.0;
+   if (%roleAdj > %maxRoleAdj) %roleAdj = %maxRoleAdj;
+   if (%roleAdj < 0.5) %roleAdj = 0.5;
+   %roleOff = mFloor(2 * %roleAdj + 0.5);
+   if (%roleOff < 1) %roleOff = 1;
 
    for (%i = 0; %i < 7; %i++)
    {
@@ -929,14 +1049,16 @@ function SceneTextOverlayGui::updateCreditsOverlay(%this)
 
       if (isObject(%this.creditsRoleShadow[%i]))
       {
-         %this.creditsRoleShadow[%i].Position = (%rx + 2) SPC (%ry + 2);
+         %this.creditsRoleShadow[%i].Position = (%rx + %roleOff) SPC (%ry + %roleOff);
          %this.creditsRoleShadow[%i].Extent = %rw SPC %rh;
+         %this.creditsRoleShadow[%i].fontSizeAdjust = %roleAdj;
          %this.creditsRoleShadow[%i].setText(%rStr);
       }
       if (isObject(%this.creditsRoleLabel[%i]))
       {
          %this.creditsRoleLabel[%i].Position = %rx SPC %ry;
          %this.creditsRoleLabel[%i].Extent = %rw SPC %rh;
+         %this.creditsRoleLabel[%i].fontSizeAdjust = %roleAdj;
          %this.creditsRoleLabel[%i].setText(%rStr);
       }
    }

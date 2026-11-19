@@ -428,10 +428,19 @@ function TitleMenuManager::reanchor(%this)
 
    if (isObject(%this.menuPanel))
    {
+      %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(290, 322, 24) : 1.0;
+      if (isObject($ResolutionManager))
+         $ResolutionManager.applyUiScaleToTree(%this.menuPanel, %scale, false);
+
       %panelW = getWord(%this.menuPanel.extent, 0);
       %panelH = getWord(%this.menuPanel.extent, 1);
       %panelX = mFloor(%mainW * 0.56 - (%panelW / 2));
       %panelY = mFloor(%mainH * 0.56 - (%panelH / 2));
+      if (%panelX + %panelW > %mainW - 12) %panelX = %mainW - %panelW - 12;
+      if (%panelX < 12) %panelX = 12;
+      if (%panelY + %panelH > %mainH - 12) %panelY = %mainH - %panelH - 12;
+      if (%panelY < 12) %panelY = 12;
+
       %this.menuPanel.Position = %panelX SPC %panelY;
       if (%this.menuPanel.isVisible())
          mainScreenGui.pushToBack(%this.menuPanel);
@@ -443,6 +452,10 @@ function TitleMenuManager::reanchor(%this)
       %this.confirmBackdrop.Extent = %mainW SPC %mainH;
       if (isObject(%this.confirmPanel))
       {
+         %cScale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(400, 176, 24) : 1.0;
+         if (isObject($ResolutionManager))
+            $ResolutionManager.applyUiScaleToTree(%this.confirmPanel, %cScale, false);
+
          %cW = getWord(%this.confirmPanel.extent, 0);
          %cH = getWord(%this.confirmPanel.extent, 1);
          %this.confirmPanel.Position = mFloor((%mainW - %cW) / 2) SPC mFloor((%mainH - %cH) / 2);

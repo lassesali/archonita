@@ -151,7 +151,7 @@ function LocalizationManager::prewarmFonts(%this)
    if (!isFunction("populateFontCacheString") || !isObject(Canvas) || !Canvas.isAwake())
       return;
 
-   %sizes = "10 11 12 13 14 15 16 17 18 20 22 24 28";
+   %sizes = "10 11 12 13 14 15 16 17 18 20 22 24 26 28 30 32 36 40 44 48";
    %count = getWordCount(%sizes);
    for (%i = 0; %i < %count; %i++)
    {
@@ -396,6 +396,7 @@ function LocalizationManager::populateFinnish(%this)
    %this.str[%l, "options_audio"] = "Ääniasetukset:";
    %this.str[%l, "options_faction"] = "Vihollisryhmittymä:";
    %this.str[%l, "options_language"] = "Kieli:";
+   %this.str[%l, "options_ui_scale"] = "Käyttöliittymän skaala: %1%";
    %this.str[%l, "options_apply"] = "OTA KÄYTTÖÖN";
    %this.str[%l, "options_close"] = "SULJE";
 
@@ -595,6 +596,7 @@ function LocalizationManager::populateEnglish(%this)
    %this.str[%l, "options_audio"] = "Audio Controls:";
    %this.str[%l, "options_faction"] = "Enemy Faction:";
    %this.str[%l, "options_language"] = "Language:";
+   %this.str[%l, "options_ui_scale"] = "UI Scale: %1%";
    %this.str[%l, "options_apply"] = "APPLY VIDEO SETTINGS";
    %this.str[%l, "options_close"] = "CLOSE";
 
@@ -794,6 +796,7 @@ function LocalizationManager::populateFrench(%this)
    %this.str[%l, "options_audio"] = "Contrôles audio :";
    %this.str[%l, "options_faction"] = "Faction ennemie :";
    %this.str[%l, "options_language"] = "Langue :";
+   %this.str[%l, "options_ui_scale"] = "Échelle de l'interface : %1%";
    %this.str[%l, "options_apply"] = "APPLIQUER LA VIDÉO";
    %this.str[%l, "options_close"] = "FERMER";
 
@@ -993,6 +996,7 @@ function LocalizationManager::populateSpanish(%this)
    %this.str[%l, "options_audio"] = "Controles de audio:";
    %this.str[%l, "options_faction"] = "Facción enemiga:";
    %this.str[%l, "options_language"] = "Idioma:";
+   %this.str[%l, "options_ui_scale"] = "Escala de interfaz: %1%";
    %this.str[%l, "options_apply"] = "APLICAR VÍDEO";
    %this.str[%l, "options_close"] = "CERRAR";
 
@@ -1192,6 +1196,7 @@ function LocalizationManager::populatePortugueseBR(%this)
    %this.str[%l, "options_audio"] = "Controles de áudio:";
    %this.str[%l, "options_faction"] = "Facção inimiga:";
    %this.str[%l, "options_language"] = "Idioma:";
+   %this.str[%l, "options_ui_scale"] = "Escala da interface: %1%";
    %this.str[%l, "options_apply"] = "APLICAR VÍDEO";
    %this.str[%l, "options_close"] = "FECHAR";
 
@@ -1391,6 +1396,7 @@ function LocalizationManager::populateGerman(%this)
    %this.str[%l, "options_audio"] = "Audiosteuerung:";
    %this.str[%l, "options_faction"] = "Gegnerische Fraktion:";
    %this.str[%l, "options_language"] = "Sprache:";
+   %this.str[%l, "options_ui_scale"] = "UI-Skalierung: %1%";
    %this.str[%l, "options_apply"] = "GRAFIK ANWENDEN";
    %this.str[%l, "options_close"] = "SCHLIESSEN";
 

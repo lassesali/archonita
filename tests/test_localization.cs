@@ -123,7 +123,7 @@ assertLocCond("Language normalization handles case and alias forms cleanly",
              "card_lollipop_title" TAB "card_lollipop_stat_one" TAB "card_volcano_title" TAB "card_volcano_desc" TAB
              "card_dandelion_title" TAB "card_dandelion_stat_one" TAB "card_stomachflu_title" TAB "card_stomachflu_desc" TAB
              "menu_play" TAB "menu_resume" TAB "menu_options" TAB "menu_credits" TAB "menu_quit" TAB
-             "options_title" TAB "options_language" TAB "pause_title" TAB "hud_menu" TAB
+             "options_title" TAB "options_language" TAB "options_ui_scale" TAB "pause_title" TAB "hud_menu" TAB
              "faction_select_title" TAB "faction_undead_name" TAB "faction_dragonfolk_name" TAB "faction_gremlin_name" TAB
              "summary_victory" TAB "summary_defeat" TAB "summary_play_again" TAB "credits_title" TAB "credits_role_designer";
 

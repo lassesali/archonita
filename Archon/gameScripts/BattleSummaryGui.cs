@@ -889,15 +889,18 @@ function BattleSummaryGui::reanchor(%this)
       %mainH = getWord(mainScreenGui.extent, 1);
    }
 
-   %panelW = 560;
-   %panelH = 450;
-   %panelX = mFloor((%mainW - %panelW) / 2);
-   %panelY = mFloor((%mainH - %panelH) / 2);
-
    %this.backdropCtrl.Position = "0 0";
    %this.backdropCtrl.Extent = %mainW SPC %mainH;
+
+   %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(560, 450, 24) : 1.0;
+   if (isObject($ResolutionManager))
+      $ResolutionManager.applyUiScaleToTree(%this.panelCtrl, %scale, false);
+
+   %panelW = getWord(%this.panelCtrl.extent, 0);
+   %panelH = getWord(%this.panelCtrl.extent, 1);
+   %panelX = mFloor((%mainW - %panelW) / 2);
+   %panelY = mFloor((%mainH - %panelH) / 2);
    %this.panelCtrl.Position = %panelX SPC %panelY;
-   %this.panelCtrl.Extent = %panelW SPC %panelH;
 
    if (%this.backdropCtrl.isVisible() && isObject(mainScreenGui))
       mainScreenGui.pushToBack(%this.backdropCtrl);

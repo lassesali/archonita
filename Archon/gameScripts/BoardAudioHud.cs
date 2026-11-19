@@ -227,10 +227,17 @@ function BoardAudioHud::reanchor(%this)
    if (!isObject(%this.hudContainer) || !isObject(mainScreenGui))
       return;
 
+   %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(348, 34, 24) : 1.0;
+   if (isObject($ResolutionManager))
+      $ResolutionManager.applyUiScaleToTree(%this.hudContainer, %scale, false);
+
    %mainW = getWord(mainScreenGui.extent, 0);
    %hudW = getWord(%this.hudContainer.extent, 0);
-   %posX = %mainW - %hudW - 12;
-   %this.hudContainer.Position = %posX SPC "10";
+   %marginX = mFloor(12 * %scale + 0.5);
+   %marginY = mFloor(10 * %scale + 0.5);
+   %posX = %mainW - %hudW - %marginX;
+   if (%posX < 8) %posX = 8;
+   %this.hudContainer.Position = %posX SPC %marginY;
    mainScreenGui.pushToBack(%this.hudContainer);
 }
 

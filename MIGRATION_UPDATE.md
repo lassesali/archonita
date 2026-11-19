@@ -368,8 +368,12 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
   - Replaced the abrupt post-battle exit with an interactive Victory/Defeat summary modal displaying match outcome, surviving/fallen unit tallies, and Play Again / Main Menu actions.
 - **Tactical Melee AI Advancement (`TacticalAI.cs`):**
   - Fixed AI melee stalling against all-melee player armies so units without adjacent melee targets or ranged line-of-fire advance toward opposing units rather than repeatedly defending in place.
+- **UI Scale Option (75%–150%) & Dynamic Card/Credits Text Scaling (`ResolutionManager.cs`, `OptionsMenuGui.cs`, `SceneTextOverlayGui.cs`, UI Managers):**
+  - Added a configurable **UI Scale** setting in Options (`75%`–`150%`, treating the original UI layout as `75%` = `1.0x` up to `150%` = `2.0x`) with `75%`/`100%`/`125%`/`150%` presets, `±5%` step buttons, 6-language `options_ui_scale` localization, and `$pref::UI::Scale` persistence in `preferences.cs`.
+  - Applied lossless base-snapshot scaling (`Position`, `Extent`, `fontSizeAdjust`) with viewport-safe modal clamping across `TitleMenuManager`, `OptionsMenuGui` (compacted to `640x446` base), `PauseMenuManager`, `BoardAudioHud`, `FactionSelectGui`, `BattleSummaryGui`, `UnitStatsHud` (tooltips, dynamic HP track bars, micro-badges), `VersionConfig` watermark, `Metrics` FPS overlay, and `FloatingTextManager`.
+  - Added dynamic box-fit font scaling (`SceneTextOverlayGui::computeCardFitFontAdjust()`) so Hero Select cards, Board Spell card titles/descriptions/stat lines, scene banners, and Credits labels scale smoothly with both UI Scale and viewport resolution while staying within card frame bounds across all 6 languages.
 - **Automated Verification Suites (`tests/`):**
-  - Added TorqueScript verification suites [`tests/test_battle_summary.cs`](tests/test_battle_summary.cs), [`tests/test_tactical_ai_advance.cs`](tests/test_tactical_ai_advance.cs), [`tests/test_unit_stats_hud.cs`](tests/test_unit_stats_hud.cs), and [`tests/test_localization.cs`](tests/test_localization.cs).
+  - Added TorqueScript verification suites [`tests/test_battle_summary.cs`](tests/test_battle_summary.cs), [`tests/test_tactical_ai_advance.cs`](tests/test_tactical_ai_advance.cs), [`tests/test_unit_stats_hud.cs`](tests/test_unit_stats_hud.cs), [`tests/test_localization.cs`](tests/test_localization.cs), and [`tests/test_ui_scale.cs`](tests/test_ui_scale.cs).
 - **Version Configuration:**
   - Incremented build number to `113` (version `2.1.0-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
 

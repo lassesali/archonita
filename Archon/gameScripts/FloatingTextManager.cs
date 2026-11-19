@@ -102,10 +102,16 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
    %screenX = getWord(%screenPos, 0);
    %screenY = getWord(%screenPos, 1);
 
-   %boxWidth = 240;
-   %boxHeight = 32;
+   %scale = isObject($ResolutionManager) ? $ResolutionManager.getUiScaleFactor() : 1.0;
+   %boxWidth = mFloor(240 * %scale + 0.5);
+   %boxHeight = mFloor(32 * %scale + 0.5);
+   %fontSize = mFloor(18 * %scale + 0.5);
+   if (%boxWidth < 120) %boxWidth = 120;
+   if (%boxHeight < 18) %boxHeight = 18;
+   if (%fontSize < 10) %fontSize = 10;
+
    %startX = mFloor(%screenX - (%boxWidth * 0.5));
-   %startY = mFloor(%screenY - 35); // Spawn slightly above target
+   %startY = mFloor(%screenY - mFloor(35 * %scale + 0.5)); // Spawn slightly above target
 
    %instId = %this.nextInstanceId++;
 
@@ -116,7 +122,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
    %fgProfile = new GuiControlProfile(%fgProfileName : GuiDefaultProfile)
    {
       fontType = "Arial";
-      fontSize = 18;
+      fontSize = %fontSize;
       fontColor = %colorR SPC %colorG SPC %colorB SPC "255";
       fontColorHL = %colorR SPC %colorG SPC %colorB SPC "255";
       fontColorNA = %colorR SPC %colorG SPC %colorB SPC "255";
@@ -130,7 +136,7 @@ function FloatingTextManager::spawnText(%this, %worldX, %worldY, %text, %colorRg
    %shProfile = new GuiControlProfile(%shProfileName : GuiDefaultProfile)
    {
       fontType = "Arial";
-      fontSize = 18;
+      fontSize = %fontSize;
       fontColor = "0 0 0 255";
       fontColorHL = "0 0 0 255";
       fontColorNA = "0 0 0 255";

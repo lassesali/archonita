@@ -306,6 +306,29 @@ function VersionConfig::refreshLocalization(%this)
       %this.buildLabel.setText(%buildText);
 }
 
+function VersionConfig::reanchor(%this)
+{
+   if (!isObject(MainMenuWatermark) || !isObject(mainScreenGui))
+      return;
+
+   %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(264, 60, 24) : 1.0;
+   if (isObject($ResolutionManager))
+      $ResolutionManager.applyUiScaleToTree(MainMenuWatermark, %scale, false);
+
+   %mainW = getWord(mainScreenGui.extent, 0);
+   %mainH = getWord(mainScreenGui.extent, 1);
+   %wW = getWord(MainMenuWatermark.extent, 0);
+   %wH = getWord(MainMenuWatermark.extent, 1);
+   %wx = %mainW - %wW - mFloor(16 * %scale + 0.5);
+   %wy = %mainH - %wH - mFloor(14 * %scale + 0.5);
+   if (%wx < 8) %wx = 8;
+   if (%wy < 8) %wy = 8;
+   MainMenuWatermark.Position = %wx SPC %wy;
+
+   if (MainMenuWatermark.isVisible())
+      mainScreenGui.pushToBack(MainMenuWatermark);
+}
+
 function VersionConfig::showWatermark(%this, %show)
 {
    if (!isObject(%this.watermarkCtrl) || !isObject(MainMenuWatermark))
@@ -313,6 +336,8 @@ function VersionConfig::showWatermark(%this, %show)
 
    if (isObject(MainMenuWatermark))
    {
+      if (%show)
+         %this.reanchor();
       MainMenuWatermark.setVisible(%show);
       if (%show && isObject(mainScreenGui))
       {

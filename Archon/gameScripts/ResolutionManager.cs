@@ -32,6 +32,10 @@ function ResolutionManager::onAdd(%this)
    %this.currentResolution = "1280 720";
    %this.currentFullScreen = false;
    %this.currentLanguage = "fi";
+   %this.minUiScale = 75;
+   %this.maxUiScale = 150;
+   %this.baseUiScale = 75;
+   %this.currentUiScale = 75;
 
    %this.loadPreferences();
 }
@@ -97,6 +101,15 @@ function ResolutionManager::loadPreferences(%this)
       $LocalizationManager.setLanguage(%this.currentLanguage, true);
    }
    $pref::Language = %this.currentLanguage;
+
+   if ($pref::UI::Scale !$= "")
+      %this.currentUiScale = %this.normalizeUiScale($pref::UI::Scale);
+   else
+      %this.currentUiScale = %this.baseUiScale;
+   $pref::UI::Scale = %this.currentUiScale;
+
+   if (isObject(mainScreenGui))
+      %this.reanchorAllGuis();
 }
 
 function ResolutionManager::savePreferences(%this)
@@ -116,9 +129,155 @@ function ResolutionManager::savePreferences(%this)
       %this.currentLanguage = %lang;
       $pref::Language = %lang;
       %file.writeLine("$pref::Language = \"" @ %lang @ "\";");
+      %uiScale = %this.getUiScalePercent();
+      %this.currentUiScale = %uiScale;
+      $pref::UI::Scale = %uiScale;
+      %file.writeLine("$pref::UI::Scale = " @ %uiScale @ ";");
       %file.close();
    }
    %file.delete();
+}
+
+function ResolutionManager::normalizeUiScale(%this, %percent)
+{
+   if (%percent $= "")
+      return %this.baseUiScale;
+
+   %val = mFloor(%percent + 0.5);
+   if (%val < %this.minUiScale)
+      %val = %this.minUiScale;
+   if (%val > %this.maxUiScale)
+      %val = %this.maxUiScale;
+   return %val;
+}
+
+function ResolutionManager::getUiScalePercent(%this)
+{
+   return %this.normalizeUiScale(%this.currentUiScale);
+}
+
+function ResolutionManager::getUiScaleFactor(%this)
+{
+   return %this.getUiScalePercent() / (%this.baseUiScale * 1.0);
+}
+
+function ResolutionManager::getViewportSafeUiScale(%this, %baseW, %baseH, %margin)
+{
+   if (%margin $= "")
+      %margin = 24;
+
+   %scale = %this.getUiScaleFactor();
+   %mainW = 1024;
+   %mainH = 768;
+   if (isObject(mainScreenGui))
+   {
+      %mw = getWord(mainScreenGui.extent, 0);
+      %mh = getWord(mainScreenGui.extent, 1);
+      if (%mw > 0) %mainW = %mw;
+      if (%mh > 0) %mainH = %mh;
+   }
+
+   if (%baseW > 0 && %mainW > %margin)
+   {
+      %maxWScale = (%mainW - %margin) / (%baseW * 1.0);
+      if (%scale > %maxWScale)
+         %scale = %maxWScale;
+   }
+
+   if (%baseH > 0 && %mainH > %margin)
+   {
+      %maxHScale = (%mainH - %margin) / (%baseH * 1.0);
+      if (%scale > %maxHScale)
+         %scale = %maxHScale;
+   }
+
+   if (%scale < 0.5)
+      %scale = 0.5;
+   return %scale;
+}
+
+function ResolutionManager::snapshotUiBaseTree(%this, %ctrl)
+{
+   if (!isObject(%ctrl))
+      return;
+
+   if (%ctrl._uiBaseCaptured !$= "1")
+   {
+      %ctrl._uiBasePos = %ctrl.Position;
+      %ctrl._uiBaseExt = %ctrl.Extent;
+      %ctrl._uiBaseFontAdj = (%ctrl.fontSizeAdjust !$= "" && %ctrl.fontSizeAdjust > 0) ? %ctrl.fontSizeAdjust : 1.0;
+      %ctrl._uiBaseCaptured = 1;
+   }
+
+   %count = %ctrl.getCount();
+   for (%i = 0; %i < %count; %i++)
+      %this.snapshotUiBaseTree(%ctrl.getObject(%i));
+}
+
+function ResolutionManager::_applyUiScaleRecursive(%this, %ctrl, %scale, %scaleRootPos)
+{
+   if (!isObject(%ctrl))
+      return;
+
+   %basePos = (%ctrl._uiBasePos !$= "") ? %ctrl._uiBasePos : %ctrl.Position;
+   %baseExt = (%ctrl._uiBaseExt !$= "") ? %ctrl._uiBaseExt : %ctrl.Extent;
+   %baseAdj = (%ctrl._uiBaseFontAdj !$= "" && %ctrl._uiBaseFontAdj > 0) ? %ctrl._uiBaseFontAdj : 1.0;
+
+   %bx = getWord(%basePos, 0);
+   %by = getWord(%basePos, 1);
+   %bw = getWord(%baseExt, 0);
+   %bh = getWord(%baseExt, 1);
+
+   %sw = mFloor((%bw * %scale) + 0.5);
+   %sh = mFloor((%bh * %scale) + 0.5);
+   if (%sw < 1) %sw = 1;
+   if (%sh < 1) %sh = 1;
+
+   if (%scaleRootPos)
+   {
+      %sx = mFloor((%bx * %scale) + 0.5);
+      %sy = mFloor((%by * %scale) + 0.5);
+      %ctrl.Position = %sx SPC %sy;
+   }
+
+   %ctrl.Extent = %sw SPC %sh;
+   %ctrl.fontSizeAdjust = %baseAdj * %scale;
+
+   %count = %ctrl.getCount();
+   for (%i = 0; %i < %count; %i++)
+      %this._applyUiScaleRecursive(%ctrl.getObject(%i), %scale, true);
+}
+
+function ResolutionManager::applyUiScaleToTree(%this, %ctrl, %scale, %scaleRootPos)
+{
+   if (!isObject(%ctrl))
+      return;
+
+   if (%scale $= "" || %scale <= 0)
+      %scale = 1.0;
+
+   %this.snapshotUiBaseTree(%ctrl);
+   %this._applyUiScaleRecursive(%ctrl, %scale, %scaleRootPos);
+}
+
+function ResolutionManager::setUiScale(%this, %percent, %skipSave)
+{
+   %norm = %this.normalizeUiScale(%percent);
+   %this.currentUiScale = %norm;
+   $pref::UI::Scale = %norm;
+
+   %this.reanchorAllGuis();
+
+   if (isObject($OptionsMenuGui) && $OptionsMenuGui.isMethod("updateVisuals"))
+      $OptionsMenuGui.updateVisuals();
+
+   if (!%skipSave)
+      %this.savePreferences();
+
+   if (isObject(Canvas))
+      Canvas.repaint();
+
+   return %norm;
 }
 
 function ResolutionManager::getAspectRatioValue(%this, %aspectStr, %resStr)
@@ -261,13 +420,17 @@ function ResolutionManager::reanchorAllGuis(%this)
       $BattleSummaryGui.reanchor();
    if (isObject($PauseMenuManager))
       $PauseMenuManager.reanchor();
-   if (isObject(MainMenuWatermark) && isObject(mainScreenGui))
+   if (isObject($VersionConfig) && $VersionConfig.isMethod("reanchor"))
+      $VersionConfig.reanchor();
+   else if (isObject(MainMenuWatermark) && isObject(mainScreenGui))
    {
       %mainW = getWord(mainScreenGui.extent, 0);
       %mainH = getWord(mainScreenGui.extent, 1);
       MainMenuWatermark.Position = (%mainW - 280) SPC (%mainH - 74);
       mainScreenGui.pushToBack(MainMenuWatermark);
    }
+   if (isObject($Metrics) && $Metrics.isMethod("reanchor"))
+      $Metrics.reanchor();
 }
 
 if (!isObject($ResolutionManager))

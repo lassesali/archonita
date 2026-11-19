@@ -383,6 +383,23 @@ function Metrics::createFpsOverlayUI(%this)
 
    mainScreenGui.add(%this.fpsContainer);
    mainScreenGui.pushToBack(%this.fpsContainer);
+   %this.reanchor();
+}
+
+function Metrics::reanchor(%this)
+{
+   if (!isObject(%this.fpsContainer) || !isObject(mainScreenGui))
+      return;
+
+   %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(120, 26, 24) : 1.0;
+   if (isObject($ResolutionManager))
+      $ResolutionManager.applyUiScaleToTree(%this.fpsContainer, %scale, false);
+
+   %marginX = mFloor(10 * %scale + 0.5);
+   %marginY = mFloor(10 * %scale + 0.5);
+   %this.fpsContainer.Position = %marginX SPC %marginY;
+   if (%this.fpsContainer.isVisible())
+      mainScreenGui.pushToBack(%this.fpsContainer);
 }
 
 function Metrics::setEngineMetricsOverlay(%this, %enabled)

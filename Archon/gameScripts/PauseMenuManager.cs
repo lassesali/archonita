@@ -249,6 +249,10 @@ function PauseMenuManager::reanchor(%this)
 
    if (isObject(%this.panelCtrl))
    {
+      %scale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(320, 264, 24) : 1.0;
+      if (isObject($ResolutionManager))
+         $ResolutionManager.applyUiScaleToTree(%this.panelCtrl, %scale, false);
+
       %panelW = getWord(%this.panelCtrl.extent, 0);
       %panelH = getWord(%this.panelCtrl.extent, 1);
       %this.panelCtrl.Position = mFloor((%mainW - %panelW) / 2) SPC mFloor((%mainH - %panelH) / 2);

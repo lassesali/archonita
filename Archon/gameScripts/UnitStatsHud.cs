@@ -945,8 +945,18 @@ function UnitStatsHud::updatePieceBadge(%this, %pieceId)
    else
       %badge.setProfile(%this.badgeEnemyBgProfile);
 
+   %badgeScale = isObject($ResolutionManager) ? $ResolutionManager.getUiScaleFactor() : 1.0;
+   if (%badgeScale < 1.0) %badgeScale = 1.0;
+   if (%badgeScale > 2.0) %badgeScale = 2.0;
+   if (isObject($ResolutionManager))
+      $ResolutionManager.applyUiScaleToTree(%badge, %badgeScale, false);
+
    // Update micro HP bar
-   %trackW = 70;
+   %trackExt = isObject(%badge.hpTrack) ? %badge.hpTrack.extent : "70 4";
+   %trackW = getWord(%trackExt, 0);
+   %trackH = getWord(%trackExt, 1);
+   if (%trackW <= 0) %trackW = 70;
+   if (%trackH <= 0) %trackH = 4;
    %fillW = (%hpMax > 0) ? mFloor((%hp / %hpMax) * %trackW) : 0;
    if (%hp > 0 && %fillW < 4)
       %fillW = 4;
@@ -956,7 +966,7 @@ function UnitStatsHud::updatePieceBadge(%this, %pieceId)
    if (isObject(%badge.hpFill))
    {
       %badge.hpFill.setProfile(%this.getHpFillProfile(%hp, %hpMax));
-      %badge.hpFill.Extent = %fillW SPC "4";
+      %badge.hpFill.Extent = %fillW SPC %trackH;
    }
 
    if (isObject(%badge.statLabel))
@@ -970,8 +980,11 @@ function UnitStatsHud::updatePieceBadge(%this, %pieceId)
    %sx = getWord(%screenPt, 0);
    %sy = getWord(%screenPt, 1);
 
-   %badgeW = 76;
-   %badgeH = 22;
+   %badgeExt = %badge.extent;
+   %badgeW = getWord(%badgeExt, 0);
+   %badgeH = getWord(%badgeExt, 1);
+   if (%badgeW <= 0) %badgeW = 76;
+   if (%badgeH <= 0) %badgeH = 22;
    %bx = mFloor(%sx - (%badgeW * 0.5));
    %by = mFloor(%sy - (%badgeH * 0.5));
 
@@ -1264,8 +1277,16 @@ function UnitStatsHud::positionTooltipNearWorld(%this, %wx, %wy)
    if (%tx + %tipW > %mainW - 12)
       %tx = mFloor(%sx - %tipW - 46);
 
+   %minY = 52;
+   if (isObject(BoardAudioHudContainer))
+   {
+      %hudBottom = getWord(BoardAudioHudContainer.Position, 1) + getWord(BoardAudioHudContainer.Extent, 1) + 8;
+      if (%hudBottom > %minY)
+         %minY = %hudBottom;
+   }
+
    if (%tx < 12) %tx = 12;
-   if (%ty < 52) %ty = 52; // Stay clear of top-right BoardAudioHud bar
+   if (%ty < %minY) %ty = %minY; // Stay clear of top-right BoardAudioHud bar
    if (%ty + %tipH > %mainH - 12)
       %ty = %mainH - %tipH - 12;
 
@@ -1348,14 +1369,18 @@ function UnitStatsHud::showTooltipForPiece(%this, %piece)
       %this.tooltipTeamLabel.setText($LocalizationManager.getText("tooltip_team_role", %factionLabel, %roleLabel));
       %this.tooltipHpLabel.setText($LocalizationManager.getText("tooltip_hp", %hp, %hpMax));
 
-      %trackW = 488;
+      %trackExt = isObject(%this.tooltipHpTrack) ? %this.tooltipHpTrack.extent : "488 12";
+      %trackW = getWord(%trackExt, 0);
+      %trackH = getWord(%trackExt, 1);
+      if (%trackW <= 0) %trackW = 488;
+      if (%trackH <= 0) %trackH = 12;
       %fillW = (%hpMax > 0) ? mFloor((%hp / %hpMax) * %trackW) : 0;
       if (%hp > 0 && %fillW < 6)
          %fillW = 6;
       if (%fillW > %trackW)
          %fillW = %trackW;
       %this.tooltipHpFill.setProfile(%this.getHpFillProfile(%hp, %hpMax));
-      %this.tooltipHpFill.Extent = %fillW SPC "12";
+      %this.tooltipHpFill.Extent = %fillW SPC %trackH;
 
       %this.tooltipAttackLabel.setProfile(%this.getStatProfile(%atk, %baseAtk));
       %this.tooltipAttackLabel.setText(%this.formatDiceStat($LocalizationManager.getText("stat_attack"), %atk, %baseAtk));
@@ -1413,14 +1438,18 @@ function UnitStatsHud::showTooltipForPiece(%this, %piece)
    %this.tooltipTeamLabel.setText(%factionLabel @ "  |  " @ %roleLabel);
    %this.tooltipHpLabel.setText("HP: " @ %hp @ " / " @ %hpMax);
 
-   %trackW = 488;
+   %trackExt = isObject(%this.tooltipHpTrack) ? %this.tooltipHpTrack.extent : "488 12";
+   %trackW = getWord(%trackExt, 0);
+   %trackH = getWord(%trackExt, 1);
+   if (%trackW <= 0) %trackW = 488;
+   if (%trackH <= 0) %trackH = 12;
    %fillW = (%hpMax > 0) ? mFloor((%hp / %hpMax) * %trackW) : 0;
    if (%hp > 0 && %fillW < 6)
       %fillW = 6;
    if (%fillW > %trackW)
       %fillW = %trackW;
    %this.tooltipHpFill.setProfile(%this.getHpFillProfile(%hp, %hpMax));
-   %this.tooltipHpFill.Extent = %fillW SPC "12";
+   %this.tooltipHpFill.Extent = %fillW SPC %trackH;
 
    %this.tooltipAttackLabel.setProfile(%this.getStatProfile(%atk, %baseAtk));
    %this.tooltipAttackLabel.setText(%this.formatDiceStat("Attack", %atk, %baseAtk));
@@ -1463,8 +1492,13 @@ function UnitStatsHud::showTooltipForUnitType(%this, %creatureId, %worldPos)
       %this.tooltipTeamLabel.setText($LocalizationManager.getText("tooltip_team_role", %humanFaction, %roleLabel));
       %this.tooltipHpLabel.setText($LocalizationManager.getText("tooltip_hp", %hp, %hp));
 
+      %trackExt = isObject(%this.tooltipHpTrack) ? %this.tooltipHpTrack.extent : "488 12";
+      %trackW = getWord(%trackExt, 0);
+      %trackH = getWord(%trackExt, 1);
+      if (%trackW <= 0) %trackW = 488;
+      if (%trackH <= 0) %trackH = 12;
       %this.tooltipHpFill.setProfile(%this.hpHighProfile);
-      %this.tooltipHpFill.Extent = "488 12";
+      %this.tooltipHpFill.Extent = %trackW SPC %trackH;
 
       %this.tooltipAttackLabel.setProfile(%this.tooltipStatProfile);
       %this.tooltipAttackLabel.setText(%this.formatDiceStat($LocalizationManager.getText("stat_attack"), %atk, %atk));
@@ -1487,8 +1521,13 @@ function UnitStatsHud::showTooltipForUnitType(%this, %creatureId, %worldPos)
    %this.tooltipTeamLabel.setText("Human Order  |  " @ %roleLabel);
    %this.tooltipHpLabel.setText("HP: " @ %hp @ " / " @ %hp);
 
+   %trackExt = isObject(%this.tooltipHpTrack) ? %this.tooltipHpTrack.extent : "488 12";
+   %trackW = getWord(%trackExt, 0);
+   %trackH = getWord(%trackExt, 1);
+   if (%trackW <= 0) %trackW = 488;
+   if (%trackH <= 0) %trackH = 12;
    %this.tooltipHpFill.setProfile(%this.hpHighProfile);
-   %this.tooltipHpFill.Extent = "488 12";
+   %this.tooltipHpFill.Extent = %trackW SPC %trackH;
 
    %this.tooltipAttackLabel.setProfile(%this.tooltipStatProfile);
    %this.tooltipAttackLabel.setText(%this.formatDiceStat("Attack", %atk, %atk));
@@ -1536,6 +1575,21 @@ function UnitStatsHud::reanchor(%this)
    {
       %this.badgeLayer.Position = "0 0";
       %this.badgeLayer.Extent = %mainW SPC %mainH;
+   }
+
+   if (isObject(%this.tooltipCtrl))
+   {
+      %tipScale = isObject($ResolutionManager) ? $ResolutionManager.getViewportSafeUiScale(520, 270, 24) : 1.0;
+      if (isObject($ResolutionManager))
+         $ResolutionManager.applyUiScaleToTree(%this.tooltipCtrl, %tipScale, false);
+
+      if (%this.isTooltipVisible())
+      {
+         if (isObject(%this.hoveredPiece))
+            %this.showTooltipForPiece(%this.hoveredPiece);
+         else if (%this.hoveredUnitType !$= "" && %this.hoveredWorldPos !$= "")
+            %this.showTooltipForUnitType(%this.hoveredUnitType, %this.hoveredWorldPos);
+      }
    }
 
    if (%this.badgesVisible)
