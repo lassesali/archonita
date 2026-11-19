@@ -63,6 +63,8 @@ function CombatEngine::lockInput(%this)
 {
    %this.inputLocked = true;
    $inputLocked = true;
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.hideTooltip();
    if (isObject(sceneWindow2D))
    {
       sceneWindow2D.setUseWindowMouseEvents(false);
@@ -242,6 +244,8 @@ function CombatEngine::doMagic(%this)
       game.setSpellRevealed(true);
       playSpellRevealSound();
       %this.updateMagicButtonParticles();
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
    }
 }
 
@@ -287,32 +291,36 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    switch (%spellFrame)
    {
       case 3: // Taikamakkara (+1 creature defense roll)
+         %fctDef = isObject($LocalizationManager) ? $LocalizationManager.getPluralText("fct_def_bonus", 1) : "+1 Defence Roll";
          for (%i = 1; %i <= game.getPieceCount(); %i++)
          {
             if (isObject($nappulaSprite[%i]) && $nappulaSprite[%i].alive == 1 && $nappulaSprite[%i].groupid == 0)
             {
                $nappulaSprite[%i].defence += 1;
                $nappulaSprite[%i].defenceMAX += 1;
-               FloatingTextManager.spawnAbovePiece($nappulaSprite[%i], "+1 Defence Roll", "77 208 225");
+               FloatingTextManager.spawnAbovePiece($nappulaSprite[%i], %fctDef, "77 208 225");
             }
          }
       case 4: // Taikahattu (+1 spell points)
          %hero.addMana(1);
-         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Mana", "100 181 246");
+         %fctMana = isObject($LocalizationManager) ? $LocalizationManager.getPluralText("fct_mana_bonus", 1) : "+1 Mana";
+         FloatingTextManager.spawnAboveAvatar(heroicon, %fctMana, "100 181 246");
       case 5: // Taikatikkari (+1 spell damage)
          %hero.addSpellDamage(1);
-         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Spell Damage", "255 183 77");
+         %fctDmg = isObject($LocalizationManager) ? $LocalizationManager.getPluralText("fct_spell_dmg", 1) : "+1 Spell Damage";
+         FloatingTextManager.spawnAboveAvatar(heroicon, %fctDmg, "255 183 77");
       case 6: // Tulivuori (Volcano damages enemy army)
          %dmg = 1 + %hero.getSpellDamage();
          %curPiece = game.getSelectedPiece();
          %savedMoved = (isObject($nappulaSprite[%curPiece])) ? $nappulaSprite[%curPiece].hasMoved : 0;
          %savedAction = (isObject($nappulaSprite[%curPiece])) ? $nappulaSprite[%curPiece].hasDoneAction : 0;
+         %fctHpLoss = isObject($LocalizationManager) ? $LocalizationManager.getText("fct_hp_loss", %dmg) : ("-" @ %dmg @ " HP");
          for (%i = 1; %i <= game.getPieceCount(); %i++)
          {
             %unit = $nappulaSprite[%i];
             if (isObject(%unit) && %unit.alive == 1 && %unit.groupid == 1)
             {
-               FloatingTextManager.spawnAbovePiece(%unit, "-" @ %dmg @ " HP", "229 57 53");
+               FloatingTextManager.spawnAbovePiece(%unit, %fctHpLoss, "229 57 53");
                for (%d = 0; %d < %dmg; %d++)
                {
                   if (%unit.alive == 1)
@@ -327,10 +335,12 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
          }
       case 7: // Voikukan juuri (+1 spell points)
          %hero.addMana(1);
-         FloatingTextManager.spawnAboveAvatar(heroicon, "+1 Mana", "100 181 246");
+         %fctMana2 = isObject($LocalizationManager) ? $LocalizationManager.getPluralText("fct_mana_bonus", 1) : "+1 Mana";
+         FloatingTextManager.spawnAboveAvatar(heroicon, %fctMana2, "100 181 246");
       case 8: // Vatsatauti (Target skips next turn)
          %targetPiece.skipNextTurn = 1;
-         FloatingTextManager.spawnAbovePiece(%targetPiece, "Skip Turn!", "174 213 129");
+         %fctSkip = isObject($LocalizationManager) ? $LocalizationManager.getText("fct_skip_turn") : "Skip Turn!";
+         FloatingTextManager.spawnAbovePiece(%targetPiece, %fctSkip, "174 213 129");
    }
 
    if (%topCard.isMethod("discardAfterCast"))
@@ -345,6 +355,10 @@ function CombatEngine::castRevealedSpell(%this, %clickedCategory, %targetPiece)
    game.setHighlightedActionIcon(0);
    updateActionIconsVisualState();
    %this.updateMagicButtonParticles();
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.refreshAll();
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
    return true;
 }
 
@@ -844,7 +858,11 @@ function CombatEngine::doMovement(%this, %x, %y)
             }
             else
             {
-               schedule(1000, 0, evaluateTacticalMoves); 
+               if (isObject(TacticalAI) && isEventPending(TacticalAI.aiMoveFollowupEvent))
+                  cancel(TacticalAI.aiMoveFollowupEvent);
+               %followup = schedule(1000, 0, evaluateTacticalMoves);
+               if (isObject(TacticalAI))
+                  TacticalAI.aiMoveFollowupEvent = %followup;
             }
          }
       }
@@ -867,6 +885,8 @@ function CombatEngine::movePiece(%this, %pos, %boardpos)
    
    %this.setPieceState(%piece, $olentoWalkState[%piece.creatureID]);
    $fxfoot = playArchonSound(fxFootStep);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.startMovementTracking(1100);
 }
 
 function CombatEngine::facing(%this, %pos1, %pos2)
@@ -999,6 +1019,8 @@ function CombatEngine::damagePiece(%this, %piece)
          evaluateTacticalMoves();
       }
    }
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.refreshAll();
 }
 
 //---------------------------------------------------------------------------------------------

@@ -31,6 +31,7 @@ function ResolutionManager::onAdd(%this)
    %this.currentAspectRatio = "16:9";
    %this.currentResolution = "1280 720";
    %this.currentFullScreen = false;
+   %this.currentLanguage = "fi";
 
    %this.loadPreferences();
 }
@@ -84,6 +85,18 @@ function ResolutionManager::loadPreferences(%this)
    $pref::Video::AspectRatio = %this.currentAspectRatio;
    $pref::Video::Resolution = %this.currentResolution;
    $pref::Video::fullScreen = %this.currentFullScreen;
+
+   if ($pref::Language !$= "")
+      %this.currentLanguage = $pref::Language;
+   else if (%this.currentLanguage $= "")
+      %this.currentLanguage = "fi";
+
+   if (isObject($LocalizationManager))
+   {
+      %this.currentLanguage = $LocalizationManager.normalizeLanguage(%this.currentLanguage);
+      $LocalizationManager.setLanguage(%this.currentLanguage, true);
+   }
+   $pref::Language = %this.currentLanguage;
 }
 
 function ResolutionManager::savePreferences(%this)
@@ -99,6 +112,10 @@ function ResolutionManager::savePreferences(%this)
       %musMuted = (isObject($AudioManager) && $AudioManager.isMusicMuted()) ? 1 : 0;
       %file.writeLine("$pref::Audio::sfxMuted = " @ %sfxMuted @ ";");
       %file.writeLine("$pref::Audio::musicMuted = " @ %musMuted @ ";");
+      %lang = isObject($LocalizationManager) ? $LocalizationManager.getLanguage() : (($pref::Language !$= "") ? $pref::Language : "fi");
+      %this.currentLanguage = %lang;
+      $pref::Language = %lang;
+      %file.writeLine("$pref::Language = \"" @ %lang @ "\";");
       %file.close();
    }
    %file.delete();
@@ -228,6 +245,10 @@ function ResolutionManager::adaptSceneBackground(%this)
 
 function ResolutionManager::reanchorAllGuis(%this)
 {
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.reanchor();
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.reanchor();
    if (isObject($BoardAudioHud))
       $BoardAudioHud.reanchor();
    if (isObject($TitleMenuManager))
@@ -236,6 +257,8 @@ function ResolutionManager::reanchorAllGuis(%this)
       $OptionsMenuGui.reanchor();
    if (isObject($FactionSelectGui))
       $FactionSelectGui.reanchor();
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.reanchor();
    if (isObject($PauseMenuManager))
       $PauseMenuManager.reanchor();
    if (isObject(MainMenuWatermark) && isObject(mainScreenGui))

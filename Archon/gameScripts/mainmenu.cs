@@ -6,7 +6,18 @@ $mainMenuTransitioning = false;
 $bubbleSchedule = "";
 $heroSelectSchedule = "";
 
+function cycleGameLanguage()
+{
+   if (isObject($LocalizationManager))
+      $LocalizationManager.cycleLanguage(1);
+}
+
 function onEscapeKeyPressed() {
+   if (isObject($BattleSummaryGui) && $BattleSummaryGui.isVisible())
+   {
+      $BattleSummaryGui.onMainMenuClicked();
+      return;
+   }
    if (isObject($FactionSelectGui) && $FactionSelectGui.isVisible())
    {
       $FactionSelectGui.onBackClicked();
@@ -50,6 +61,15 @@ function mainMenuFadeOut() {
 }
 
 function mainmenuScreen() {
+   if (isObject(TurnManager) && isEventPending(TurnManager.endBattleEvent))
+   {
+      cancel(TurnManager.endBattleEvent);
+      TurnManager.endBattleEvent = 0;
+   }
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.show(false);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.clearBadges();
    if ($introFadeSchedule !$= "")
    {
       cancel($introFadeSchedule);
@@ -99,6 +119,7 @@ function mainmenuScreen() {
    testActionMap.bindCmd(keyboard, "m", "toggleMusicMute();", "");
    testActionMap.bindCmd(keyboard, "n", "toggleSFXMute();", "");
    testActionMap.bindCmd(keyboard, "d", "", "dumpBoardDebug();");
+   testActionMap.bindCmd(keyboard, "l", "", "cycleGameLanguage();");
    testActionMap.push();
 
    setGameState($gameMainMenuState);
@@ -111,6 +132,8 @@ function mainmenuScreen() {
       $ResolutionManager.adaptSceneBackground();
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(false);
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
    if (isObject($TitleMenuManager))
       $TitleMenuManager.show(true);
    showVersionWatermark(true);  

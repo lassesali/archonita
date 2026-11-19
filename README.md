@@ -349,6 +349,23 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 113 (2.1.0-ea4) — 2026-11-19
+- **Burned-In Text Elimination & 6-Language Runtime Localization (`LocalizationManager.cs`, `SceneTextOverlayGui.cs`, `Archon/data/images/*`):**
+  - Removed baked-in Finnish text from `text.png`, `texts.png`, `1/txt prebattle.png`, `1/txt selecthero.png`, `cards.png`, `cards_2.png`, `1/card *.png`, and `credits.png`, rendering all scene banners, dynamic countdowns, card titles/descriptions/stat modifiers, and credits dynamically at runtime via `$SceneTextOverlayGui`.
+  - Implemented full multi-language localization for Finnish (`fi`), English (`en`), French (`fr`), Spanish (`es`), Brazilian Portuguese (`pt-BR`), and German (`de`) with variable interpolation, locale-specific singular/plural rules, UTF-8 diacritics, live in-game switching across all menus/HUD/cards/overlays (`TitleMenuManager.cs`, `OptionsMenuGui.cs`, `FactionSelectGui.cs`, `BoardAudioHud.cs`, `PauseMenuManager.cs`, `BattleSummaryGui.cs`, `UnitStatsHud.cs`, `versionConfig.cs`, `credits.cs`), and persistence across restarts (`$pref::Language` in `ResolutionManager.cs`).
+- **On-Board Unit Stats HUD & Hover Tooltips (`UnitStatsHud.cs`, `CombatEngine.cs`, `complexMouse.cs`, `nappula.cs`):**
+  - Added hover tooltips for living board units and pre-battle recruitment icons displaying unit name/level, faction/role, live HP bar, Attack/Defence dice modifiers (color-coded buffs/debuffs), and status/traits, using 2x tooltip font sizes (`28`/`24`/`22`) and scaled panel layout (`520x270`, `488x12` HP bar).
+  - Suppressed and hid hover tooltips automatically whenever any character is moving or executing combat/dice/projectile actions (`UnitStatsHud::isAnyCharacterBusy()`, `CombatEngine::lockInput()`).
+  - Added console-gated on-board micro-readout HP/dice badges (`enableUnitBadges()`, `disableUnitBadges()`, `toggleUnitBadges()`, `showUnitBadges(bool)`), hidden by default.
+- **Post-Battle Victory/Defeat Summary Screen (`BattleSummaryGui.cs`, `TurnManager.cs`):**
+  - Replaced the abrupt post-battle exit with an interactive Victory/Defeat summary modal displaying match outcome, surviving/fallen unit tallies, and Play Again / Main Menu actions.
+- **Tactical Melee AI Advancement (`TacticalAI.cs`):**
+  - Fixed AI melee stalling against all-melee player armies so units without adjacent melee targets or ranged line-of-fire advance toward opposing units rather than repeatedly defending in place.
+- **Automated Verification Suites (`tests/`):**
+  - Added TorqueScript verification suites [`tests/test_battle_summary.cs`](tests/test_battle_summary.cs), [`tests/test_tactical_ai_advance.cs`](tests/test_tactical_ai_advance.cs), [`tests/test_unit_stats_hud.cs`](tests/test_unit_stats_hud.cs), and [`tests/test_localization.cs`](tests/test_localization.cs).
+- **Version Configuration:**
+  - Incremented build number to `113` (version `2.1.0-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
+
 ### Build 112 (2.1.0-ea4) — 2026-11-15
 - **Release Build & Distribution Sync:**
   - Rebuilt the local release distribution (`dist/`) against the migrated OpenGL 4.6 Core runtime (`make_dist.ps1 -DeployToParentDist:$false`, compiling 47 `.dso` bytecode files and stripping raw `.cs` sources) and verified `dist/Archonita.exe` startup.

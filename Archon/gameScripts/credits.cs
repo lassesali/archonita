@@ -77,6 +77,8 @@ function creditsScreen() {
    creditsActionMap.push();
 
    startGame("Archon/data/levels/credits.t2d"); 
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.startTracking(); 
 
    if ($creditsReturnSchedule !$= "") cancel($creditsReturnSchedule);
    if ($creditsShutdownSchedule !$= "") cancel($creditsShutdownSchedule);

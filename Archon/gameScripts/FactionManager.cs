@@ -11,21 +11,21 @@ function FactionManager::onAdd(%this)
    $selectedEnemyFaction = %this.selectedEnemyFaction;
 
    // 1. Undead Legion
-   %this.name["undead"] = "Undead Legion";
+   %this.factionName["undead"] = "Undead Legion";
    %this.subtitle["undead"] = "The Risen Dead";
    %this.offset["undead"] = 4;
    %this.units["undead"] = "Skeleton Warrior (Lvl 1)" TAB "Skeleton Archer (Lvl 2)" TAB "Dread Zombie (Lvl 3)" TAB "Ancient Ghost (Lvl 4)";
    %this.description["undead"] = "Cursed skeletal warriors and vengeful spectres arising from ancient crypts. Wields Ghostly Touch and Disease afflictions.";
 
    // 2. Dragonfolk Faction
-   %this.name["dragonfolk"] = "Dragonfolk Faction";
+   %this.factionName["dragonfolk"] = "Dragonfolk Faction";
    %this.subtitle["dragonfolk"] = "The Scaled Clan";
    %this.offset["dragonfolk"] = 8;
    %this.units["dragonfolk"] = "Dragon Folk (Lvl 1)" TAB "Red Dragon (Lvl 2)" TAB "Air Dragon (Lvl 3)" TAB "Gold Dragon (Lvl 4)";
    %this.description["dragonfolk"] = "Proud reptilian warriors, flame-breathing drakes, and sovereign gold dragons commanding elemental breath and draconic might.";
 
    // 3. Gremlin Faction
-   %this.name["gremlin"] = "Gremlin Faction";
+   %this.factionName["gremlin"] = "Gremlin Faction";
    %this.subtitle["gremlin"] = "The Underworld Horde";
    %this.offset["gremlin"] = 12;
    %this.units["gremlin"] = "Gremlin (Lvl 1)" TAB "Horned One-Eye (Lvl 2)" TAB "Mistress (Lvl 3)" TAB "Demon (Lvl 4)";
@@ -87,27 +87,59 @@ function FactionManager::getEnemyFactionOffset(%this, %factionKey)
 function FactionManager::getEnemyFactionName(%this, %factionKey)
 {
    %key = (%factionKey !$= "") ? strlwr(trim(%factionKey)) : %this.getEnemyFaction();
-   if (%this.name[%key] !$= "")
-      return %this.name[%key];
+   if (%key !$= "undead" && %key !$= "dragonfolk" && %key !$= "gremlin")
+      %key = "undead";
+   if (isObject($LocalizationManager))
+      return $LocalizationManager.getText("faction_" @ %key @ "_name");
+   if (%this.factionName[%key] !$= "")
+      return %this.factionName[%key];
    return "Undead Legion";
 }
 
 function FactionManager::getEnemyFactionSubtitle(%this, %factionKey)
 {
    %key = (%factionKey !$= "") ? strlwr(trim(%factionKey)) : %this.getEnemyFaction();
+   if (%key !$= "undead" && %key !$= "dragonfolk" && %key !$= "gremlin")
+      %key = "undead";
+   if (isObject($LocalizationManager))
+      return $LocalizationManager.getText("faction_" @ %key @ "_subtitle");
    return %this.subtitle[%key];
 }
 
 function FactionManager::getEnemyFactionDescription(%this, %factionKey)
 {
    %key = (%factionKey !$= "") ? strlwr(trim(%factionKey)) : %this.getEnemyFaction();
+   if (%key !$= "undead" && %key !$= "dragonfolk" && %key !$= "gremlin")
+      %key = "undead";
+   if (isObject($LocalizationManager))
+      return $LocalizationManager.getText("faction_" @ %key @ "_desc");
    return %this.description[%key];
 }
 
 function FactionManager::getFactionUnitList(%this, %factionKey)
 {
    %key = (%factionKey !$= "") ? strlwr(trim(%factionKey)) : %this.getEnemyFaction();
+   if (%key !$= "undead" && %key !$= "dragonfolk" && %key !$= "gremlin")
+      %key = "undead";
+
+   if (isObject($LocalizationManager))
+   {
+      %baseId = %this.getEnemyFactionOffset(%key);
+      %u0 = $LocalizationManager.getText("unit_lvl_fmt", $LocalizationManager.getUnitName(%baseId + 0, ""), "1");
+      %u1 = $LocalizationManager.getText("unit_lvl_fmt", $LocalizationManager.getUnitName(%baseId + 1, ""), "2");
+      %u2 = $LocalizationManager.getText("unit_lvl_fmt", $LocalizationManager.getUnitName(%baseId + 2, ""), "3");
+      %u3 = $LocalizationManager.getText("unit_lvl_fmt", $LocalizationManager.getUnitName(%baseId + 3, ""), "4");
+      return %u0 TAB %u1 TAB %u2 TAB %u3;
+   }
    return %this.units[%key];
+}
+
+function FactionManager::refreshLocalization(%this)
+{
+   if (isObject($OptionsMenuGui))
+      $OptionsMenuGui.updateVisuals();
+   if (isObject($FactionSelectGui))
+      $FactionSelectGui.updateVisuals();
 }
 
 // Global Singleton Initialization

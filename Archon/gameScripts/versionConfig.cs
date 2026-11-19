@@ -9,9 +9,16 @@ function VersionConfig::onAdd(%this)
    %this.build = "";
    %this.version = "";
    %this.watermarkCtrl = "";
+   %this.stageShadowLabel = "";
+   %this.stageLabel = "";
+   %this.versionShadowLabel = "";
+   %this.versionLabel = "";
+   %this.buildShadowLabel = "";
+   %this.buildLabel = "";
 
    %this.loadConfig();
    %this.createWatermarkUI();
+   %this.refreshLocalization();
 }
 
 function VersionConfig::onRemove(%this)
@@ -201,67 +208,69 @@ function VersionConfig::createWatermarkUI(%this)
       MinExtent = "8 2";
       Visible = "1";
       isContainer = "1";
-
-      // Stage / Channel: 'Early Access' (Shadow + Pure White Foreground)
-      new GuiControl()
-      {
-         Profile = "WatermarkShadowHeaderProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "1 3";
-         Extent = "254 18";
-         text = %this.stage;
-      };
-      new GuiControl()
-      {
-         Profile = "WatermarkWhiteHeaderProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "0 2";
-         Extent = "254 18";
-         text = %this.stage;
-      };
-
-      // Version Number (Shadow + Pure White Foreground)
-      new GuiControl()
-      {
-         Profile = "WatermarkShadowSubProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "1 21";
-         Extent = "254 18";
-         text = "Version: " @ %this.version;
-      };
-      new GuiControl()
-      {
-         Profile = "WatermarkWhiteSubProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "0 20";
-         Extent = "254 18";
-         text = "Version: " @ %this.version;
-      };
-
-      // Build Number (Shadow + Pure White Foreground)
-      new GuiControl()
-      {
-         Profile = "WatermarkShadowSubProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "1 39";
-         Extent = "254 18";
-         text = "Build: " @ %this.build;
-      };
-      new GuiControl()
-      {
-         Profile = "WatermarkWhiteSubProfile";
-         HorizSizing = "width";
-         VertSizing = "bottom";
-         Position = "0 38";
-         Extent = "254 18";
-         text = "Build: " @ %this.build;
-      };
    };
+
+   %this.stageShadowLabel = new GuiControl()
+   {
+      Profile = "WatermarkShadowHeaderProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "1 3";
+      Extent = "254 18";
+      text = %this.stage;
+   };
+   %this.stageLabel = new GuiControl()
+   {
+      Profile = "WatermarkWhiteHeaderProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "0 2";
+      Extent = "254 18";
+      text = %this.stage;
+   };
+   %this.versionShadowLabel = new GuiControl()
+   {
+      Profile = "WatermarkShadowSubProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "1 21";
+      Extent = "254 18";
+      text = "Version: " @ %this.version;
+   };
+   %this.versionLabel = new GuiControl()
+   {
+      Profile = "WatermarkWhiteSubProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "0 20";
+      Extent = "254 18";
+      text = "Version: " @ %this.version;
+   };
+   %this.buildShadowLabel = new GuiControl()
+   {
+      Profile = "WatermarkShadowSubProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "1 39";
+      Extent = "254 18";
+      text = "Build: " @ %this.build;
+   };
+   %this.buildLabel = new GuiControl()
+   {
+      Profile = "WatermarkWhiteSubProfile";
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "0 38";
+      Extent = "254 18";
+      text = "Build: " @ %this.build;
+   };
+
+   %container.add(%this.stageShadowLabel);
+   %container.add(%this.stageLabel);
+   %container.add(%this.versionShadowLabel);
+   %container.add(%this.versionLabel);
+   %container.add(%this.buildShadowLabel);
+   %container.add(%this.buildLabel);
 
    %this.watermarkCtrl = %container;
 
@@ -270,6 +279,31 @@ function VersionConfig::createWatermarkUI(%this)
       mainScreenGui.add(%container);
       mainScreenGui.pushToBack(%container);
    }
+}
+
+function VersionConfig::refreshLocalization(%this)
+{
+   if (!isObject($LocalizationManager))
+      return;
+
+   %stageText = %this.stage;
+   if (strlwr(trim(%this.stage)) $= "early access")
+      %stageText = $LocalizationManager.getText("watermark_stage_ea");
+   %verText = $LocalizationManager.getText("watermark_version", %this.version);
+   %buildText = $LocalizationManager.getText("watermark_build", %this.build);
+
+   if (isObject(%this.stageShadowLabel))
+      %this.stageShadowLabel.setText(%stageText);
+   if (isObject(%this.stageLabel))
+      %this.stageLabel.setText(%stageText);
+   if (isObject(%this.versionShadowLabel))
+      %this.versionShadowLabel.setText(%verText);
+   if (isObject(%this.versionLabel))
+      %this.versionLabel.setText(%verText);
+   if (isObject(%this.buildShadowLabel))
+      %this.buildShadowLabel.setText(%buildText);
+   if (isObject(%this.buildLabel))
+      %this.buildLabel.setText(%buildText);
 }
 
 function VersionConfig::showWatermark(%this, %show)

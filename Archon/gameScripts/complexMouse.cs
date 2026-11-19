@@ -387,6 +387,9 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
             mouseOverActionIcons(%mod, %worldPos);
             
          }
+
+         if (isObject($UnitStatsHud))
+            $UnitStatsHud.updateHover(%worldPos);
          
 
 }
@@ -434,6 +437,9 @@ function sceneWindow2D::onMouseDragged( %this, %mod, %worldPos, %mouseClicks )
             mouseOverMovementGrid(%mod, %worldPos);
             mouseOverActionIcons(%mod, %worldPos);
          }
+
+         if (isObject($UnitStatsHud))
+            $UnitStatsHud.updateHover(%worldPos);
 
 }
 
@@ -619,7 +625,8 @@ function sceneWindow2D::onMouseDown( %this, %mod, %worldPos, %mouseClicks )
 
         if ((isObject($PauseMenuManager) && $PauseMenuManager.isPaused) ||
             (isObject($OptionsMenuGui) && $OptionsMenuGui.isVisible()) ||
-            (isObject($FactionSelectGui) && $FactionSelectGui.isVisible()))
+            (isObject($FactionSelectGui) && $FactionSelectGui.isVisible()) ||
+            (isObject($BattleSummaryGui) && $BattleSummaryGui.isVisible()))
             return;
 
         if (getGameState() == $gameIntroState) 
@@ -899,8 +906,9 @@ function sceneWindow2D::onMouseEnter( %this, %mod, %worldPos, %mouseClicks )
 
 function sceneWindow2D::onMouseLeave( %this, %mod, %worldPos, %mouseClicks )
 {
+        if (isObject($UnitStatsHud))
+                $UnitStatsHud.hideTooltip();
 
-            
         if($debugMsg::mouse::callBacks)
                 echo("Mouse Left... Go Get It!");
                 

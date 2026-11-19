@@ -26,6 +26,7 @@ function PauseMenuManager::onAdd(%this)
 
    %this.createProfiles();
    %this.createControls();
+   %this.refreshLocalization();
 }
 
 function PauseMenuManager::onRemove(%this)
@@ -289,12 +290,33 @@ function PauseMenuManager::togglePauseMenu(%this)
       %this.openPauseMenu();
 }
 
+function PauseMenuManager::refreshLocalization(%this)
+{
+   if (!isObject($LocalizationManager))
+      return;
+
+   if (isObject(%this.headerLabel))
+      %this.headerLabel.setText($LocalizationManager.getText("pause_title"));
+   if (isObject(%this.btnResume))
+      %this.btnResume.setText($LocalizationManager.getText("pause_resume"));
+   if (isObject(%this.btnOptions))
+      %this.btnOptions.setText($LocalizationManager.getText("pause_options"));
+   if (isObject(%this.btnMainMenu))
+      %this.btnMainMenu.setText($LocalizationManager.getText("pause_title_screen"));
+   if (isObject(%this.btnQuit))
+      %this.btnQuit.setText($LocalizationManager.getText("pause_quit"));
+}
+
 function PauseMenuManager::openPauseMenu(%this)
 {
    if (!isObject(%this.backdropCtrl))
       %this.createControls();
 
    %this.isPaused = true;
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.hideTooltip();
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
 
    if (isObject(TurnManager) && isEventPending(TurnManager.turnTimerEvent))
    {
@@ -306,6 +328,7 @@ function PauseMenuManager::openPauseMenu(%this)
    if (isObject(t2dScene))
       t2dScene.setScenePause(true);
 
+   %this.refreshLocalization();
    %this.reanchor();
    %this.backdropCtrl.setVisible(true);
    mainScreenGui.pushToBack(%this.backdropCtrl);
@@ -327,6 +350,11 @@ function PauseMenuManager::onResumeClicked(%this)
       %this.wasCountdownRunning = false;
       TurnManager.turnTimerEvent = TurnManager.schedule(1000, "updateCountdownTimer");
    }
+
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.refreshAll();
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
 }
 
 function PauseMenuManager::onOptionsClicked(%this)
@@ -374,6 +402,10 @@ function PauseMenuManager::suspendAndReturnToTitle(%this)
 
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(false);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.showBadges(false);
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.stopTracking();
 
    $GameSession::hasActiveSession = true;
    mainmenuScreen();
@@ -447,6 +479,10 @@ function PauseMenuManager::resumeToBoardFromTitle(%this)
 
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(true);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.showBadges(true);
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.startTracking();
 
    return true;
 }

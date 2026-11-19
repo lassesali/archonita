@@ -8,6 +8,21 @@ function TurnManager::onAdd(%this)
    %this.turnTimerEvent = 0;
    %this.cardDealEvent = 0;
    %this.endBattleEvent = 0;
+   %this.lastBattleOutcome = "VICTORY";
+   %this.lastBattleIsVictory = true;
+   %this.lastBattleTurns = 0;
+   %this.lastPlayerSurviving = 0;
+   %this.lastPlayerTotal = 0;
+   %this.lastPlayerCasualties = 0;
+   %this.lastPlayerSurvivingHP = 0;
+   %this.lastEnemySurviving = 0;
+   %this.lastEnemyTotal = 0;
+   %this.lastEnemyCasualties = 0;
+   %this.lastEnemySurvivingHP = 0;
+   %this.lastSurvivingUnitCount = 0;
+   %this.lastEnemyFactionName = "Undead Legion";
+   %this.lastHeroClassName = "Warrior";
+   %this.lastSurvivingTallyText = "";
 }
 
 function TurnManager::onRemove(%this)
@@ -54,6 +69,19 @@ function TurnManager::getGameState(%this)
 
 function TurnManager::initNewGame(%this)
 {
+   if (isEventPending(%this.endBattleEvent))
+   {
+      cancel(%this.endBattleEvent);
+      %this.endBattleEvent = 0;
+   }
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.show(false);
+   if (isObject($UnitStatsHud))
+   {
+      $UnitStatsHud.clearBadges();
+      $UnitStatsHud.showBadges(true);
+   }
+
    if (isObject(game))
       game.reset();
    if (isObject(HeroGroup))
@@ -117,14 +145,20 @@ function TurnManager::updateCountdownTimer(%this)
 {
    game.subGameTimer(1);
    secondCounter.setFrame(game.getGameTimer());
+   if (isObject(secondCounter))
+      secondCounter.setBlendAlpha(0);
 
    if (game.getGameTimer() == 0) {
       secondText.setVisible(false);
       secondCounter.setVisible(false);
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
       %this.setGameState($gameTimerBattleState);
       updateActionIcons();
       %this.initGameForBattle();
    } else {
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
       %this.turnTimerEvent = %this.schedule(1000, "updateCountdownTimer");
       $secondSound = playArchonSound(ambient4Audio);
    }
@@ -206,14 +240,17 @@ function TurnManager::updateActionIcons(%this)
 
 function TurnManager::areUnitsAlive(%this)
 {
-   %playerVector = 0;
-   %aiVector = 0;
+   %playerVector = "";
+   %aiVector = "";
    for (%i = 1; %i <= game.getPieceCount(); %i++)
    {
+      if (!isObject($nappulaSprite[%i]))
+         continue;
+
       if ($nappulaSprite[%i].groupid == 0 && $nappulaSprite[%i].alive == 1)
       {
-         if (%playerVector == 0) 
-         { 
+         if (%playerVector $= "" || %playerVector == 0)
+         {
             %playerVector = %i;
          }
          else
@@ -221,10 +258,10 @@ function TurnManager::areUnitsAlive(%this)
             %playerVector = %playerVector SPC %i;
          }
       }
-      
+
       if ($nappulaSprite[%i].groupid == 1 && $nappulaSprite[%i].alive == 1)
       {
-         if (%aiVector == 0) 
+         if (%aiVector $= "" || %aiVector == 0)
          {
             %aiVector = %i;
          }
@@ -356,6 +393,9 @@ function TurnManager::nextTurn(%this)
       %this.distributeTurnQueue();
    }
 
+   if (game.getState() == $gameEndState)
+      return;
+
    $nappulaSprite[game.getSelectedPiece()].hasMoved = 0;
    $nappulaSprite[game.getSelectedPiece()].hasDoneAction = 0;
    
@@ -388,6 +428,8 @@ function TurnManager::nextTurn(%this)
             $nappulaSprite[%pieceId].hasDoneAction = 1;
             if (isObject(SpellEffectManager))
                SpellEffectManager.spawnEffectOnPiece($nappulaSprite[%pieceId], "Archon:spell_disease");
+            if (isObject($UnitStatsHud))
+               $UnitStatsHud.refreshAll();
             sceneWindow2D.setUseWindowMouseEvents(false);
             schedule(800, 0, "doDefence", game.getTurn());
             return;
@@ -399,6 +441,8 @@ function TurnManager::nextTurn(%this)
             sceneWindow2D.setUseWindowMouseEvents(false);
          }
          updateMagicButtonParticleState();
+         if (isObject($UnitStatsHud))
+            $UnitStatsHud.refreshAll();
       }
    }
    else
@@ -408,23 +452,161 @@ function TurnManager::nextTurn(%this)
    }
 }
 
+function TurnManager::calculateBattleSummary(%this)
+{
+   for (%k = 0; %k < %this.lastSurvivingUnitCount; %k++)
+      %this.survivingUnit[%k] = "";
+
+   %pieceCount = isObject(game) ? game.getPieceCount() : 0;
+   %playerTotal = 0;
+   %playerSurviving = 0;
+   %playerSurvivingHP = 0;
+   %enemyTotal = 0;
+   %enemySurviving = 0;
+   %enemySurvivingHP = 0;
+   %survivingCount = 0;
+
+   for (%i = 1; %i <= %pieceCount; %i++)
+   {
+      %piece = $nappulaSprite[%i];
+      if (!isObject(%piece))
+         continue;
+
+      if (%piece.groupid == 0)
+      {
+         %playerTotal++;
+         if (%piece.alive == 1)
+         {
+            %playerSurviving++;
+            %hp = (%piece.hp > 0) ? %piece.hp : 0;
+            %playerSurvivingHP += %hp;
+            %this.survivingUnit[%survivingCount] = %piece;
+            %survivingCount++;
+         }
+      }
+      else if (%piece.groupid == 1)
+      {
+         %enemyTotal++;
+         if (%piece.alive == 1)
+         {
+            %enemySurviving++;
+            %hp = (%piece.hp > 0) ? %piece.hp : 0;
+            %enemySurvivingHP += %hp;
+            %this.survivingUnit[%survivingCount] = %piece;
+            %survivingCount++;
+         }
+      }
+   }
+
+   %isVictory = (%playerSurviving > 0 && (%enemySurviving == 0 || %playerSurviving >= %enemySurviving));
+   %outcome = %isVictory ? "VICTORY" : "DEFEAT";
+   %turns = isObject(game) ? game.getTurn() : 0;
+   %enemyFactionName = isObject($FactionManager) ? $FactionManager.getEnemyFactionName() : "Undead Legion";
+
+   %heroClassId = 0;
+   if (isObject(HeroGroup) && HeroGroup.getCount() > 0 && isObject(HeroGroup.getObject(0)))
+      %heroClassId = HeroGroup.getObject(0).getHeroClass();
+   %heroClassName = (%heroClassId == 1) ? "Mage" : "Warrior";
+
+   %tallyText = "";
+   if (%survivingCount == 0)
+   {
+      %tallyText = isObject($LocalizationManager) ? $LocalizationManager.getText("summary_none_short") : "None";
+   }
+   else
+   {
+      for (%k = 0; %k < %survivingCount; %k++)
+      {
+         %unit = %this.survivingUnit[%k];
+         %row = isObject($BattleSummaryGui)
+            ? $BattleSummaryGui.formatSurvivingUnitRow(%unit)
+            : (%unit.name @ " (HP: " @ %unit.hp @ ")");
+         %tallyText = (%tallyText $= "") ? %row : (%tallyText @ "\n" @ %row);
+      }
+   }
+
+   %this.lastBattleOutcome = %outcome;
+   %this.lastBattleIsVictory = %isVictory;
+   %this.lastBattleTurns = %turns;
+   %this.lastPlayerSurviving = %playerSurviving;
+   %this.lastPlayerTotal = %playerTotal;
+   %this.lastPlayerCasualties = (%playerTotal > %playerSurviving) ? (%playerTotal - %playerSurviving) : 0;
+   %this.lastPlayerSurvivingHP = %playerSurvivingHP;
+   %this.lastEnemySurviving = %enemySurviving;
+   %this.lastEnemyTotal = %enemyTotal;
+   %this.lastEnemyCasualties = (%enemyTotal > %enemySurviving) ? (%enemyTotal - %enemySurviving) : 0;
+   %this.lastEnemySurvivingHP = %enemySurvivingHP;
+   %this.lastSurvivingUnitCount = %survivingCount;
+   %this.lastEnemyFactionName = %enemyFactionName;
+   %this.lastHeroClassName = %heroClassName;
+   %this.lastSurvivingTallyText = %tallyText;
+
+   return %outcome;
+}
+
+function TurnManager::getLastBattleOutcome(%this)      { return %this.lastBattleOutcome; }
+function TurnManager::getPlayerSurvivingCount(%this)  { return %this.lastPlayerSurviving; }
+function TurnManager::getPlayerTotalCount(%this)      { return %this.lastPlayerTotal; }
+function TurnManager::getEnemySurvivingCount(%this)   { return %this.lastEnemySurviving; }
+function TurnManager::getEnemyTotalCount(%this)       { return %this.lastEnemyTotal; }
+function TurnManager::getSurvivingUnitCount(%this)    { return %this.lastSurvivingUnitCount; }
+function TurnManager::getSurvivingUnitTallyText(%this){ return %this.lastSurvivingTallyText; }
+
 function TurnManager::endBattle(%this)
 {
+   if (isEventPending(%this.endBattleEvent))
+   {
+      cancel(%this.endBattleEvent);
+      %this.endBattleEvent = 0;
+   }
+   if (isEventPending(%this.turnTimerEvent))
+   {
+      cancel(%this.turnTimerEvent);
+      %this.turnTimerEvent = 0;
+   }
+   if (isEventPending(%this.cardDealEvent))
+   {
+      cancel(%this.cardDealEvent);
+      %this.cardDealEvent = 0;
+   }
+
+   if (isObject(game))
+      game.setState($gameEndState);
+
    $GameSession::hasActiveSession = false;
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(false);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.clearBadges();
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
    if (isObject(CombatEngine))
    {
       CombatEngine.cancelDiceRoll();
       CombatEngine.cleanupProjectiles();
    }
-   sceneWindow2D.setUseWindowMouseEvents(false);
+   if (isObject(TacticalAI))
+      TacticalAI.cancelPendingEvents();
+   if (isObject(BoardManager))
+      BoardManager.deleteGrids(1);
+   if (isObject(sceneWindow2D))
+      sceneWindow2D.setUseWindowMouseEvents(false);
    updateMagicButtonParticleState();
    if (isObject(FloatingTextManager))
       FloatingTextManager.clearAll();
    if (isObject(SpellEffectManager))
       SpellEffectManager.clearAll();
-   %this.endBattleEvent = schedule(2000, 0, mainmenuScreen);
+
+   %this.calculateBattleSummary();
+
+   if (isObject($BattleSummaryGui) && isObject(mainScreenGui))
+   {
+      $BattleSummaryGui.showSummary();
+   }
+   else
+   {
+      %this.endBattleEvent = schedule(2000, 0, mainmenuScreen);
+   }
 }
 
 //---------------------------------------------------------------------------------------------

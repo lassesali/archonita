@@ -26,12 +26,16 @@ function OptionsMenuGui::onAdd(%this)
    %this.resLabel = "";
    %this.modeLabel = "";
    %this.audioLabel = "";
+   %this.factionLabel = "";
+   %this.langLabel = "";
 
    for (%i = 0; %i < 5; %i++)
    {
       %this.aspectBtn[%i] = "";
       %this.resBtn[%i] = "";
    }
+   for (%k = 0; %k < 6; %k++)
+      %this.langBtn[%k] = "";
 
    %this.btnWindowed = "";
    %this.btnFullscreen = "";
@@ -42,6 +46,7 @@ function OptionsMenuGui::onAdd(%this)
 
    %this.createProfiles();
    %this.createControls();
+   %this.refreshLocalization();
 }
 
 function OptionsMenuGui::onRemove(%this)
@@ -224,7 +229,7 @@ function OptionsMenuGui::createControls(%this)
    }
 
    %panelW = 540;
-   %panelH = 486;
+   %panelH = 532;
    %panelX = mFloor((%mainW - %panelW) / 2);
    %panelY = mFloor((%mainH - %panelH) / 2);
 
@@ -251,8 +256,8 @@ function OptionsMenuGui::createControls(%this)
    %this.headerLabel = new GuiControl()
    {
       Profile = %this.headerProfile;
-      Position = "20 14";
-      Extent = "500 30";
+      Position = "20 12";
+      Extent = "500 28";
       Text = "SETTINGS & FACTION OPTIONS";
    };
    %this.panelCtrl.add(%this.headerLabel);
@@ -261,7 +266,7 @@ function OptionsMenuGui::createControls(%this)
    %this.aspectLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 54";
+      Position = "24 48";
       Extent = "492 22";
       Text = "Aspect Ratio:";
    };
@@ -275,8 +280,8 @@ function OptionsMenuGui::createControls(%this)
       %this.aspectBtn[%i] = new GuiButtonCtrl()
       {
          Profile = %this.btnNormalProfile;
-         Position = %bx SPC "80";
-         Extent = "92 32";
+         Position = %bx SPC "72";
+         Extent = "92 30";
          Text = %aName;
          Command = "$OptionsMenuGui.onSelectAspect(\"" @ %aName @ "\");";
       };
@@ -287,7 +292,7 @@ function OptionsMenuGui::createControls(%this)
    %this.resLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 124";
+      Position = "24 110";
       Extent = "492 22";
       Text = "Resolution:";
    };
@@ -298,12 +303,12 @@ function OptionsMenuGui::createControls(%this)
       %col = %j % 3;
       %row = mFloor(%j / 3);
       %rx = 24 + (%col * 168);
-      %ry = 150 + (%row * 38);
+      %ry = 134 + (%row * 36);
       %this.resBtn[%j] = new GuiButtonCtrl()
       {
          Profile = %this.btnNormalProfile;
          Position = %rx SPC %ry;
-         Extent = "156 32";
+         Extent = "156 30";
          Text = "";
          Command = "$OptionsMenuGui.onSelectResolutionIndex(" @ %j @ ");";
       };
@@ -314,7 +319,7 @@ function OptionsMenuGui::createControls(%this)
    %this.modeLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 234";
+      Position = "24 210";
       Extent = "492 22";
       Text = "Display Mode:";
    };
@@ -323,8 +328,8 @@ function OptionsMenuGui::createControls(%this)
    %this.btnWindowed = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "24 260";
-      Extent = "240 32";
+      Position = "24 234";
+      Extent = "240 30";
       Text = "WINDOWED";
       Command = "$OptionsMenuGui.onSelectFullScreen(0);";
    };
@@ -333,8 +338,8 @@ function OptionsMenuGui::createControls(%this)
    %this.btnFullscreen = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "276 260";
-      Extent = "240 32";
+      Position = "276 234";
+      Extent = "240 30";
       Text = "FULLSCREEN";
       Command = "$OptionsMenuGui.onSelectFullScreen(1);";
    };
@@ -344,7 +349,7 @@ function OptionsMenuGui::createControls(%this)
    %this.audioLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 296";
+      Position = "24 274";
       Extent = "492 22";
       Text = "Audio Controls:";
    };
@@ -353,8 +358,8 @@ function OptionsMenuGui::createControls(%this)
    %this.btnOptSFX = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "24 322";
-      Extent = "240 32";
+      Position = "24 298";
+      Extent = "240 30";
       Text = "SFX: ON";
       Command = "$OptionsMenuGui.onToggleSFX();";
    };
@@ -363,8 +368,8 @@ function OptionsMenuGui::createControls(%this)
    %this.btnOptMusic = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "276 322";
-      Extent = "240 32";
+      Position = "276 298";
+      Extent = "240 30";
       Text = "MUSIC: ON";
       Command = "$OptionsMenuGui.onToggleMusic();";
    };
@@ -374,7 +379,7 @@ function OptionsMenuGui::createControls(%this)
    %this.factionLabel = new GuiControl()
    {
       Profile = %this.sectionProfile;
-      Position = "24 362";
+      Position = "24 338";
       Extent = "492 22";
       Text = "Enemy Faction:";
    };
@@ -383,8 +388,8 @@ function OptionsMenuGui::createControls(%this)
    %this.factionBtn[0] = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "24 388";
-      Extent = "156 32";
+      Position = "24 362";
+      Extent = "156 30";
       Text = "UNDEAD";
       Command = "$OptionsMenuGui.onSelectFaction(\"undead\");";
    };
@@ -393,8 +398,8 @@ function OptionsMenuGui::createControls(%this)
    %this.factionBtn[1] = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "192 388";
-      Extent = "156 32";
+      Position = "192 362";
+      Extent = "156 30";
       Text = "DRAGONFOLK";
       Command = "$OptionsMenuGui.onSelectFaction(\"dragonfolk\");";
    };
@@ -403,18 +408,46 @@ function OptionsMenuGui::createControls(%this)
    %this.factionBtn[2] = new GuiButtonCtrl()
    {
       Profile = %this.btnNormalProfile;
-      Position = "360 388";
-      Extent = "156 32";
+      Position = "360 362";
+      Extent = "156 30";
       Text = "GREMLINS";
       Command = "$OptionsMenuGui.onSelectFaction(\"gremlin\");";
    };
    %this.panelCtrl.add(%this.factionBtn[2]);
 
-   // 6. Apply & Close Buttons
+   // 6. Language Selection Section (FI, EN, FR, ES, PT-BR, DE)
+   %this.langLabel = new GuiControl()
+   {
+      Profile = %this.sectionProfile;
+      Position = "24 402";
+      Extent = "492 22";
+      Text = "Language:";
+   };
+   %this.panelCtrl.add(%this.langLabel);
+
+   %langCodes = "fi" TAB "en" TAB "fr" TAB "es" TAB "pt-BR" TAB "de";
+   %langShortNames = "FI" TAB "EN" TAB "FR" TAB "ES" TAB "PT-BR" TAB "DE";
+   for (%k = 0; %k < 6; %k++)
+   {
+      %lc = getField(%langCodes, %k);
+      %ls = getField(%langShortNames, %k);
+      %lx = 24 + (%k * 83);
+      %this.langBtn[%k] = new GuiButtonCtrl("OptionsMenuLangBtn_" @ %k)
+      {
+         Profile = %this.btnNormalProfile;
+         Position = %lx SPC "426";
+         Extent = "77 30";
+         Text = %ls;
+         Command = "$OptionsMenuGui.onSelectLanguage(\"" @ %lc @ "\");";
+      };
+      %this.panelCtrl.add(%this.langBtn[%k]);
+   }
+
+   // 7. Apply & Close Buttons
    %this.btnApply = new GuiButtonCtrl(OptionsMenuApplyBtn)
    {
       Profile = %this.btnActionProfile;
-      Position = "24 434";
+      Position = "24 476";
       Extent = "240 36";
       Text = "APPLY VIDEO SETTINGS";
       Command = "$OptionsMenuGui.onApplyClicked();";
@@ -424,7 +457,7 @@ function OptionsMenuGui::createControls(%this)
    %this.btnClose = new GuiButtonCtrl(OptionsMenuCloseBtn)
    {
       Profile = %this.btnNormalProfile;
-      Position = "276 434";
+      Position = "276 476";
       Extent = "240 36";
       Text = "CLOSE";
       Command = "$OptionsMenuGui.onCloseClicked();";
@@ -473,21 +506,67 @@ function OptionsMenuGui::show(%this, %visible)
 
    if (%visible)
    {
+      if (isObject($UnitStatsHud))
+         $UnitStatsHud.hideTooltip();
       if (isObject($ResolutionManager))
       {
          %this.pendingAspect = $ResolutionManager.currentAspectRatio;
          %this.pendingResolution = $ResolutionManager.currentResolution;
          %this.pendingFullScreen = $ResolutionManager.currentFullScreen;
       }
+      %this.refreshLocalization();
       %this.updateVisuals();
       %this.reanchor();
       %this.backdropCtrl.setVisible(true);
       mainScreenGui.pushToBack(%this.backdropCtrl);
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
    }
    else
    {
       %this.backdropCtrl.setVisible(false);
+      if (isObject($UnitStatsHud))
+         $UnitStatsHud.refreshAll();
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
    }
+}
+
+function OptionsMenuGui::refreshLocalization(%this)
+{
+   if (!isObject($LocalizationManager))
+      return;
+
+   if (isObject(%this.headerLabel))
+      %this.headerLabel.setText($LocalizationManager.getText("options_title"));
+   if (isObject(%this.aspectLabel))
+      %this.aspectLabel.setText($LocalizationManager.getText("options_aspect"));
+   if (isObject(%this.resLabel))
+      %this.resLabel.setText($LocalizationManager.getText("options_resolution"));
+   if (isObject(%this.modeLabel))
+      %this.modeLabel.setText($LocalizationManager.getText("options_mode"));
+   if (isObject(%this.btnWindowed))
+      %this.btnWindowed.setText($LocalizationManager.getText("options_windowed"));
+   if (isObject(%this.btnFullscreen))
+      %this.btnFullscreen.setText($LocalizationManager.getText("options_fullscreen"));
+   if (isObject(%this.audioLabel))
+      %this.audioLabel.setText($LocalizationManager.getText("options_audio"));
+   if (isObject(%this.factionLabel))
+      %this.factionLabel.setText($LocalizationManager.getText("options_faction"));
+   if (isObject(%this.factionBtn[0]))
+      %this.factionBtn[0].setText($LocalizationManager.getText("faction_short_undead"));
+   if (isObject(%this.factionBtn[1]))
+      %this.factionBtn[1].setText($LocalizationManager.getText("faction_short_dragonfolk"));
+   if (isObject(%this.factionBtn[2]))
+      %this.factionBtn[2].setText($LocalizationManager.getText("faction_short_gremlin"));
+   if (isObject(%this.langLabel))
+      %this.langLabel.setText($LocalizationManager.getText("options_language"));
+   if (isObject(%this.btnApply))
+      %this.btnApply.setText($LocalizationManager.getText("options_apply"));
+   if (isObject(%this.btnClose))
+      %this.btnClose.setText($LocalizationManager.getText("options_close"));
+
+   %this.updateVisuals();
 }
 
 function OptionsMenuGui::updateVisuals(%this)
@@ -542,15 +621,20 @@ function OptionsMenuGui::updateVisuals(%this)
    %sfxMuted = (isObject($AudioManager) && $AudioManager.isSFXMuted());
    %musMuted = (isObject($AudioManager) && $AudioManager.isMusicMuted());
 
+   %sfxOnText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_sfx_on") : "SFX: ON";
+   %sfxMutedText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_sfx_muted") : "SFX: MUTED";
+   %musOnText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_music_on") : "MUSIC: ON";
+   %musMutedText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_music_muted") : "MUSIC: MUTED";
+
    if (isObject(%this.btnOptSFX))
    {
-      %this.btnOptSFX.setText(%sfxMuted ? "SFX: MUTED" : "SFX: ON");
+      %this.btnOptSFX.setText(%sfxMuted ? %sfxMutedText : %sfxOnText);
       %this.btnOptSFX.Profile = (%sfxMuted ? %this.btnNormalProfile : %this.btnSelectedProfile);
    }
 
    if (isObject(%this.btnOptMusic))
    {
-      %this.btnOptMusic.setText(%musMuted ? "MUSIC: MUTED" : "MUSIC: ON");
+      %this.btnOptMusic.setText(%musMuted ? %musMutedText : %musOnText);
       %this.btnOptMusic.Profile = (%musMuted ? %this.btnNormalProfile : %this.btnSelectedProfile);
    }
 
@@ -567,6 +651,26 @@ function OptionsMenuGui::updateVisuals(%this)
          }
       }
    }
+
+   %curLang = isObject($LocalizationManager) ? $LocalizationManager.getLanguage() : "fi";
+   %langCodes = "fi" TAB "en" TAB "fr" TAB "es" TAB "pt-BR" TAB "de";
+   for (%k = 0; %k < 6; %k++)
+   {
+      if (isObject(%this.langBtn[%k]))
+      {
+         %isLSel = (getField(%langCodes, %k) $= %curLang);
+         %this.langBtn[%k].Profile = (%isLSel ? %this.btnSelectedProfile : %this.btnNormalProfile);
+      }
+   }
+}
+
+function OptionsMenuGui::onSelectLanguage(%this, %langCode)
+{
+   playArchonSound(fxSword);
+   if (isObject($LocalizationManager))
+      $LocalizationManager.setLanguage(%langCode, false);
+   else
+      %this.updateVisuals();
 }
 
 function OptionsMenuGui::onSelectFaction(%this, %factionKey)

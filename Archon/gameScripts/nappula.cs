@@ -6,13 +6,21 @@
 function Sprite::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
+   {
       setPieceState(%this, $olentoStandState[%this.creatureID]);
+      if (isObject($UnitStatsHud))
+         $UnitStatsHud.refreshAll();
+   }
 }
 
 function SceneObject::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
+   {
       setPieceState(%this, $olentoStandState[%this.creatureID]);
+      if (isObject($UnitStatsHud))
+         $UnitStatsHud.refreshAll();
+   }
 }
 
 //---------------------------------------------------------------------------------------------
@@ -21,7 +29,11 @@ function SceneObject::onPositionTarget(%this, %mod, %worldPos)
 function Piece::onPositionTarget(%this, %mod, %worldPos)
 {
    if (%this.creatureID !$= "")
+   {
       setPieceState(%this, $olentoStandState[%this.creatureID]);
+      if (isObject($UnitStatsHud))
+         $UnitStatsHud.refreshAll();
+   }
 }
 
 function Piece::onMoveToComplete(%this)

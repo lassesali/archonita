@@ -1,6 +1,8 @@
 # Build and distribution output
 gh_pages/*
 gh_pages/
+gh-pages/*
+gh-pages/
 node_modules/
 package-lock.json
 package.json

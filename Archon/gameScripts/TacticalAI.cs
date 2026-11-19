@@ -10,14 +10,28 @@ function TacticalAI::onAdd(%this)
    %this.aiMoveFollowupEvent = 0;
 }
 
-function TacticalAI::onRemove(%this)
+function TacticalAI::cancelPendingEvents(%this)
 {
    if (isEventPending(%this.aiAttackEvent))
+   {
       cancel(%this.aiAttackEvent);
+      %this.aiAttackEvent = 0;
+   }
    if (isEventPending(%this.aiDefenseEvent))
+   {
       cancel(%this.aiDefenseEvent);
+      %this.aiDefenseEvent = 0;
+   }
    if (isEventPending(%this.aiMoveFollowupEvent))
+   {
       cancel(%this.aiMoveFollowupEvent);
+      %this.aiMoveFollowupEvent = 0;
+   }
+}
+
+function TacticalAI::onRemove(%this)
+{
+   %this.cancelPendingEvents();
 }
 
 function TacticalAI::createAIPieces(%this)
@@ -46,8 +60,103 @@ function TacticalAI::createAIPieces(%this)
    }
 }
 
+function TacticalAI::scheduleDefense(%this, %delayMs)
+{
+   if (isEventPending(%this.aiDefenseEvent))
+      cancel(%this.aiDefenseEvent);
+   %this.aiDefenseEvent = schedule(%delayMs, 0, "doDefence", game.getTurn());
+}
+
+function TacticalAI::findBestAdvanceTile(%this, %pieceId, %north, %south, %west, %east)
+{
+   if (!isObject(game) || %pieceId <= 0 || !isObject($nappulaSprite[%pieceId]))
+      return "";
+
+   %piece = $nappulaSprite[%pieceId];
+   %pos = %piece.positionOnBoard;
+   %posx = (%pos !$= "") ? getWord(%pos, 0) : %piece.boardX;
+   %posy = (%pos !$= "") ? getWord(%pos, 1) : %piece.boardY;
+
+   %candCount = 0;
+   if (%south == 1)
+   {
+      %candX[%candCount] = %posx;
+      %candY[%candCount] = %posy + 1;
+      %candCount++;
+   }
+   if (%east == 1)
+   {
+      %candX[%candCount] = %posx + 1;
+      %candY[%candCount] = %posy;
+      %candCount++;
+   }
+   if (%west == 1)
+   {
+      %candX[%candCount] = %posx - 1;
+      %candY[%candCount] = %posy;
+      %candCount++;
+   }
+   if (%north == 1)
+   {
+      %candX[%candCount] = %posx;
+      %candY[%candCount] = %posy - 1;
+      %candCount++;
+   }
+
+   if (%candCount == 0)
+      return "";
+
+   %opponentGroup = game.getActiveOpponent();
+   %pieceCount = game.getPieceCount();
+   %isRanged = (%piece.missile == 1);
+
+   %bestScore = 999999;
+   %bestTile = "";
+
+   for (%c = 0; %c < %candCount; %c++)
+   {
+      %cx = %candX[%c];
+      %cy = %candY[%c];
+      %candMinScore = 999999;
+      %foundOpponent = false;
+
+      for (%i = 1; %i <= %pieceCount; %i++)
+      {
+         %enemy = $nappulaSprite[%i];
+         if (!isObject(%enemy) || %enemy.alive != 1 || %enemy.groupid != %opponentGroup)
+            continue;
+
+         %foundOpponent = true;
+         %epos = %enemy.positionOnBoard;
+         %ex = (%epos !$= "") ? getWord(%epos, 0) : %enemy.boardX;
+         %ey = (%epos !$= "") ? getWord(%epos, 1) : %enemy.boardY;
+
+         %dx = mAbs(%cx - %ex);
+         %dy = mAbs(%cy - %ey);
+         %manhattan = %dx + %dy;
+         %score = (%manhattan * 10) + %dy;
+         if (%isRanged && (%dx == 0 || %dy == 0))
+            %score -= 5;
+
+         if (%score < %candMinScore)
+            %candMinScore = %score;
+      }
+
+      if (%foundOpponent && %candMinScore < %bestScore)
+      {
+         %bestScore = %candMinScore;
+         %bestTile = %cx SPC %cy;
+      }
+   }
+
+   return %bestTile;
+}
+
 function TacticalAI::evaluateTacticalMoves(%this)
 {
+   if (isObject(game) && $gameEndState !$= "" && game.getState() == $gameEndState)
+      return;
+
    deleteGrids(0);
   
    %pieceId = game.getSelectedPiece();
@@ -397,43 +506,61 @@ function TacticalAI::evaluateTacticalMoves(%this)
                   }
                   else
                   {
-                     %this.aiDefenseEvent = schedule(500, 0, "doDefence", game.getTurn());
+                     %this.scheduleDefense(500);
                   }
                }
                else
                {
-                  %this.aiDefenseEvent = schedule(500, 0, "doDefence", game.getTurn());
+                  if ($nappulaSprite[%pieceId].hasDoneAction == 0)
+                  {
+                     %advanceTile = %this.findBestAdvanceTile(%pieceId, %north, %south, %west, %east);
+                     if (%advanceTile !$= "")
+                     {
+                        %advX = getWord(%advanceTile, 0);
+                        %advY = getWord(%advanceTile, 1);
+                        %hero.setSelectedTile(%advX SPC %advY);
+                        doMovement(%advX, %advY);
+                     }
+                     else
+                     {
+                        %this.scheduleDefense(500);
+                     }
+                  }
+                  else
+                  {
+                     %this.scheduleDefense(500);
+                  }
                }
             }
             else
             {
-               %this.aiDefenseEvent = schedule(500, 0, "doDefence", game.getTurn());
+               %this.scheduleDefense(500);
             }
          }
       } else {
          if ($nappulaSprite[%pieceId].hasMoved == 1) {
-            if ($nappulaSprite[%pieceId].hasDoneAction == 1) 
+            if ($nappulaSprite[%pieceId].hasDoneAction == 1)
             {
-               %this.aiDefenseEvent = schedule(1000, 0, "doDefence", game.getTurn());
+               %this.scheduleDefense(1000);
             } else {
-               if (getWordCount(%foundTarget) == 0) 
+               if (getWordCount(%foundTarget) == 0)
                {
-                  %this.aiDefenseEvent = schedule(1000, 0, "doDefence", game.getTurn());
+                  %this.scheduleDefense(1000);
                }
             }
          } else {
-            if ($nappulaSprite[%pieceId].hasDoneAction == 1) 
+            if ($nappulaSprite[%pieceId].hasDoneAction == 1)
             {
-               if (%north == 0 && %south == 0 && %west == 0 && %east == 0) 
+               if (%north == 0 && %south == 0 && %west == 0 && %east == 0)
                {
-                  %this.aiDefenseEvent = schedule(1000, 0, "doDefence", game.getTurn());
+                  %this.scheduleDefense(1000);
                }
-            } 
+            }
             else if ($nappulaSprite[%pieceId].hasDoneAction == 0 && $nappulaSprite[%pieceId].hasMoved == 0)
             {
-               if (!%north && !%south && !%west && !%east) 
+               if (!%north && !%south && !%west && !%east)
                {
-                  %this.aiDefenseEvent = schedule(1000, 0, "doDefence", game.getTurn());
+                  %this.scheduleDefense(1000);
                }
             }
          }

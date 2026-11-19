@@ -22,11 +22,17 @@ function Archon::destroy(%this)
 
 function initializeProject()
 {
+   if (isFile("Archon/main.cs"))
+      $Scripts::ignoreDSOs = true;
+
    %res = getDesktopResolution();
    echo(%res);
 
    // Load up the in game gui and resolution preferences.
    exec("./gameScripts/t2d_compat.cs");
+   exec("./gameScripts/LocalizationManager.cs");
+   if (!isObject($LocalizationManager))
+      $LocalizationManager = LocalizationManager;
    exec("./gameScripts/ResolutionManager.cs");
    if (!isObject($ResolutionManager))
       $ResolutionManager = new ScriptObject(ResolutionManager) { };
@@ -98,6 +104,9 @@ function initializeProject()
    exec("./gameScripts/metrics.cs");
    if (!isObject($Metrics))
       $Metrics = Metrics;
+   exec("./gameScripts/UnitStatsHud.cs");
+   if (!isObject($UnitStatsHud))
+      $UnitStatsHud = UnitStatsHud;
    exec("./gameScripts/BoardAudioHud.cs");
    if (!isObject($BoardAudioHud))
       $BoardAudioHud = new ScriptObject(BoardAudioHud) { };
@@ -116,6 +125,18 @@ function initializeProject()
    exec("./gameScripts/FactionSelectGui.cs");
    if (!isObject($FactionSelectGui))
       $FactionSelectGui = new ScriptObject(FactionSelectGui) { };
+   exec("./gameScripts/BattleSummaryGui.cs");
+   if (!isObject($BattleSummaryGui))
+      $BattleSummaryGui = new ScriptObject(BattleSummaryGui) { };
+   exec("./gameScripts/SceneTextOverlayGui.cs");
+   if (!isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui = SceneTextOverlayGui;
+
+   if (isObject($LocalizationManager))
+   {
+      $LocalizationManager.prewarmFonts();
+      $LocalizationManager.notifyLanguageChanged();
+   }
 
    if (isObject($ResolutionManager))
       $ResolutionManager.reanchorAllGuis();
@@ -136,6 +157,10 @@ function initializeProject()
 //---------------------------------------------------------------------------------------------
 function shutdownProject()
 {
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.delete();
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.delete();
    if (isObject($FactionSelectGui))
       $FactionSelectGui.delete();
    if (isObject($FactionManager))
@@ -148,8 +173,12 @@ function shutdownProject()
       $PauseMenuManager.delete();
    if (isObject($BoardAudioHud))
       $BoardAudioHud.delete();
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.delete();
    if (isObject($ResolutionManager))
       $ResolutionManager.delete();
+   if (isObject($LocalizationManager))
+      $LocalizationManager.delete();
    if (isObject($VersionConfig))
       $VersionConfig.delete();
    if (isObject($AudioManager))

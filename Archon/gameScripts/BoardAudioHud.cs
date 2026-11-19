@@ -11,13 +11,14 @@ function BoardAudioHud::onAdd(%this)
    %this.btnOffProfile = "";
    %this.btnMenuProfile = "";
    %this.hudContainer = "";
+   %this.btnLang = "";
    %this.btnPauseMenu = "";
    %this.btnMuteSFX = "";
    %this.btnMuteMusic = "";
 
    %this.createProfiles();
    %this.createHudControls();
-   %this.updateVisuals();
+   %this.refreshLocalization();
 }
 
 function BoardAudioHud::onRemove(%this)
@@ -149,7 +150,7 @@ function BoardAudioHud::createHudControls(%this)
    if (isObject(mainScreenGui))
       %mainW = getWord(mainScreenGui.extent, 0);
 
-   %hudW = 280;
+   %hudW = 348;
    %hudH = 34;
    %posX = %mainW - %hudW - 12;
    %posY = 10;
@@ -165,13 +166,24 @@ function BoardAudioHud::createHudControls(%this)
       Visible = "0";
    };
 
-   %this.btnPauseMenu = new GuiButtonCtrl(BoardHudMenuBtn)
+   %this.btnLang = new GuiButtonCtrl(BoardHudLangBtn)
    {
       Profile = %this.btnMenuProfile;
       HorizSizing = "right";
       VertSizing = "bottom";
       Position = "4 4";
-      Extent = "64 26";
+      Extent = "58 26";
+      Text = "FI";
+      Command = "$BoardAudioHud.onCycleLanguage();";
+   };
+
+   %this.btnPauseMenu = new GuiButtonCtrl(BoardHudMenuBtn)
+   {
+      Profile = %this.btnMenuProfile;
+      HorizSizing = "right";
+      VertSizing = "bottom";
+      Position = "66 4";
+      Extent = "68 26";
       Text = "MENU";
       Command = "$BoardAudioHud.onMenuClicked();";
    };
@@ -181,8 +193,8 @@ function BoardAudioHud::createHudControls(%this)
       Profile = %this.btnOnProfile;
       HorizSizing = "right";
       VertSizing = "bottom";
-      Position = "72 4";
-      Extent = "98 26";
+      Position = "138 4";
+      Extent = "100 26";
       Text = "SFX: ON";
       Command = "$BoardAudioHud.onToggleSFX();";
    };
@@ -192,12 +204,13 @@ function BoardAudioHud::createHudControls(%this)
       Profile = %this.btnOnProfile;
       HorizSizing = "right";
       VertSizing = "bottom";
-      Position = "174 4";
+      Position = "242 4";
       Extent = "102 26";
       Text = "MUSIC: ON";
       Command = "$BoardAudioHud.onToggleMusic();";
    };
 
+   %this.hudContainer.add(%this.btnLang);
    %this.hudContainer.add(%this.btnPauseMenu);
    %this.hudContainer.add(%this.btnMuteSFX);
    %this.hudContainer.add(%this.btnMuteMusic);
@@ -237,22 +250,44 @@ function BoardAudioHud::show(%this, %visible)
    }
 }
 
+function BoardAudioHud::refreshLocalization(%this)
+{
+   if (isObject(%this.btnLang) && isObject($LocalizationManager))
+      %this.btnLang.setText($LocalizationManager.getLanguageShortCode());
+   if (isObject(%this.btnPauseMenu) && isObject($LocalizationManager))
+      %this.btnPauseMenu.setText($LocalizationManager.getText("hud_menu"));
+
+   %this.updateVisuals();
+}
+
 function BoardAudioHud::updateVisuals(%this)
 {
    %sfxMuted = (isObject($AudioManager) && $AudioManager.isSFXMuted());
    %musicMuted = (isObject($AudioManager) && $AudioManager.isMusicMuted());
 
+   %sfxOnText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_sfx_on") : "SFX: ON";
+   %sfxMutedText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_sfx_muted") : "SFX: MUTED";
+   %musOnText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_music_on") : "MUSIC: ON";
+   %musMutedText = isObject($LocalizationManager) ? $LocalizationManager.getText("hud_music_muted") : "MUSIC: MUTED";
+
    if (isObject(%this.btnMuteSFX))
    {
-      %this.btnMuteSFX.setText(%sfxMuted ? "SFX: MUTED" : "SFX: ON");
+      %this.btnMuteSFX.setText(%sfxMuted ? %sfxMutedText : %sfxOnText);
       %this.btnMuteSFX.Profile = (%sfxMuted ? %this.btnOffProfile : %this.btnOnProfile);
    }
 
    if (isObject(%this.btnMuteMusic))
    {
-      %this.btnMuteMusic.setText(%musicMuted ? "MUSIC: MUTED" : "MUSIC: ON");
+      %this.btnMuteMusic.setText(%musicMuted ? %musMutedText : %musOnText);
       %this.btnMuteMusic.Profile = (%musicMuted ? %this.btnOffProfile : %this.btnOnProfile);
    }
+}
+
+function BoardAudioHud::onCycleLanguage(%this)
+{
+   playArchonSound(fxSword);
+   if (isObject($LocalizationManager))
+      $LocalizationManager.cycleLanguage(1);
 }
 
 function BoardAudioHud::onToggleSFX(%this)

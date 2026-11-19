@@ -40,6 +40,8 @@ function BoardManager::onRemove(%this)
 
 function BoardManager::showBoardScreen(%this)
 {
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.show(false);
    if (isObject($PauseMenuManager))
       $PauseMenuManager.discardSavedSession();
 
@@ -50,7 +52,9 @@ function BoardManager::showBoardScreen(%this)
    setGameState($gamePreBattleState);
    startBackgroundMusic();
    dismountobject();
-   startGame("Archon/data/levels/board.t2d");  
+   startGame("Archon/data/levels/board.t2d");
+   if (isObject(sceneWindow2D))
+      sceneWindow2D.setUseWindowMouseEvents(true);  
    
    InitNewGame();
 
@@ -73,6 +77,10 @@ function BoardManager::showBoardScreen(%this)
    %this.bindBoardHotkeys();
    if (isObject($BoardAudioHud))
       $BoardAudioHud.show(true);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.showBadges(true);
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.startTracking();
 }
 
 function BoardManager::bindBoardHotkeys(%this)
@@ -84,6 +92,7 @@ function BoardManager::bindBoardHotkeys(%this)
    testActionMap.bindCmd(keyboard, "m", "toggleMusicMute();", "");
    testActionMap.bindCmd(keyboard, "n", "toggleSFXMute();", "");
    testActionMap.bindCmd(keyboard, "d", "", "dumpBoardDebug();");
+   testActionMap.bindCmd(keyboard, "l", "", "cycleGameLanguage();");
    testActionMap.push();
 }
 
@@ -370,9 +379,12 @@ function BoardManager::updatePlacementHUD(%this)
       schedule(1000, 0, updateCountdownTimer);
       secondText.setVisible(true);
       secondCounter.setFrame(game.getGameTimer());
+      secondCounter.setBlendAlpha(0);
       secondCounter.setVisible(true);
       sijoitaText.setVisible(false);
       olentopisteetcounter.setVisible(false);
+      if (isObject($SceneTextOverlayGui))
+         $SceneTextOverlayGui.refreshAll();
    }
 }
 
@@ -468,6 +480,9 @@ function BoardManager::spawnPieceOnBoard(%this, %pieceLevel, %lx, %ly, %heroid)
    
    // Update piece count owned by hero
    HeroGroup.getObject(%heroid).addPieceCount(1);
+
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.refreshAll();
 
    return true;
 }

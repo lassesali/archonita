@@ -23,15 +23,23 @@ function cardScreenFadeOut() {
 function selectHeroScreen() {
    $heroSelectSchedule = "";
    $cardSelectTransitioning = false;
+   if (isObject($BattleSummaryGui))
+      $BattleSummaryGui.show(false);
+   if (isObject($UnitStatsHud))
+      $UnitStatsHud.clearBadges();
    if (isObject($FactionSelectGui))
       $FactionSelectGui.show(false);
 
    setGameState($gameCardSelectState);
    startBackgroundMusic();
+   if (isObject(sceneWindow2D))
+      sceneWindow2D.setUseWindowMouseEvents(true);
    $hiiri.piilota = false;
    Canvas.setCursor(DefaultCursor);
    Canvas.showCursor();
    startGame("Archon/data/levels/createhero.t2d");
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.startTracking();
 }
 
 function checkSelectedCard() {

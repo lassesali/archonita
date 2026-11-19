@@ -22,6 +22,7 @@ function TitleMenuManager::onAdd(%this)
    %this.btnOptions = "";
    %this.btnCredits = "";
    %this.btnQuit = "";
+   %this.btnLanguage = "";
 
    %this.confirmBackdrop = "";
    %this.confirmPanel = "";
@@ -32,7 +33,7 @@ function TitleMenuManager::onAdd(%this)
 
    %this.createProfiles();
    %this.createControls();
-   %this.updateVisuals();
+   %this.refreshLocalization();
 }
 
 function TitleMenuManager::onRemove(%this)
@@ -245,7 +246,7 @@ function TitleMenuManager::createControls(%this)
    }
 
    %panelW = 290;
-   %panelH = 276;
+   %panelH = 322;
    %panelX = mFloor(%mainW * 0.56 - (%panelW / 2));
    %panelY = mFloor(%mainH * 0.56 - (%panelH / 2));
 
@@ -315,11 +316,23 @@ function TitleMenuManager::createControls(%this)
       Command = "$TitleMenuManager.onQuitClicked();";
    };
 
+   %this.btnLanguage = new GuiButtonCtrl(TitleMenuLanguageBtn)
+   {
+      Profile = %this.btnSecondaryProfile;
+      HorizSizing = "width";
+      VertSizing = "bottom";
+      Position = "20 266";
+      Extent = "250 38";
+      Text = "LANGUAGE";
+      Command = "$TitleMenuManager.onLanguageClicked();";
+   };
+
    %this.menuPanel.add(%this.btnPlay);
    %this.menuPanel.add(%this.btnResume);
    %this.menuPanel.add(%this.btnOptions);
    %this.menuPanel.add(%this.btnCredits);
    %this.menuPanel.add(%this.btnQuit);
+   %this.menuPanel.add(%this.btnLanguage);
 
    // Confirmation Modal for starting a New Game when a session is active
    %cW = 400;
@@ -362,8 +375,9 @@ function TitleMenuManager::createControls(%this)
       Profile = %this.subTextProfile;
       HorizSizing = "width";
       VertSizing = "bottom";
-      Position = "16 52";
-      Extent = "368 44";
+      Position = "16 48";
+      Extent = "368 54";
+      textWrap = "1";
       Text = "A game is in progress. Starting a new game will discard it.";
    };
 
@@ -438,6 +452,33 @@ function TitleMenuManager::reanchor(%this)
    }
 }
 
+function TitleMenuManager::refreshLocalization(%this)
+{
+   if (isObject($LocalizationManager))
+   {
+      if (isObject(%this.btnPlay))
+         %this.btnPlay.setText($LocalizationManager.getText("menu_play"));
+      if (isObject(%this.btnOptions))
+         %this.btnOptions.setText($LocalizationManager.getText("menu_options"));
+      if (isObject(%this.btnCredits))
+         %this.btnCredits.setText($LocalizationManager.getText("menu_credits"));
+      if (isObject(%this.btnQuit))
+         %this.btnQuit.setText($LocalizationManager.getText("menu_quit"));
+      if (isObject(%this.btnLanguage))
+         %this.btnLanguage.setText($LocalizationManager.getText("menu_lang_btn"));
+      if (isObject(%this.confirmTitle))
+         %this.confirmTitle.setText($LocalizationManager.getText("menu_confirm_title"));
+      if (isObject(%this.confirmText))
+         %this.confirmText.setText($LocalizationManager.getText("menu_confirm_body"));
+      if (isObject(%this.btnConfirmYes))
+         %this.btnConfirmYes.setText($LocalizationManager.getText("menu_confirm_yes"));
+      if (isObject(%this.btnConfirmNo))
+         %this.btnConfirmNo.setText($LocalizationManager.getText("menu_confirm_no"));
+   }
+
+   %this.updateVisuals();
+}
+
 function TitleMenuManager::updateVisuals(%this)
 {
    %hasSession = (isObject($PauseMenuManager) && $PauseMenuManager.hasSavedSession());
@@ -446,7 +487,10 @@ function TitleMenuManager::updateVisuals(%this)
    {
       %this.btnResume.setActive(%hasSession);
       %this.btnResume.Profile = (%hasSession ? %this.btnResumeProfile : %this.btnDisabledProfile);
-      %this.btnResume.setText(%hasSession ? "RESUME GAME" : "RESUME GAME (NONE)");
+      if (isObject($LocalizationManager))
+         %this.btnResume.setText($LocalizationManager.getText(%hasSession ? "menu_resume" : "menu_resume_none"));
+      else
+         %this.btnResume.setText(%hasSession ? "RESUME GAME" : "RESUME GAME (NONE)");
    }
 }
 
@@ -462,11 +506,18 @@ function TitleMenuManager::show(%this, %visible)
    {
       if (%visible)
       {
-         %this.updateVisuals();
+         %this.refreshLocalization();
          %this.reanchor();
       }
       %this.menuPanel.setVisible(%visible);
    }
+}
+
+function TitleMenuManager::onLanguageClicked(%this)
+{
+   playArchonSound(fxSword);
+   if (isObject($LocalizationManager))
+      $LocalizationManager.cycleLanguage(1);
 }
 
 function TitleMenuManager::onPlayClicked(%this)

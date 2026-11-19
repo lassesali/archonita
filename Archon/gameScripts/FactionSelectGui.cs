@@ -27,7 +27,7 @@ function FactionSelectGui::onAdd(%this)
 
    %this.createProfiles();
    %this.createControls();
-   %this.updateVisuals();
+   %this.refreshLocalization();
 }
 
 function FactionSelectGui::onRemove(%this)
@@ -436,7 +436,8 @@ function FactionSelectGui::createControls(%this)
       {
          Profile = %this.descTextProfile;
          Position = "10 194";
-         Extent = "206 72";
+         Extent = "206 78";
+         textWrap = "1";
          Text = %specText;
       };
       %this.cardCtrl[%i].add(%this.descLabel[%i]);
@@ -519,7 +520,7 @@ function FactionSelectGui::show(%this, %visible)
    if (%visible)
    {
       %this.reanchor();
-      %this.updateVisuals();
+      %this.refreshLocalization();
       %this.backdropCtrl.setVisible(true);
       mainScreenGui.pushToBack(%this.backdropCtrl);
    }
@@ -527,6 +528,51 @@ function FactionSelectGui::show(%this, %visible)
    {
       %this.backdropCtrl.setVisible(false);
    }
+
+   if (isObject($SceneTextOverlayGui))
+      $SceneTextOverlayGui.refreshAll();
+}
+
+function FactionSelectGui::refreshLocalization(%this)
+{
+   if (!isObject($LocalizationManager))
+   {
+      %this.updateVisuals();
+      return;
+   }
+
+   if (isObject(%this.headerLabel))
+      %this.headerLabel.setText($LocalizationManager.getText("faction_select_title"));
+   if (isObject(%this.subHeaderLabel))
+      %this.subHeaderLabel.setText($LocalizationManager.getText("faction_select_subtitle"));
+   if (isObject(%this.btnBack))
+      %this.btnBack.setText($LocalizationManager.getText("faction_change_hero_btn"));
+   if (isObject(%this.btnStart))
+      %this.btnStart.setText($LocalizationManager.getText("faction_begin_battle_btn"));
+
+   %cardKeys = "undead" TAB "dragonfolk" TAB "gremlin";
+   for (%i = 0; %i < 3; %i++)
+   {
+      %fKey = getField(%cardKeys, %i);
+      if (isObject(%this.cardTitle[%i]))
+         %this.cardTitle[%i].setText($LocalizationManager.getText("faction_" @ %fKey @ "_upper"));
+      if (isObject(%this.cardSubtitle[%i]))
+         %this.cardSubtitle[%i].setText($LocalizationManager.getText("faction_" @ %fKey @ "_subtitle"));
+      if (isObject(%this.descLabel[%i]))
+         %this.descLabel[%i].setText($LocalizationManager.getText("faction_" @ %fKey @ "_spec"));
+
+      if (isObject($FactionManager))
+      {
+         %units = $FactionManager.getFactionUnitList(%fKey);
+         for (%u = 0; %u < 4; %u++)
+         {
+            if (isObject(%this.unitLabel[%i, %u]))
+               %this.unitLabel[%i, %u].setText("• " @ getField(%units, %u));
+         }
+      }
+   }
+
+   %this.updateVisuals();
 }
 
 function FactionSelectGui::updateVisuals(%this)
@@ -536,6 +582,8 @@ function FactionSelectGui::updateVisuals(%this)
 
    %currentFaction = $FactionManager.getEnemyFaction();
    %cardKeys = "undead" TAB "dragonfolk" TAB "gremlin";
+   %selectLabel = isObject($LocalizationManager) ? $LocalizationManager.getText("faction_select_btn") : "SELECT";
+   %selectedLabel = isObject($LocalizationManager) ? $LocalizationManager.getText("faction_selected_btn") : "[ SELECTED ]";
 
    for (%i = 0; %i < 3; %i++)
    {
@@ -555,12 +603,12 @@ function FactionSelectGui::updateVisuals(%this)
          if (%isSelected)
          {
             %this.cardBtn[%i].setProfile(%this.btnSelectedProfile);
-            %this.cardBtn[%i].setText("[ SELECTED ]");
+            %this.cardBtn[%i].setText(%selectedLabel);
          }
          else
          {
             %this.cardBtn[%i].setProfile(%this.btnNormalProfile);
-            %this.cardBtn[%i].setText("SELECT");
+            %this.cardBtn[%i].setText(%selectLabel);
          }
       }
    }
