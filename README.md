@@ -349,6 +349,19 @@ Twenty years later, this **Migration Update** bridges two decades of engine evol
 
 ## 📦 Build History & Changelog
 
+### Build 114 (2.1.0-ea4) — 2026-11-20
+- **Intel Windows OpenGL 4.6 Core Rendering & Performance Fix (`ShaderManager.cc`, `winGL.cc`):**
+  - Fixed severe visual corruption on Intel Windows OpenGL drivers (such as Intel Iris Plus Graphics 655 / Gen9–Gen9.5 ICDs) where every multi-quad indexed draw rendered only Quad 0—truncating all GUI text to 1 character and dropping batched sprites (`card_1`, 15/16 floor tiles, 7/8 green placement frames, 11/12 recruitment portraits, and multi-particle trails).
+  - Replaced per-draw multi-megabyte buffer orphaning (`65536 * sizeof(DGLVertex)` / `65536 * sizeof(U16)` `NULL` orphan + `namedBufferSubData`) in [`ShaderManager.cc`](engine/source/graphics/ShaderManager.cc) with exact per-draw `GL_STREAM_DRAW` uploads via `GLDSA::namedBufferData`, eliminating the 50–120× UMA framerate collapse (`~5–30 FPS` → `100+ FPS`).
+  - Reordered `ShaderManager::init()` so `sDynamicVAO` is bound via `configureVAOAttributes()` before initializing `sDynamicIBO` on non-DSA Core Profile paths, and guarded wireframe indexed draws against empty scratch index buffers.
+  - Detected Intel `GL_VENDOR` in [`winGL.cc`](engine/source/platformWin32/winGL.cc) (`bindModernGLFunctions()`) and disabled `gGLState.suppDSA` with a warning log so Intel Windows ICDs use the bind-based OpenGL 4.6 Core Profile path instead of Intel's broken `glNamedBuffer*` element-buffer tracking.
+- **Back-Buffer Screenshot Capture (`guiCanvas_ScriptBinding.h`):**
+  - Updated `screenShot()` in [`guiCanvas_ScriptBinding.h`](engine/source/gui/guiCanvas_ScriptBinding.h) to render via `Canvas->renderFrame(false, false)` and read from `GL_BACK` with `GL_PACK_ALIGNMENT = 1` instead of `GL_FRONT`, fixing all-black screenshots under Windows DWM / Intel DCH flip-model swapchains.
+- **Engine Binary & Verification (`Torque2D.exe`, `CHANGELOG.md`):**
+  - Rebuilt Release x64 [`Torque2D.exe`](Torque2D.exe), documented the fixes in [`CHANGELOG.md`](CHANGELOG.md), and verified all `408/408` C++ GoogleTest unit tests (`OpenGLMigration*` included) plus live Title, Hero Select, and Game Board rendering on Intel Iris Plus Graphics 655.
+- **Version Configuration:**
+  - Incremented build number to `114` (version `2.1.0-ea4`) in [`version.json`](version.json), [`version.env`](version.env), [`Archon/version.json`](Archon/version.json), and [`Archon/version.env`](Archon/version.env).
+
 ### Build 113 (2.1.0-ea4) — 2026-11-19
 - **Burned-In Text Elimination & 6-Language Runtime Localization (`LocalizationManager.cs`, `SceneTextOverlayGui.cs`, `Archon/data/images/*`):**
   - Removed baked-in Finnish text from `text.png`, `texts.png`, `1/txt prebattle.png`, `1/txt selecthero.png`, `cards.png`, `cards_2.png`, `1/card *.png`, and `credits.png`, rendering all scene banners, dynamic countdowns, card titles/descriptions/stat modifiers, and credits dynamically at runtime via `$SceneTextOverlayGui`.

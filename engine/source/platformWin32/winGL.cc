@@ -304,6 +304,18 @@ static bool bindModernGLFunctions()
 
    gGLState.suppTexStorage = texStorageResult;
    gGLState.suppDSA = dsaResult;
+
+   // Intel Windows OpenGL ICDs (e.g. Gen9/Gen9.5 Iris Plus / UHD drivers) suffer
+   // from broken buffer/VAO Direct State Access state tracking (such as stale
+   // element array buffer backing stores after glNamedBufferData/SubData).
+   // Fall back to the standard bind-based OpenGL Core Profile path on Intel.
+   const char* vendorStr = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+   if (gGLState.suppDSA && vendorStr && (dStrstr(vendorStr, "Intel") != NULL || dStrstr(vendorStr, "INTEL") != NULL))
+   {
+      Con::warnf("OpenGL Init: Disabling DSA on Intel Windows driver (%s); using bind-based Core Profile path.", vendorStr);
+      gGLState.suppDSA = false;
+   }
+
    return progResult;
 }
 

@@ -36,8 +36,6 @@ namespace
    static GLuint sDynamicVAO = 0;
    static GLuint sDynamicVBO = 0;
    static GLuint sDynamicIBO = 0;
-   static U32 sVBOCapacityBytes = 0;
-   static U32 sIBOCapacityBytes = 0;
 
    // Uniform locations
    static GLint sLocMVP = -1;
@@ -213,24 +211,6 @@ namespace
       glEnableVertexAttribArray(2);
       glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, stride, (const void*)(5 * sizeof(F32)));
    }
-
-   static void ensureVBOCapacity(U32 requiredBytes)
-   {
-      if (requiredBytes > sVBOCapacityBytes)
-      {
-         sVBOCapacityBytes = getMax(requiredBytes, sVBOCapacityBytes * 2U);
-         GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sVBOCapacityBytes, NULL, GL_STREAM_DRAW);
-      }
-   }
-
-   static void ensureIBOCapacity(U32 requiredBytes)
-   {
-      if (requiredBytes > sIBOCapacityBytes)
-      {
-         sIBOCapacityBytes = getMax(requiredBytes, sIBOCapacityBytes * 2U);
-         GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sIBOCapacityBytes, NULL, GL_STREAM_DRAW);
-      }
-   }
 } // anonymous namespace
 
 bool buildPreprocessedSource(const char* shaderBody,
@@ -361,17 +341,16 @@ bool init()
    sLocClipPlaneCount = glGetUniformLocation(sDefaultProgram, "uClipPlaneCount");
    sLocClipPlanes     = glGetUniformLocation(sDefaultProgram, "uClipPlanes");
 
-   sVBOCapacityBytes = 65536 * sizeof(DGLVertex);
-   sIBOCapacityBytes = 65536 * sizeof(U16);
-
    sDynamicVAO = GLDSA::createVertexArray();
    sDynamicVBO = GLDSA::createBuffer();
    sDynamicIBO = GLDSA::createBuffer();
 
-   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sVBOCapacityBytes, NULL, GL_STREAM_DRAW);
-   GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sIBOCapacityBytes, NULL, GL_STREAM_DRAW);
-
+   // Bind VAO before initializing GL_ELEMENT_ARRAY_BUFFER storage so non-DSA
+   // Core Profile paths never bind an element buffer while VAO 0 is active.
    configureVAOAttributes();
+
+   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sizeof(DGLVertex), NULL, GL_STREAM_DRAW);
+   GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sizeof(U16), NULL, GL_STREAM_DRAW);
 
    sInitialized = true;
    return true;
@@ -392,8 +371,6 @@ void shutdown()
    sDynamicIBO = 0;
    sDynamicVBO = 0;
    sDynamicVAO = 0;
-   sVBOCapacityBytes = 0;
-   sIBOCapacityBytes = 0;
 
    if (sDefaultProgram != 0)
    {
@@ -498,12 +475,10 @@ void drawVertices(GLenum mode, const DGLVertex* vertices, U32 vertexCount)
    bindProgramAndSyncUniforms();
 
    const U32 byteSize = vertexCount * sizeof(DGLVertex);
-   ensureVBOCapacity(byteSize);
-   // Buffer orphaning + sub-data upload for zero-stall streaming
-   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sVBOCapacityBytes, NULL, GL_STREAM_DRAW);
-   GLDSA::namedBufferSubData(sDynamicVBO, GL_ARRAY_BUFFER, 0, (GLsizeiptr)byteSize, vertices);
-
    glBindVertexArray(sDynamicVAO);
+   // Single exact-size GL_STREAM_DRAW upload avoids multi-megabyte per-draw
+   // buffer orphaning overhead and Intel Windows DSA sub-data staleness bugs.
+   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)byteSize, vertices, GL_STREAM_DRAW);
    glDrawArrays(mode, 0, (GLsizei)vertexCount);
 }
 
@@ -520,11 +495,8 @@ void drawIndexedVertices(GLenum mode,
    bindProgramAndSyncUniforms();
 
    const U32 vboBytes = vertexCount * sizeof(DGLVertex);
-   ensureVBOCapacity(vboBytes);
-   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sVBOCapacityBytes, NULL, GL_STREAM_DRAW);
-   GLDSA::namedBufferSubData(sDynamicVBO, GL_ARRAY_BUFFER, 0, (GLsizeiptr)vboBytes, vertices);
-
    glBindVertexArray(sDynamicVAO);
+   GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)vboBytes, vertices, GL_STREAM_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sDynamicIBO);
 
    if (wireframe && mode == GL_TRIANGLES)
@@ -544,18 +516,17 @@ void drawIndexedVertices(GLenum mode,
          sScratchIndices.push_back(i2);
          sScratchIndices.push_back(i0);
       }
-      const U32 iboBytes = sScratchIndices.size() * sizeof(U16);
-      ensureIBOCapacity(iboBytes);
-      GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sIBOCapacityBytes, NULL, GL_STREAM_DRAW);
-      GLDSA::namedBufferSubData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, 0, (GLsizeiptr)iboBytes, sScratchIndices.address());
-      glDrawElements(GL_LINES, (GLsizei)sScratchIndices.size(), GL_UNSIGNED_SHORT, (const void*)0);
+      if (!sScratchIndices.empty())
+      {
+         const U32 iboBytes = sScratchIndices.size() * sizeof(U16);
+         GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)iboBytes, sScratchIndices.address(), GL_STREAM_DRAW);
+         glDrawElements(GL_LINES, (GLsizei)sScratchIndices.size(), GL_UNSIGNED_SHORT, (const void*)0);
+      }
    }
    else
    {
       const U32 iboBytes = indexCount * sizeof(U16);
-      ensureIBOCapacity(iboBytes);
-      GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sIBOCapacityBytes, NULL, GL_STREAM_DRAW);
-      GLDSA::namedBufferSubData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, 0, (GLsizeiptr)iboBytes, indices);
+      GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)iboBytes, indices, GL_STREAM_DRAW);
       glDrawElements(mode, (GLsizei)indexCount, GL_UNSIGNED_SHORT, (const void*)0);
    }
 }

@@ -456,7 +456,12 @@ ConsoleFunctionWithDocs(screenShot, ConsoleVoid, 3, 3, (string file, string form
       return;
    }
     
-   glReadBuffer(GL_FRONT);
+   // Render into the back buffer without swapping and read GL_BACK so screenshots
+   // work reliably under Windows DWM / Intel DCH flip-model swapchains where
+   // reading GL_FRONT returns black.
+   Canvas->renderFrame(false, false);
+   glReadBuffer(GL_BACK);
+   glPixelStorei(GL_PACK_ALIGNMENT, 1);
    
    Point2I extent = Canvas->getExtent();
    U8 * pixels = new U8[extent.x * extent.y * 4];
