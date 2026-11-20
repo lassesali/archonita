@@ -47,6 +47,8 @@ public:
 
     virtual bool isBatchRendered( void ) = 0;
 
+    virtual bool usesObjectBlendState( void ) const { return true; }
+
     virtual bool getBatchIsolated( void ) = 0;
 
     virtual bool validRender( void ) const = 0;

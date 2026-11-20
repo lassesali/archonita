@@ -47,7 +47,7 @@
 #include "graphics/gColor.h"
 #endif
 
-#ifndef _SHADER_MANAGER_H_
+#ifndef _SHADERMANAGER_H_
 #include "graphics/ShaderManager.h"
 #endif
 
@@ -92,16 +92,12 @@ private:
 
     const ColorF        NoColor;
 
-    Vector2             mVertexBuffer[ BATCHRENDER_BUFFERSIZE ];
-    Vector2             mTextureBuffer[ BATCHRENDER_BUFFERSIZE ];
+    DGLVertex           mVertexBuffer[ BATCHRENDER_BUFFERSIZE ];
     U16                 mIndexBuffer[ BATCHRENDER_BUFFERSIZE ];
-    ColorF              mColorBuffer[ BATCHRENDER_BUFFERSIZE ];
    
     U32                 mTriangleCount;
     U32                 mVertexCount;
-    U32                 mTextureCoordCount;
     U32                 mIndexCount;
-    U32                 mColorCount;
 
     bool                mBlendMode;
     GLenum              mSrcBlendFactor;
@@ -142,19 +138,21 @@ public:
     /// Turns-on blend mode with the specified blend factors and color.
     inline void setBlendMode( GLenum srcFactor, GLenum dstFactor, const ColorF& blendColor = ColorF(1.0f, 1.0f, 1.0f, 1.0f))
     {
-        // Ignore no change.
-        if (    mBlendMode &&
-                mSrcBlendFactor == srcFactor &&
-                mDstBlendFactor == dstFactor &&
-                mBlendColor == blendColor )
-                return;
+        // Only GL blend state changes require a flush; mBlendColor is baked per-vertex on submit.
+        if ( !mBlendMode ||
+             mSrcBlendFactor != srcFactor ||
+             mDstBlendFactor != dstFactor )
+        {
+            if ( mpDebugStats )
+                flush( mpDebugStats->batchBlendStateFlush );
+            else
+                flushInternal();
 
-        // Flush.
-        flush( mpDebugStats->batchBlendStateFlush );
+            mBlendMode = true;
+            mSrcBlendFactor = srcFactor;
+            mDstBlendFactor = dstFactor;
+        }
 
-        mBlendMode = true;
-        mSrcBlendFactor = srcFactor;
-        mDstBlendFactor = dstFactor;
         mBlendColor = blendColor;
     }
 
@@ -166,7 +164,10 @@ public:
             return;
 
         // Flush.
-        flush( mpDebugStats->batchBlendStateFlush );
+        if ( mpDebugStats )
+            flush( mpDebugStats->batchBlendStateFlush );
+        else
+            flushInternal();
 
         mBlendMode = false;
     }
@@ -182,10 +183,10 @@ public:
             return;
 
         // Flush.
-        flush( mpDebugStats->batchAlphaStateFlush );
-
-        // Stats.
-        mpDebugStats->batchAlphaStateFlush++;
+        if ( mpDebugStats )
+            flush( mpDebugStats->batchAlphaStateFlush );
+        else
+            flushInternal();
 
         mAlphaTestMode = alphaTestMode;
     }
@@ -224,6 +225,18 @@ public:
 
     /// Sets the debug stats to use.
     inline void setDebugStats( DebugStats* pDebugStats ) { mpDebugStats = pDebugStats; }
+
+    /// Read-only inspection getters (for diagnostics and unit tests).
+    inline U32 getTriangleCount( void ) const { return mTriangleCount; }
+    inline U32 getVertexCount( void ) const { return mVertexCount; }
+    inline U32 getIndexCount( void ) const { return mIndexCount; }
+    inline const DGLVertex* getVertexBuffer( void ) const { return mVertexBuffer; }
+    inline const U16* getIndexBuffer( void ) const { return mIndexBuffer; }
+    inline bool getBlendMode( void ) const { return mBlendMode; }
+    inline GLenum getSrcBlendFactor( void ) const { return mSrcBlendFactor; }
+    inline GLenum getDstBlendFactor( void ) const { return mDstBlendFactor; }
+    inline const ColorF& getBlendColor( void ) const { return mBlendColor; }
+    inline F32 getAlphaTestMode( void ) const { return mAlphaTestMode; }
 
     /// Submit triangles for batching.
     /// Vertex and textures are indexed as:

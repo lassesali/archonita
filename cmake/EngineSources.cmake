@@ -370,6 +370,7 @@ set(TORQUE_ENGINE_SOURCES
     ${TORQUE_SRC}/testing/tests/namespaceLinkTests.cc
     ${TORQUE_SRC}/testing/tests/openglMigrationTests.cc
     ${TORQUE_SRC}/testing/tests/particleAssetFieldTests.cc
+    ${TORQUE_SRC}/testing/tests/particleBatchRenderTests.cc
     ${TORQUE_SRC}/testing/tests/particleEmissionAngleTests.cc
     ${TORQUE_SRC}/testing/tests/platformFileIoTests.cc
     ${TORQUE_SRC}/testing/tests/platformMemoryTests.cc

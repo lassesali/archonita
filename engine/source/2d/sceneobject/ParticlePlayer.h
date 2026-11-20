@@ -145,6 +145,7 @@ public:
 
     virtual bool validRender( void ) const { return mParticleAsset.notNull() && mParticleAsset->isAssetValid(); }
     virtual bool shouldRender( void ) const { return true; }
+    virtual bool usesObjectBlendState( void ) const { return false; }
     virtual void sceneRender( const SceneRenderState* pSceneRenderState, const SceneRenderRequest* pSceneRenderRequest, BatchRender* pBatchRenderer );
     virtual void sceneRenderOverlay( const SceneRenderState* sceneRenderState );
 
@@ -189,6 +190,86 @@ public:
     static inline F32 calculateEmissionAngle( const F32 emissionAngleDegrees, const F32 playerAngleRadians, const bool linkEmissionRotation )
     {
         return linkEmissionRotation ? emissionAngleDegrees + mRadToDeg( playerAngleRadians ) : emissionAngleDegrees;
+    }
+
+    /// Transform an attached particle quad's emitter-local OOBB into world space using
+    /// precomputed rotation cosine/sine, matching dglTranslatef + dglRotatef(+Z).
+    static inline void transformAttachedOOBBPrecomputed(
+        const Vector2 srcOOBB[4],
+        Vector2 dstOOBB[4],
+        const Vector2& playerPosition,
+        const F32 cosAngle,
+        const F32 sinAngle,
+        const bool attachRotation )
+    {
+        if ( attachRotation )
+        {
+            for ( U32 i = 0; i < 4; ++i )
+            {
+                const F32 x = srcOOBB[i].x;
+                const F32 y = srcOOBB[i].y;
+                dstOOBB[i].x = (cosAngle * x - sinAngle * y) + playerPosition.x;
+                dstOOBB[i].y = (sinAngle * x + cosAngle * y) + playerPosition.y;
+            }
+        }
+        else
+        {
+            for ( U32 i = 0; i < 4; ++i )
+            {
+                dstOOBB[i].x = srcOOBB[i].x + playerPosition.x;
+                dstOOBB[i].y = srcOOBB[i].y + playerPosition.y;
+            }
+        }
+    }
+
+    /// Transform an attached particle quad's emitter-local OOBB into world space.
+    static inline void transformAttachedOOBB(
+        const Vector2 srcOOBB[4],
+        Vector2 dstOOBB[4],
+        const Vector2& playerPosition,
+        const F32 playerAngleRadians,
+        const bool attachRotation )
+    {
+        const F32 cosAngle = attachRotation ? mCos( playerAngleRadians ) : 1.0f;
+        const F32 sinAngle = attachRotation ? mSin( playerAngleRadians ) : 0.0f;
+        transformAttachedOOBBPrecomputed( srcOOBB, dstOOBB, playerPosition, cosAngle, sinAngle, attachRotation );
+    }
+
+    /// Return whether a 4-corner quad overlaps the camera world AABB.
+    static inline bool isQuadVisibleInAABB( const Vector2 quad[4], const b2AABB& cameraAABB )
+    {
+        F32 minX = quad[0].x;
+        F32 maxX = minX;
+        F32 minY = quad[0].y;
+        F32 maxY = minY;
+        for ( U32 i = 1; i < 4; ++i )
+        {
+            const F32 x = quad[i].x;
+            const F32 y = quad[i].y;
+            if ( x < minX ) minX = x;
+            else if ( x > maxX ) maxX = x;
+            if ( y < minY ) minY = y;
+            else if ( y > maxY ) maxY = y;
+        }
+        return !(maxX < cameraAABB.lowerBound.x ||
+                 minX > cameraAABB.upperBound.x ||
+                 maxY < cameraAABB.lowerBound.y ||
+                 minY > cameraAABB.upperBound.y);
+    }
+
+    /// Return whether zero-alpha particles produce zero visual contribution under this blend setup.
+    static inline bool canCullZeroAlphaForBlend(
+        const bool intenseParticles,
+        const bool blendMode,
+        const GLenum srcBlendFactor,
+        const GLenum dstBlendFactor )
+    {
+        if ( intenseParticles )
+            return true;
+
+        return blendMode &&
+               srcBlendFactor == GL_SRC_ALPHA &&
+               (dstBlendFactor == GL_ONE_MINUS_SRC_ALPHA || dstBlendFactor == GL_ONE);
     }
 
     /// Declare Console Object.

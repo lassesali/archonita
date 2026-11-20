@@ -527,11 +527,9 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
     if ( !mPlaying || mCameraIdle )
         return;
 
-    // Flush.
-    pBatchRenderer->flush( getScene()->getDebugStats().batchIsolatedFlush );
-
     // Fetch emitter count.
     const U32 emitterCount = mEmitters.size();
+    const bool cullParticles = ( pSceneRenderState != NULL && pSceneRenderState->mCullParticles );
 
     // Render all the emitters.
     for ( U32 emitterIndex = 0; emitterIndex < emitterCount; ++emitterIndex )
@@ -548,133 +546,186 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
 
         // Skip if there are no active particles.
         if ( !pEmitterNode->getActiveParticles() )
-            continue;       
+            continue;
 
         // Fetch both image and animation assets.
         const AssetPtr<ImageAsset>& imageAsset = pParticleAssetEmitter->getImageAsset();
         const AssetPtr<AnimationAsset>& animationAsset = pParticleAssetEmitter->getAnimationAsset();
 
-        // Fetch static mode.
+        // Fetch static mode and hoist shared texture / static UVs outside the particle loop.
         const bool isStaticFrameProvider = pParticleAssetEmitter->isStaticFrameProvider();
+        const bool isRandomFrame = isStaticFrameProvider && pParticleAssetEmitter->getRandomImageFrame();
+        TextureHandle* pEmitterTexture = NULL;
+        Vector2 staticUv0, staticUv1, staticUv2, staticUv3;
 
-        // Are we in static mode?
         if ( isStaticFrameProvider )
         {
-            // Yes, so skip if no image available.
-            if ( imageAsset.isNull() )
+            // Skip if no image or frames available.
+            if ( imageAsset.isNull() || imageAsset->getFrameCount() == 0 )
                 continue;
+
+            pEmitterTexture = &(imageAsset->getImageTexture());
+            if ( pEmitterTexture->IsNull() )
+                continue;
+
+            if ( !isRandomFrame )
+            {
+                const ImageAsset::FrameArea::TexelArea* pTexelArea = NULL;
+                if ( pParticleAssetEmitter->isUsingNamedImageFrame() )
+                {
+                    const char* namedFrame = pParticleAssetEmitter->getNamedImageFrame();
+                    if ( !namedFrame || namedFrame == StringTable->EmptyString || !imageAsset->containsFrame( namedFrame ) )
+                        continue;
+                    pTexelArea = &(imageAsset->getImageFrameArea( namedFrame ).mTexelArea);
+                }
+                else
+                {
+                    const U32 imageFrame = pParticleAssetEmitter->getImageFrame();
+                    if ( imageFrame >= imageAsset->getFrameCount() )
+                        continue;
+                    pTexelArea = &(imageAsset->getImageFrameArea( imageFrame ).mTexelArea);
+                }
+
+                const Vector2& texLower = pTexelArea->mTexelLower;
+                const Vector2& texUpper = pTexelArea->mTexelUpper;
+                staticUv0 = Vector2( texLower.x, texUpper.y );
+                staticUv1 = Vector2( texUpper.x, texUpper.y );
+                staticUv2 = Vector2( texUpper.x, texLower.y );
+                staticUv3 = Vector2( texLower.x, texLower.y );
+            }
         }
         else
         {
-            // No, so skip if no animation available.
+            // Skip if no animation or backing image available.
             if ( animationAsset.isNull() )
                 continue;
+
+            const AssetPtr<ImageAsset>& animImage = animationAsset->getImage();
+            if ( animImage.isNull() || animImage->getFrameCount() == 0 )
+                continue;
+
+            pEmitterTexture = &(animImage->getImageTexture());
+            if ( pEmitterTexture->IsNull() )
+                continue;
         }
 
-        // Flush.
-        pBatchRenderer->flush( getScene()->getDebugStats().batchIsolatedFlush );
+        // Precompute per-emitter blend, culling, and attachment transforms once.
+        const bool intenseParticles = pParticleAssetEmitter->getIntenseParticles();
+        const bool emitterBlendMode = pParticleAssetEmitter->getBlendMode();
+        const GLenum emitterSrcBlend = (GLenum)pParticleAssetEmitter->getSrcBlendFactor();
+        const GLenum emitterDstBlend = (GLenum)pParticleAssetEmitter->getDstBlendFactor();
+        const bool canCullZeroAlpha = canCullZeroAlphaForBlend( intenseParticles, emitterBlendMode, emitterSrcBlend, emitterDstBlend );
 
-        // Intense particles?
-        if ( pParticleAssetEmitter->getIntenseParticles() )
-        {
-            // Yes, so set additive blending.
-            pBatchRenderer->setBlendMode( GL_SRC_ALPHA, GL_ONE );
-        }
-        else
-        {
-            // No, so set standard blend options.
-            //
-            // The EMITTER's blend options, not the player's. These are per-emitter
-            // fields that round-tripped through TAML and were read by nothing but
-            // their own write predicates -- this branch used mBlendMode /
-            // mSrcBlendFactor / mDstBlendFactor, which ParticlePlayer does not
-            // declare, so they resolved to the inherited SceneObject members and
-            // one setting covered every emitter at once. Intense particles above
-            // still override, as they always did.
-            if ( pParticleAssetEmitter->getBlendMode() )
-            {
-                pBatchRenderer->setBlendMode( pParticleAssetEmitter->getSrcBlendFactor(), pParticleAssetEmitter->getDstBlendFactor() );
-            }
-            else
-            {
-                pBatchRenderer->setBlendOff();
-            }
-        }
-
-        // Set alpha-testing.
-        pBatchRenderer->setAlphaTestMode( pParticleAssetEmitter->getAlphaTest() );
-
-        // Save the transformation.
-        dglPushMatrix();
-
-        // Is the Position attached to the emitter?
-        if ( pParticleAssetEmitter->getAttachPositionToEmitter() )
-        {
-            // Yes, so get player position.
-            const Vector2 renderPosition = getRenderPosition();
-
-            // Move into emitter-space.
-            dglTranslatef( renderPosition.x, renderPosition.y, 0.0f );
-
-            // Is the rotation attached to the emitter?
-            if ( pParticleAssetEmitter->getAttachRotationToEmitter() )
-            {
-                // Yes, so rotate into emitter-space.
-                // NOTE:- We need clockwise rotation here.
-                dglRotatef( mRadToDeg(getRenderAngle()), 0.0f, 0.0f, 1.0f );
-            }
-        }
+        const bool attachPosition = pParticleAssetEmitter->getAttachPositionToEmitter();
+        const bool attachRotation = attachPosition && pParticleAssetEmitter->getAttachRotationToEmitter();
+        const Vector2 renderPosition = attachPosition ? getRenderPosition() : Vector2::getZero();
+        const F32 renderAngle = attachRotation ? getRenderAngle() : 0.0f;
+        const F32 rotCos = attachRotation ? mCos( renderAngle ) : 1.0f;
+        const F32 rotSin = attachRotation ? mSin( renderAngle ) : 0.0f;
+        Vector2 transformedOOBB[4];
+        bool emitterStateApplied = false;
 
         // Fetch the oldest-in-front flag.
         const bool oldestInFront = pParticleAssetEmitter->getOldestInFront();
 
-        // Fetch the starting particle (using appropriate particle order).
-        ParticleSystem::ParticleNode* pParticleNode = oldestInFront ? pEmitterNode->getFirstParticle() : pEmitterNode->getLastParticle();
-
         // Fetch the particle node head.
         ParticleSystem::ParticleNode* pParticleNodeHead = pEmitterNode->getParticleNodeHead();
 
-        // Process all particle nodes.
-        while ( pParticleNode != pParticleNodeHead )
+        // Process all particle nodes without forcing batch flushes or GL matrix mutations.
+        for ( ParticleSystem::ParticleNode* pParticleNode = oldestInFront ? pEmitterNode->getFirstParticle() : pEmitterNode->getLastParticle();
+              pParticleNode != pParticleNodeHead;
+              pParticleNode = oldestInFront ? pParticleNode->mNextNode : pParticleNode->mPreviousNode )
         {
-            // Fetch the frame provider.
-            const ImageFrameProviderCore& frameProvider = pParticleNode->mFrameProvider;
+            if ( pParticleNode->mRenderSize.x <= 0.0f || pParticleNode->mRenderSize.y <= 0.0f )
+                continue;
 
-            // Fetch the frame area.
-            const ImageAsset::FrameArea::TexelArea& texelFrameArea = frameProvider.getProviderImageFrameArea().mTexelArea;
+            if ( canCullZeroAlpha && pParticleNode->mColor.alpha <= 0.001f )
+                continue;
 
-            // Frame texture.
-            TextureHandle& frameTexture = frameProvider.getProviderTexture();
+            const Vector2* quadVerts = pParticleNode->mRenderOOBB;
+            if ( attachPosition )
+            {
+                transformAttachedOOBBPrecomputed( pParticleNode->mRenderOOBB, transformedOOBB, renderPosition, rotCos, rotSin, attachRotation );
+                quadVerts = transformedOOBB;
+            }
 
-            // Fetch the particle render OOBB.
-            Vector2* renderOOBB = pParticleNode->mRenderOOBB;
+            if ( cullParticles && !isQuadVisibleInAABB( quadVerts, pSceneRenderState->mCameraAABB ) )
+                continue;
 
-            // Fetch lower/upper texture coordinates.
-            const Vector2& texLower = texelFrameArea.mTexelLower;
-            const Vector2& texUpper = texelFrameArea.mTexelUpper;
+            Vector2 uv0, uv1, uv2, uv3;
+            const Vector2* pUv0 = &staticUv0;
+            const Vector2* pUv1 = &staticUv1;
+            const Vector2* pUv2 = &staticUv2;
+            const Vector2* pUv3 = &staticUv3;
+
+            if ( !isStaticFrameProvider )
+            {
+                const ImageFrameProviderCore& frameProvider = pParticleNode->mFrameProvider;
+                if ( !frameProvider.isAnimationValid() )
+                    continue;
+
+                const ImageAsset::FrameArea::TexelArea& texelFrameArea = frameProvider.getProviderImageFrameArea().mTexelArea;
+                const Vector2& texLower = texelFrameArea.mTexelLower;
+                const Vector2& texUpper = texelFrameArea.mTexelUpper;
+                uv0 = Vector2( texLower.x, texUpper.y );
+                uv1 = Vector2( texUpper.x, texUpper.y );
+                uv2 = Vector2( texUpper.x, texLower.y );
+                uv3 = Vector2( texLower.x, texLower.y );
+                pUv0 = &uv0;
+                pUv1 = &uv1;
+                pUv2 = &uv2;
+                pUv3 = &uv3;
+            }
+            else if ( isRandomFrame )
+            {
+                const ImageAsset::FrameArea::TexelArea& texelFrameArea = imageAsset->getImageFrameArea( pParticleNode->mFrameProvider.getImageFrame() ).mTexelArea;
+                const Vector2& texLower = texelFrameArea.mTexelLower;
+                const Vector2& texUpper = texelFrameArea.mTexelUpper;
+                uv0 = Vector2( texLower.x, texUpper.y );
+                uv1 = Vector2( texUpper.x, texUpper.y );
+                uv2 = Vector2( texUpper.x, texLower.y );
+                uv3 = Vector2( texLower.x, texLower.y );
+                pUv0 = &uv0;
+                pUv1 = &uv1;
+                pUv2 = &uv2;
+                pUv3 = &uv3;
+            }
+
+            // Defer emitter blend/alpha state changes until at least one particle survives culling.
+            if ( !emitterStateApplied )
+            {
+                if ( intenseParticles )
+                {
+                    // Additive blending for intense particles.
+                    pBatchRenderer->setBlendMode( GL_SRC_ALPHA, GL_ONE );
+                }
+                else if ( emitterBlendMode )
+                {
+                    pBatchRenderer->setBlendMode( emitterSrcBlend, emitterDstBlend );
+                }
+                else
+                {
+                    pBatchRenderer->setBlendOff();
+                }
+
+                // Set alpha-testing.
+                pBatchRenderer->setAlphaTestMode( pParticleAssetEmitter->getAlphaTest() );
+                emitterStateApplied = true;
+            }
 
             // Submit batched quad.
             pBatchRenderer->SubmitQuad(
-                renderOOBB[0],
-                renderOOBB[1],
-                renderOOBB[2],
-                renderOOBB[3],
-                Vector2( texLower.x, texUpper.y ),
-                Vector2( texUpper.x, texUpper.y ),
-                Vector2( texUpper.x, texLower.y ),
-                Vector2( texLower.x, texLower.y ),
-                frameTexture,
+                quadVerts[0],
+                quadVerts[1],
+                quadVerts[2],
+                quadVerts[3],
+                *pUv0,
+                *pUv1,
+                *pUv2,
+                *pUv3,
+                *pEmitterTexture,
                 pParticleNode->mColor );
-
-            // Move to next Particle ( using appropriate sort-order ).
-            pParticleNode = oldestInFront ? pParticleNode->mNextNode : pParticleNode->mPreviousNode;
-        };
-
-        // Flush.
-        pBatchRenderer->flush( getScene()->getDebugStats().batchIsolatedFlush );
-
-        // Restore the transformation.
-        dglPopMatrix();
+        }
     }
 }
 

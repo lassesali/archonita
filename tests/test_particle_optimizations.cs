@@ -316,6 +316,108 @@ function checkMouseTrailIdlePhase()
    assertOptCond("mouseTrail pauses on sceneWindow2D.onMouseLeave",
       mouseTrail.getEmitterPaused(0) == true);
 
+   // 10. Live OpenGL particle batching check (via Scene::getBatchStats)
+   t2dScene.clear();
+   Canvas.setContent(mainScreenGui);
+   sceneWindow2D.setScene(t2dScene);
+   sceneWindow2D.setCameraPosition(0, 0);
+   sceneWindow2D.setCameraSize(100, 75);
+
+   for (%s = 0; %s < 3; %s++)
+   {
+      $batchTestShield[%s] = new ParticlePlayer()
+      {
+         scene = t2dScene;
+         Particle = "Archon:spell_shield";
+         Position = ((%s - 1) * 12) SPC "0";
+         Size = "8 8";
+         SceneLayer = 1;
+      };
+   }
+
+   schedule(180, 0, "checkLiveShieldBatchPhase");
+}
+
+function checkLiveShieldBatchPhase()
+{
+   %stats = t2dScene.getBatchStats();
+   %flushes = getWord(%stats, 0);
+   %isolated = getWord(%stats, 1);
+   %blendFlushes = getWord(%stats, 2);
+   %colorFlushes = getWord(%stats, 3);
+   %alphaFlushes = getWord(%stats, 4);
+   %tris = getWord(%stats, 8);
+   logOptResult("INFO: 3x Archon:spell_shield (6 emitters) getBatchStats() = [" @ %stats @ "]");
+
+   assertOptCond("3 same-layer spell_shield ParticlePlayers render with batchIsolatedFlush == 0",
+      %isolated == 0);
+   assertOptCond("3 same-layer spell_shield ParticlePlayers render with batchColorStateFlush == 0",
+      %colorFlushes == 0);
+   assertOptCond("3 same-layer spell_shield ParticlePlayers submit visible particle triangles",
+      %tris > 0);
+   assertOptCond("3 same-layer spell_shield ParticlePlayers merge into 1 layer flush",
+      %flushes == 1 && %blendFlushes == 0 && %alphaFlushes == 0);
+
+   for (%s = 0; %s < 3; %s++)
+   {
+      if (isObject($batchTestShield[%s]))
+         $batchTestShield[%s].delete();
+      $batchTestShield[%s] = "";
+   }
+
+   t2dScene.clear();
+   for (%v = 0; %v < 2; %v++)
+   {
+      $batchTestVolcano[%v] = new ParticlePlayer()
+      {
+         scene = t2dScene;
+         Particle = "Archon:spell_volcano";
+         Position = ((%v * 16) - 8) SPC "0";
+         Size = "8 8";
+         SceneLayer = 1;
+      };
+      $batchTestShield[%v] = new ParticlePlayer()
+      {
+         scene = t2dScene;
+         Particle = "Archon:spell_shield";
+         Position = ((%v * 16) - 8) SPC "12";
+         Size = "8 8";
+         SceneLayer = 1;
+      };
+   }
+
+   schedule(180, 0, "checkLiveMixedParticleBatchPhase");
+}
+
+function checkLiveMixedParticleBatchPhase()
+{
+   %stats = t2dScene.getBatchStats();
+   %flushes = getWord(%stats, 0);
+   %isolated = getWord(%stats, 1);
+   %blendFlushes = getWord(%stats, 2);
+   %colorFlushes = getWord(%stats, 3);
+   %tris = getWord(%stats, 8);
+   logOptResult("INFO: 2x spell_volcano + 2x spell_shield (10 emitters) getBatchStats() = [" @ %stats @ "]");
+
+   assertOptCond("Mixed volcano + shield ParticlePlayers render with batchIsolatedFlush == 0",
+      %isolated == 0);
+   assertOptCond("Mixed volcano + shield ParticlePlayers render with batchColorStateFlush == 0",
+      %colorFlushes == 0);
+   assertOptCond("Mixed volcano + shield ParticlePlayers submit visible particle triangles",
+      %tris > 0);
+   assertOptCond("Mixed volcano + shield ParticlePlayers reduce flushes dramatically (<= 4 total)",
+      %flushes > 0 && %flushes <= 4 && %blendFlushes <= 3);
+
+   for (%v = 0; %v < 2; %v++)
+   {
+      if (isObject($batchTestVolcano[%v]))
+         $batchTestVolcano[%v].delete();
+      if (isObject($batchTestShield[%v]))
+         $batchTestShield[%v].delete();
+      $batchTestVolcano[%v] = "";
+      $batchTestShield[%v] = "";
+   }
+
    // Restore original particle density preference cleanly before exit
    $ResolutionManager.setParticleDensity($savedInitialParticleDensity, false);
 

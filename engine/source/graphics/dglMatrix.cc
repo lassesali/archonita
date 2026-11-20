@@ -36,17 +36,25 @@ namespace
    {
       MatrixF stack[MAX_MATRIX_STACK_DEPTH];
       S32 top;
+      U32 generation;
 
-      MatrixStack() : top(0)
+      MatrixStack() : top(0), generation(1)
       {
          for (S32 i = 0; i < MAX_MATRIX_STACK_DEPTH; ++i)
             stack[i].identity();
+      }
+
+      inline void markDirty()
+      {
+         if (++generation == 0)
+            generation = 1;
       }
 
       void reset()
       {
          top = 0;
          stack[0].identity();
+         markDirty();
       }
 
       MatrixF& current()
@@ -73,7 +81,10 @@ namespace
       {
          AssertFatal(top > 0, "dglPopMatrix: Matrix stack underflow!");
          if (top > 0)
+         {
             --top;
+            markDirty();
+         }
       }
 
       S32 depth() const
@@ -124,13 +135,19 @@ void dglPopMatrix()
 
 void dglLoadIdentity()
 {
-   getActiveStack().current().identity();
+   MatrixStack& stack = getActiveStack();
+   stack.current().identity();
+   stack.markDirty();
 }
 
 void dglLoadMatrix(const MatrixF *m)
 {
    if (m)
-      getActiveStack().current() = *m;
+   {
+      MatrixStack& stack = getActiveStack();
+      stack.current() = *m;
+      stack.markDirty();
+   }
 }
 
 void dglLoadMatrixf(const F32 *mColMajor)
@@ -140,13 +157,19 @@ void dglLoadMatrixf(const F32 *mColMajor)
    MatrixF mat;
    dMemcpy((F32*)mat, mColMajor, 16 * sizeof(F32));
    mat.transpose();
-   getActiveStack().current() = mat;
+   MatrixStack& stack = getActiveStack();
+   stack.current() = mat;
+   stack.markDirty();
 }
 
 void dglMultMatrix(const MatrixF *m)
 {
    if (m)
-      getActiveStack().current().mul(*m);
+   {
+      MatrixStack& stack = getActiveStack();
+      stack.current().mul(*m);
+      stack.markDirty();
+   }
 }
 
 void dglMultMatrixf(const F32 *mColMajor)
@@ -156,7 +179,9 @@ void dglMultMatrixf(const F32 *mColMajor)
    MatrixF mat;
    dMemcpy((F32*)mat, mColMajor, 16 * sizeof(F32));
    mat.transpose();
-   getActiveStack().current().mul(mat);
+   MatrixStack& stack = getActiveStack();
+   stack.current().mul(mat);
+   stack.markDirty();
 }
 
 void dglOrtho(F64 left, F64 right, F64 bottom, F64 top, F64 nearVal, F64 farVal)
@@ -189,7 +214,9 @@ void dglOrtho(F64 left, F64 right, F64 bottom, F64 top, F64 nearVal, F64 farVal)
    m[14] = 0.0f;
    m[15] = 1.0f;
 
-   getActiveStack().current().mul(ortho);
+   MatrixStack& stack = getActiveStack();
+   stack.current().mul(ortho);
+   stack.markDirty();
 }
 
 void dglFrustum(F64 left, F64 right, F64 bottom, F64 top, F64 nearVal, F64 farVal)
@@ -222,7 +249,9 @@ void dglFrustum(F64 left, F64 right, F64 bottom, F64 top, F64 nearVal, F64 farVa
    m[14] = -1.0f;
    m[15] = 0.0f;
 
-   getActiveStack().current().mul(frust);
+   MatrixStack& stack = getActiveStack();
+   stack.current().mul(frust);
+   stack.markDirty();
 }
 
 void dglTranslatef(F32 x, F32 y, F32 z)
@@ -232,7 +261,9 @@ void dglTranslatef(F32 x, F32 y, F32 z)
    m[3]  = x;
    m[7]  = y;
    m[11] = z;
-   getActiveStack().current().mul(trans);
+   MatrixStack& stack = getActiveStack();
+   stack.current().mul(trans);
+   stack.markDirty();
 }
 
 void dglRotatef(F32 angleDeg, F32 x, F32 y, F32 z)
@@ -271,12 +302,16 @@ void dglRotatef(F32 angleDeg, F32 x, F32 y, F32 z)
    m[14] = 0.0f;
    m[15] = 1.0f;
 
-   getActiveStack().current().mul(rot);
+   MatrixStack& stack = getActiveStack();
+   stack.current().mul(rot);
+   stack.markDirty();
 }
 
 void dglScalef(F32 x, F32 y, F32 z)
 {
-   getActiveStack().current().scale(Point3F(x, y, z));
+   MatrixStack& stack = getActiveStack();
+   stack.current().scale(Point3F(x, y, z));
+   stack.markDirty();
 }
 
 void dglGetModelview(MatrixF *m)
@@ -339,4 +374,14 @@ void dglResetMatrixStacks()
    sProjectionStack.reset();
    sTextureStack.reset();
    sCurrentMatrixMode = GL_MODELVIEW;
+}
+
+U32 dglGetModelviewGeneration()
+{
+   return sModelviewStack.generation;
+}
+
+U32 dglGetProjectionGeneration()
+{
+   return sProjectionStack.generation;
 }

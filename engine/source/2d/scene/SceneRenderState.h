@@ -46,10 +46,12 @@ struct SceneRenderState
         U32 renderGroupMask,
         const Vector2& renderScale,
         DebugStats* pDebugStats,
-        SimObject* pRenderHost )
+        SimObject* pRenderHost,
+        const bool cullParticles = false )
     {
         mRenderArea       = renderArea;
         mRenderAABB       = CoreMath::mRectFtoAABB( renderArea );
+        CoreMath::mRotateAABB( mRenderAABB, renderAngle, mCameraAABB );
         mRenderPosition   = renderPosition;
         mRenderAngle      = renderAngle;
         mRenderScale      = renderScale;
@@ -57,17 +59,20 @@ struct SceneRenderState
         mRenderGroupMask  = renderGroupMask;
         mpDebugStats      = pDebugStats;
         mpRenderHost      = pRenderHost;
+        mCullParticles    = cullParticles;
     }
 
     RectF           mRenderArea;
     Vector2         mRenderPosition;
     F32             mRenderAngle;
     b2AABB          mRenderAABB;
+    b2AABB          mCameraAABB;
     U32             mRenderLayerMask;
     U32             mRenderGroupMask;
     Vector2         mRenderScale;
     DebugStats*     mpDebugStats;
     SimObject*      mpRenderHost;
+    bool            mCullParticles;
 
 
 };

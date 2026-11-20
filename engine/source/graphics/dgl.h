@@ -255,6 +255,9 @@ void dglGetModelviewColumnMajor(F32 outColMajor[16]);
 void dglGetProjectionColumnMajor(F32 outColMajor[16]);
 /// writes the combined Projection * ModelView matrix in OpenGL column-major order
 void dglGetMVPColumnMajor(F32 outColMajor[16]);
+/// returns monotonic generation counters incremented on matrix mutations (never 0)
+U32 dglGetModelviewGeneration();
+U32 dglGetProjectionGeneration();
 /// returns the current stack depth of the modelview, projection, and texture stacks
 S32 dglGetModelviewStackDepth();
 S32 dglGetProjectionStackDepth();

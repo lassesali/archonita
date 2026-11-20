@@ -1000,9 +1000,8 @@ void Scene::sceneRender( const SceneRenderState* pSceneRenderState )
     // Debug Profiling.
     PROFILE_START(Scene_RenderSceneVisibleQuery);
 
-    // Rotate the render AABB by the camera angle.
-    b2AABB cameraAABB;
-    CoreMath::mRotateAABB( pSceneRenderState->mRenderAABB, pSceneRenderState->mRenderAngle, cameraAABB );
+    // Fetch the rotated camera AABB prepared in SceneRenderState.
+    const b2AABB& cameraAABB = pSceneRenderState->mCameraAABB;
 
     // Rotate the world matrix by the camera angle.
     const Vector2& cameraPosition = pSceneRenderState->mRenderPosition;
@@ -1143,8 +1142,10 @@ void Scene::sceneRender( const SceneRenderState* pSceneRenderState )
                         mBatchRenderer.flush( pDebugStats->batchIsolatedFlush );
                     }
 
-                    // Yes, so is the object batch rendered?
-                    if ( pSceneRenderObject->isBatchRendered() )
+                    // Yes, so is the object batch rendered and using its own SceneObject blend/alpha state?
+                    // (Objects like ParticlePlayer manage blend/alpha per-emitter unless falling back to proxy.)
+                    if ( pSceneRenderObject->isBatchRendered() &&
+                         ( pSceneRenderObject->usesObjectBlendState() || !pSceneRenderObject->validRender() ) )
                     {
                         // Yes, so set the blend mode.
                         mBatchRenderer.setBlendMode( pSceneRenderRequest );

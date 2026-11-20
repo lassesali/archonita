@@ -17,6 +17,7 @@ what your scripts have to say, and what ends up in your files.
 - Added `ShaderManager` (`engine/source/graphics/ShaderManager.h`, `engine/source/graphics/ShaderManager.cc`) with dual-target GLSL preprocessor injection (`#version 460 core` / `#version 320 es`) and streaming VAO/VBO/IBO draw submission.
 - Added `GLDSA` (`engine/source/graphics/glDSA.h`, `engine/source/graphics/glDSA.cc`) Direct State Access abstraction wrapping OpenGL 4.5+ DSA entry points with bind-based fallbacks for OpenGL ES 3.2 and ANGLE/macOS.
 - Added CPU matrix stack implementation (`engine/source/graphics/dglMatrix.cc`) and C++ GoogleTest coverage (`engine/source/testing/tests/openglMigrationTests.cc`).
+- Added `Scene::getBatchStats()` (`engine/source/2d/scene/Scene_ScriptBinding.h`), monotonic matrix generation counters (`dglGetModelviewGeneration()`, `dglGetProjectionGeneration()`), two-step indexed draw helpers (`ShaderManager::beginIndexedDraw()`, `ShaderManager::drawUploadedIndices()`), and C++ batching/math tests (`engine/source/testing/tests/particleBatchRenderTests.cc`).
 
 ### Changed
 
@@ -29,6 +30,7 @@ what your scripts have to say, and what ends up in your files.
 - Replaced fixed-function matrix stacks, immediate-mode `glBegin`/`glEnd`, client vertex arrays (`glVertexPointer`/`glColorPointer`/`glTexCoordPointer`), `glAlphaFunc`/`GL_ALPHA_TEST`, and `glClipPlane` across `dgl`, `BatchRender`, `TextureManager`, GUI controls, and 2D scene objects with `ShaderManager` programmable shaders, streaming VAO/VBO/IBO batching, CPU matrix stacks (`dglMatrix`), and uniform-driven alpha testing and clip planes.
 - Updated `TextureManager` internal/upload formats to Core Profile / ES 3.2 sized formats (`GL_R8`, `GL_RG8`, `GL_RGB8`, `GL_RGBA8`, `GL_RGB565`, `GL_RGB5_A1`, `GL_RGBA4`) with texture swizzle masks (`GL_TEXTURE_SWIZZLE_RGBA`) for alpha-only bitmap font sheets and `GL_CLAMP_TO_EDGE` clamping.
 - Integrated `upstream/development` SDL 2, particle, and GUI updates into `local-gl46`: `CMakeLists.txt` combines Emscripten `-sUSE_SDL=2` with WebGL 2 shader flags (`-sMIN_WEBGL_VERSION=2`, `-sMAX_WEBGL_VERSION=2`, replacing `LEGACY_GL_EMULATION`), `cmake/EngineSources.cmake` preserves `openglMigrationTests.cc` alongside `particleAssetFieldTests.cc` and `particleEmissionAngleTests.cc`, and Windows x64 Release (`Torque2D.exe`) compiles and links cleanly via Visual Studio 2026 CMake.
+- Refactored `ParticlePlayer`, `Scene`, `BatchRender`, and `ShaderManager` to eliminate forced per-emitter batch flushes and matrix stack mutations (transforming attached emitter OOBBs on the CPU, hoisting emitter texture/UV lookups, and culling off-camera/zero-size/zero-alpha particles), merge same-layer `ParticlePlayer` draws via `SceneRenderObject::usesObjectBlendState()`, write interleaved `DGLVertex` structs directly at submit time without color/blend-color state flushes, upload the shared VBO once per sorted flush, and skip unchanged `ShaderManager` uniform/program uploads via matrix generation counters while preserving Intel Windows non-DSA exact-size `GL_STREAM_DRAW` uploads.
 
 ### Fixed
 
@@ -60,6 +62,7 @@ what your scripts have to say, and what ends up in your files.
 - Fixed Win64 (`TORQUE_OS_WIN`) preprocessor guards in `GLDSA` (`engine/source/graphics/glDSA.cc`) where `TORQUE_OS_WIN32`-only checks disabled OpenGL 4.5+ DSA/VAO paths on x64 Windows builds (causing `GL_INVALID_OPERATION` and black frames under OpenGL 4.6 Core Profile), and ensured `GLDSA::bindTextureUnit` always activates the requested texture unit on non-DSA fallbacks.
 - Guarded `dglDrawTextN` (`engine/source/graphics/dgl.cc`) against null texture handles before emitting glyph vertices.
 - Fixed truncated text (only the first character rendering), missing batched sprites (only the first quad per texture batch rendering), and severe framerate drops on Intel Windows OpenGL drivers (such as Intel Iris Plus Graphics 655). `ShaderManager` now uploads exact per-draw buffer sizes in a single `GL_STREAM_DRAW` call (binding the VAO before initializing the element buffer), Windows OpenGL initialization disables DSA on Intel drivers to avoid stale element-buffer tracking in Intel's ICD, and `screenShot()` renders to and reads from `GL_BACK` instead of `GL_FRONT` so screenshots work under Windows DWM / Intel DCH swapchains.
+- Fixed `BatchRender::setAlphaTestMode()` double-counting `mpDebugStats->batchAlphaStateFlush` even when no batch flush occurred.
 
 ## [4.0-ea4] - 2026-08-18
 

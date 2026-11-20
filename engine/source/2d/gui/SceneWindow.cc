@@ -1976,7 +1976,20 @@ void SceneWindow::onRender( Point2I offset, const RectI& updateRect )
         mRenderGroupMask,
         Vector2( mCameraCurrent.mSceneWindowScale ),
         &debugStats,
-        this );
+        this,
+        true );
+
+    // Include shaken camera view in particle culling bounds so camera shake never clips edge particles.
+    if ( mCameraShaking )
+    {
+        RectF shakenArea = mCameraCurrent.mDestinationArea;
+        shakenArea.point.x += mCameraShakeOffset.x;
+        shakenArea.point.y += mCameraShakeOffset.y;
+        b2AABB shakenCameraAABB;
+        CoreMath::mRotateAABB( CoreMath::mRectFtoAABB( shakenArea ), mCameraCurrent.mCameraAngle, shakenCameraAABB );
+        sceneRenderState.mCameraAABB.lowerBound = b2Min( sceneRenderState.mCameraAABB.lowerBound, shakenCameraAABB.lowerBound );
+        sceneRenderState.mCameraAABB.upperBound = b2Max( sceneRenderState.mCameraAABB.upperBound, shakenCameraAABB.upperBound );
+    }
 
     // Clear the background color if requested.
     if ( mUseBackgroundColor )

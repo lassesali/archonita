@@ -3542,6 +3542,28 @@ ConsoleMethodWithDocs(Scene, getFrameCount, ConsoleInt, 2, 2, ())
 
 //-----------------------------------------------------------------------------
 
+/*! Gets batch rendering statistics for the most recently rendered frame.
+    @return Space-delimited counts: batchFlushes batchIsolatedFlush batchBlendStateFlush batchColorStateFlush batchAlphaStateFlush batchTextureChangeFlush batchDrawCallsStrict batchDrawCallsSorted batchTrianglesSubmitted.
+*/
+ConsoleMethodWithDocs(Scene, getBatchStats, ConsoleString, 2, 2, ())
+{
+    const DebugStats& stats = object->getDebugStats();
+    char* pBuffer = Con::getReturnBuffer( 256 );
+    dSprintf( pBuffer, 256, "%u %u %u %u %u %u %u %u %u",
+        stats.batchFlushes,
+        stats.batchIsolatedFlush,
+        stats.batchBlendStateFlush,
+        stats.batchColorStateFlush,
+        stats.batchAlphaStateFlush,
+        stats.batchTextureChangeFlush,
+        stats.batchDrawCallsStrict,
+        stats.batchDrawCallsSorted,
+        stats.batchTrianglesSubmitted );
+    return pBuffer;
+}
+
+//-----------------------------------------------------------------------------
+
 /*! Sets whether render batching is enabled or not.
     @param enabled Whether render batching is enabled or not.
     return No return value.

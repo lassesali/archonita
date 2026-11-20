@@ -52,6 +52,28 @@ namespace
    static ColorF sCurrentTexEnvColor(1.0f, 1.0f, 1.0f, 1.0f);
    static F32 sCurrentAlphaThreshold = -1.0f;
 
+   // GL sync cache (invalidated on init/shutdown or matrix/state changes)
+   static bool sProgramBound = false;
+   static bool sUniformsInitialized = false;
+   static U32 sSyncedProjGen = 0;
+   static U32 sSyncedMVGen = 0;
+   static DGLTexMode sSyncedTexMode = DGL_TEX_NONE;
+   static ColorF sSyncedTexEnvColor(1.0f, 1.0f, 1.0f, 1.0f);
+   static F32 sSyncedAlphaThreshold = -1.0f;
+   static bool sClipPlanesDirty = true;
+
+   static void resetCachedGLState()
+   {
+      sProgramBound = false;
+      sUniformsInitialized = false;
+      sSyncedProjGen = 0;
+      sSyncedMVGen = 0;
+      sSyncedTexMode = DGL_TEX_NONE;
+      sSyncedTexEnvColor.set(1.0f, 1.0f, 1.0f, 1.0f);
+      sSyncedAlphaThreshold = -1.0f;
+      sClipPlanesDirty = true;
+   }
+
    // Clip planes
    static F32 sClipPlanes[4][4] = {
       { 0.0f, 0.0f, 0.0f, 0.0f },
@@ -154,27 +176,57 @@ namespace
             return;
       }
 
-      glUseProgram(sDefaultProgram);
+      if (!sProgramBound)
+      {
+         glUseProgram(sDefaultProgram);
+         sProgramBound = true;
+      }
 
-      F32 mvp[16];
-      F32 mv[16];
-      dglGetMVPColumnMajor(mvp);
-      dglGetModelviewColumnMajor(mv);
+      const U32 projGen = dglGetProjectionGeneration();
+      const U32 mvGen = dglGetModelviewGeneration();
+      if (!sUniformsInitialized || projGen != sSyncedProjGen || mvGen != sSyncedMVGen)
+      {
+         if (sLocMVP >= 0)
+         {
+            F32 mvp[16];
+            dglGetMVPColumnMajor(mvp);
+            glUniformMatrix4fv(sLocMVP, 1, GL_FALSE, mvp);
+         }
+         if ((!sUniformsInitialized || mvGen != sSyncedMVGen) && sLocModelView >= 0)
+         {
+            F32 mv[16];
+            dglGetModelviewColumnMajor(mv);
+            glUniformMatrix4fv(sLocModelView, 1, GL_FALSE, mv);
+         }
+         sSyncedProjGen = projGen;
+         sSyncedMVGen = mvGen;
+      }
 
-      if (sLocMVP >= 0)
-         glUniformMatrix4fv(sLocMVP, 1, GL_FALSE, mvp);
-      if (sLocModelView >= 0)
-         glUniformMatrix4fv(sLocModelView, 1, GL_FALSE, mv);
-      if (sLocTexture0 >= 0)
+      if (!sUniformsInitialized && sLocTexture0 >= 0)
          glUniform1i(sLocTexture0, 0);
-      if (sLocTexMode >= 0)
-         glUniform1i(sLocTexMode, (GLint)sCurrentTexMode);
-      if (sLocTexEnvColor >= 0)
-         glUniform4f(sLocTexEnvColor, sCurrentTexEnvColor.red, sCurrentTexEnvColor.green, sCurrentTexEnvColor.blue, sCurrentTexEnvColor.alpha);
-      if (sLocAlphaThreshold >= 0)
-         glUniform1f(sLocAlphaThreshold, sCurrentAlphaThreshold);
 
-      if (sLocClipPlaneCount >= 0)
+      if (!sUniformsInitialized || sCurrentTexMode != sSyncedTexMode)
+      {
+         if (sLocTexMode >= 0)
+            glUniform1i(sLocTexMode, (GLint)sCurrentTexMode);
+         sSyncedTexMode = sCurrentTexMode;
+      }
+
+      if (!sUniformsInitialized || sCurrentTexEnvColor != sSyncedTexEnvColor)
+      {
+         if (sLocTexEnvColor >= 0)
+            glUniform4f(sLocTexEnvColor, sCurrentTexEnvColor.red, sCurrentTexEnvColor.green, sCurrentTexEnvColor.blue, sCurrentTexEnvColor.alpha);
+         sSyncedTexEnvColor = sCurrentTexEnvColor;
+      }
+
+      if (!sUniformsInitialized || sCurrentAlphaThreshold != sSyncedAlphaThreshold)
+      {
+         if (sLocAlphaThreshold >= 0)
+            glUniform1f(sLocAlphaThreshold, sCurrentAlphaThreshold);
+         sSyncedAlphaThreshold = sCurrentAlphaThreshold;
+      }
+
+      if ((!sUniformsInitialized || sClipPlanesDirty) && sLocClipPlaneCount >= 0)
       {
          F32 activePlanes[4][4];
          GLint count = 0;
@@ -192,7 +244,10 @@ namespace
          glUniform1i(sLocClipPlaneCount, count);
          if (count > 0 && sLocClipPlanes >= 0)
             glUniform4fv(sLocClipPlanes, count, &activePlanes[0][0]);
+         sClipPlanesDirty = false;
       }
+
+      sUniformsInitialized = true;
    }
 
    static void configureVAOAttributes()
@@ -352,6 +407,7 @@ bool init()
    GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)sizeof(DGLVertex), NULL, GL_STREAM_DRAW);
    GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)sizeof(U16), NULL, GL_STREAM_DRAW);
 
+   resetCachedGLState();
    sInitialized = true;
    return true;
 }
@@ -378,6 +434,7 @@ void shutdown()
       sDefaultProgram = 0;
    }
 
+   resetCachedGLState();
    sInitialized = false;
 }
 
@@ -419,6 +476,7 @@ void setClipPlane(U32 index, F64 a, F64 b, F64 c, F64 d)
    sClipPlanes[index][1] = (F32)b;
    sClipPlanes[index][2] = (F32)c;
    sClipPlanes[index][3] = (F32)d;
+   sClipPlanesDirty = true;
 }
 
 void enableClipPlane(U32 index, bool enable)
@@ -426,12 +484,14 @@ void enableClipPlane(U32 index, bool enable)
    if (index >= 4)
       return;
    sClipPlaneEnabled[index] = enable;
+   sClipPlanesDirty = true;
 }
 
 void clearClipPlanes()
 {
    for (U32 i = 0; i < 4; ++i)
       sClipPlaneEnabled[i] = false;
+   sClipPlanesDirty = true;
 }
 
 void drawVertices(GLenum mode, const DGLVertex* vertices, U32 vertexCount)
@@ -473,6 +533,8 @@ void drawVertices(GLenum mode, const DGLVertex* vertices, U32 vertexCount)
    }
 
    bindProgramAndSyncUniforms();
+   if (!sInitialized)
+      return;
 
    const U32 byteSize = vertexCount * sizeof(DGLVertex);
    glBindVertexArray(sDynamicVAO);
@@ -482,22 +544,28 @@ void drawVertices(GLenum mode, const DGLVertex* vertices, U32 vertexCount)
    glDrawArrays(mode, 0, (GLsizei)vertexCount);
 }
 
-void drawIndexedVertices(GLenum mode,
-                         const DGLVertex* vertices,
-                         U32 vertexCount,
-                         const U16* indices,
-                         U32 indexCount,
-                         bool wireframe)
+void beginIndexedDraw(const DGLVertex* vertices, U32 vertexCount)
 {
-   if (!vertices || vertexCount == 0 || !indices || indexCount == 0)
+   if (!vertices || vertexCount == 0)
       return;
 
    bindProgramAndSyncUniforms();
+   if (!sInitialized)
+      return;
 
    const U32 vboBytes = vertexCount * sizeof(DGLVertex);
    glBindVertexArray(sDynamicVAO);
    GLDSA::namedBufferData(sDynamicVBO, GL_ARRAY_BUFFER, (GLsizeiptr)vboBytes, vertices, GL_STREAM_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sDynamicIBO);
+}
+
+void drawUploadedIndices(GLenum mode,
+                         const U16* indices,
+                         U32 indexCount,
+                         bool wireframe)
+{
+   if (!sInitialized || !indices || indexCount == 0)
+      return;
 
    if (wireframe && mode == GL_TRIANGLES)
    {
@@ -529,6 +597,20 @@ void drawIndexedVertices(GLenum mode,
       GLDSA::namedBufferData(sDynamicIBO, GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)iboBytes, indices, GL_STREAM_DRAW);
       glDrawElements(mode, (GLsizei)indexCount, GL_UNSIGNED_SHORT, (const void*)0);
    }
+}
+
+void drawIndexedVertices(GLenum mode,
+                         const DGLVertex* vertices,
+                         U32 vertexCount,
+                         const U16* indices,
+                         U32 indexCount,
+                         bool wireframe)
+{
+   if (!vertices || vertexCount == 0 || !indices || indexCount == 0)
+      return;
+
+   beginIndexedDraw(vertices, vertexCount);
+   drawUploadedIndices(mode, indices, indexCount, wireframe);
 }
 
 void drawBatch(GLenum mode,

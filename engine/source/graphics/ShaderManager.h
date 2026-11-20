@@ -112,6 +112,14 @@ namespace ShaderManager
                             U32 indexCount,
                             bool wireframe = false);
 
+   // Two-step indexed drawing: upload vertex data and bind VAO/shader once,
+   // then issue one or more drawUploadedIndices() calls (e.g., per texture bucket).
+   void beginIndexedDraw(const DGLVertex* vertices, U32 vertexCount);
+   void drawUploadedIndices(GLenum mode,
+                            const U16* indices,
+                            U32 indexCount,
+                            bool wireframe = false);
+
    // Specialized batch submission for BatchRender
    void drawBatch(GLenum mode,
                   const Point2F* positions,
