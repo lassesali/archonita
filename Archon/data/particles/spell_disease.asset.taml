@@ -6,8 +6,8 @@
         EmitterSize="4 4"
         FixedForceAngle="90"
         OldestInFront="1"
-        Image="@asset=Archon:particles4ImageMap"
-        Frame="3">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="15">
         <ParticleAssetEmitter.Fields>
             <Quantity>
                 <Key Time="0" Value="10" />
@@ -83,8 +83,8 @@
         FixedForceAngle="90"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles6ImageMap"
-        Frame="1">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="21">
         <ParticleAssetEmitter.Fields>
             <Quantity>
                 <Key Time="0" Value="12" />

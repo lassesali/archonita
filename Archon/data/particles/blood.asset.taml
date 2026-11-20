@@ -3,8 +3,8 @@
     <ParticleAssetEmitter
         EmitterName="Bubbles"
         OldestInFront="1"
-        Image="@asset=Archon:bloodImageMap"
-        Frame="0">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="36">
         <ParticleAssetEmitter.Fields>
             <Quantity>
                 <Key Time="0" Value="25" />

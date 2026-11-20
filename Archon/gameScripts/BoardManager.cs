@@ -53,6 +53,13 @@ function BoardManager::showBoardScreen(%this)
    startBackgroundMusic();
    dismountobject();
    startGame("Archon/data/levels/board.t2d");
+   if (isObject(blood) && blood.isMethod("stop"))
+   {
+      blood.stop(false, false);
+      blood.setPosition("-50 -80");
+   }
+   if (isObject(magicButtonEffect) && magicButtonEffect.isMethod("stop"))
+      magicButtonEffect.stop(false, false);
    if (isObject(sceneWindow2D))
       sceneWindow2D.setUseWindowMouseEvents(true);  
    

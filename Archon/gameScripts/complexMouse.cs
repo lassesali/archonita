@@ -342,6 +342,33 @@ function mouseOverGreenGrid( %mod, %worldPos )
 }
 
 
+function sceneWindow2D::updateMouseTrail( %this, %worldPos )
+{
+   if (!isObject(mouseTrail))
+      return;
+
+   mouseTrail.setPosition(%worldPos);
+   if (mouseTrail.isMethod("play") && (!mouseTrail.getIsPlaying() || (mouseTrail.isMethod("getEmitterPaused") && mouseTrail.getEmitterPaused(0))))
+      mouseTrail.play(false);
+
+   if (isEventPending(mouseTrail.idleStopEvent))
+      cancel(mouseTrail.idleStopEvent);
+   mouseTrail.idleStopEvent = mouseTrail.schedule(180, "stop", true, false);
+}
+
+function sceneWindow2D::pauseMouseTrail( %this, %immediate )
+{
+   if (!isObject(mouseTrail))
+      return;
+
+   if (isEventPending(mouseTrail.idleStopEvent))
+      cancel(mouseTrail.idleStopEvent);
+   mouseTrail.idleStopEvent = 0;
+
+   if (mouseTrail.isMethod("stop"))
+      mouseTrail.stop(!%immediate, false);
+}
+
 function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
 {
 
@@ -360,10 +387,7 @@ function sceneWindow2D::onMouseMove( %this, %mod, %worldPos, %mouseClicks )
          else
             Canvas.showCursor();
 
-         if (isObject(mouseTrail)) {
-            
-            mouseTrail.setPosition(%worldPos);
-         }
+         %this.updateMouseTrail(%worldPos);
 
          if (isObject($mouseObj::object)) {
             $mouseObj::object.setPosition(%worldPos);
@@ -412,9 +436,7 @@ function sceneWindow2D::onMouseDragged( %this, %mod, %worldPos, %mouseClicks )
          else
             Canvas.showCursor();
 
-         if (isObject(mouseTrail)) {
-            mouseTrail.setPosition(%worldPos);
-         }
+         %this.updateMouseTrail(%worldPos);
 
          if (isObject($mouseObj::object)) {
             $mouseObj::object.setPosition(%worldPos);
@@ -906,6 +928,8 @@ function sceneWindow2D::onMouseEnter( %this, %mod, %worldPos, %mouseClicks )
 
 function sceneWindow2D::onMouseLeave( %this, %mod, %worldPos, %mouseClicks )
 {
+        %this.pauseMouseTrail(false);
+
         if (isObject($UnitStatsHud))
                 $UnitStatsHud.hideTooltip();
 
@@ -943,6 +967,8 @@ function initMouse()
         
         resetActionIconsAnchor();
         updateActionIconsVisualState();
+        if (isObject(sceneWindow2D))
+                sceneWindow2D.pauseMouseTrail(true);
         
         //$debugMsg::mouse::selection=true;
         //$debugMsg::mouse::callbacks=true;

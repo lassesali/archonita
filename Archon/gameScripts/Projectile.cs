@@ -105,8 +105,8 @@ datablock SimDataBlock(ProjectileHitEmitterData)
 datablock SimDataBlock(DefaultProjectileTemplate)
 {
    class = "ProjectileTemplate";
-   imageMap = "Archon:particles3ImageMap";
-   imageFrame = 1;
+   imageMap = "Archon:particlesAtlasImageMap";
+   imageFrame = 9;
    size = "4.0 1.6";
    sceneLayer = 1;
    speed = 55.0;
@@ -143,10 +143,18 @@ function Projectile::init(%this)
 
    %img = (%this.projectileImage !$= "") ? %this.projectileImage : %tpl.imageMap;
    %frame = (%this.projectileFrame !$= "") ? %this.projectileFrame : %tpl.imageFrame;
-   if (isObject(AssetDatabase) && AssetDatabase.isDeclaredAsset(%img))
+   if (isObject(AssetDatabase))
    {
-      %this.setImage(%img);
-      %this.setImageFrame(%frame);
+      if (%img $= "Archon:particlesAtlasImageMap" && !AssetDatabase.isDeclaredAsset(%img))
+      {
+         %img = "Archon:particles3ImageMap";
+         %frame = 1;
+      }
+      if (AssetDatabase.isDeclaredAsset(%img))
+      {
+         %this.setImage(%img);
+         %this.setImageFrame(%frame);
+      }
    }
 
    if (%this.speed $= "" || %this.speed <= 0)
@@ -198,53 +206,42 @@ function Projectile::applyVisualStyle(%this, %visualType)
    if (!isObject(AssetDatabase))
       return;
 
+   %useAtlas = AssetDatabase.isDeclaredAsset("Archon:particlesAtlasImageMap");
+
    switch$ (%visualType)
    {
       case "fire":
-         if (AssetDatabase.isDeclaredAsset("Archon:particles2ImageMap"))
-         {
-            %this.setImage("Archon:particles2ImageMap");
-            %this.setImageFrame(2);
-         }
-         %this.setSize("4.5 2.0");
-         %this.setBlendColor(1.0, 0.55, 0.15, 1.0);
+         %img = %useAtlas ? "Archon:particlesAtlasImageMap" : "Archon:particles2ImageMap";
+         %frame = %useAtlas ? 6 : 2;
+         %size = "4.5 2.0";
+         %r = 1.0; %g = 0.55; %b = 0.15; %a = 1.0;
 
-      case "beam":
-         if (AssetDatabase.isDeclaredAsset("Archon:particles3ImageMap"))
-         {
-            %this.setImage("Archon:particles3ImageMap");
-            %this.setImageFrame(1);
-         }
-         %this.setSize("4.2 1.8");
-         %this.setBlendColor(0.55, 0.85, 1.0, 1.0);
-
-      case "magic":
-         if (AssetDatabase.isDeclaredAsset("Archon:particles3ImageMap"))
-         {
-            %this.setImage("Archon:particles3ImageMap");
-            %this.setImageFrame(1);
-         }
-         %this.setSize("4.2 1.8");
-         %this.setBlendColor(0.55, 0.85, 1.0, 1.0);
+      case "beam" or "magic":
+         %img = %useAtlas ? "Archon:particlesAtlasImageMap" : "Archon:particles3ImageMap";
+         %frame = %useAtlas ? 9 : 1;
+         %size = "4.2 1.8";
+         %r = 0.55; %g = 0.85; %b = 1.0; %a = 1.0;
 
       case "stone":
-         if (AssetDatabase.isDeclaredAsset("Archon:particles1ImageMap"))
-         {
-            %this.setImage("Archon:particles1ImageMap");
-            %this.setImageFrame(0);
-         }
-         %this.setSize("2.2 2.2");
-         %this.setBlendColor(0.85, 0.80, 0.70, 1.0);
+         %img = %useAtlas ? "Archon:particlesAtlasImageMap" : "Archon:particles1ImageMap";
+         %frame = 0;
+         %size = "2.2 2.2";
+         %r = 0.85; %g = 0.80; %b = 0.70; %a = 1.0;
 
       default:
-         if (AssetDatabase.isDeclaredAsset("Archon:particles3ImageMap"))
-         {
-            %this.setImage("Archon:particles3ImageMap");
-            %this.setImageFrame(1);
-         }
-         %this.setSize("4.0 1.6");
-         %this.setBlendColor(1.0, 0.95, 0.80, 1.0);
+         %img = %useAtlas ? "Archon:particlesAtlasImageMap" : "Archon:particles3ImageMap";
+         %frame = %useAtlas ? 9 : 1;
+         %size = "4.0 1.6";
+         %r = 1.0; %g = 0.95; %b = 0.80; %a = 1.0;
    }
+
+   if (AssetDatabase.isDeclaredAsset(%img))
+   {
+      %this.setImage(%img);
+      %this.setImageFrame(%frame);
+   }
+   %this.setSize(%size);
+   %this.setBlendColor(%r, %g, %b, %a);
 }
 
 function Projectile::attachTrailEmitter(%this)
@@ -272,7 +269,7 @@ function Projectile::attachTrailEmitter(%this)
       SceneLayer = %this.getSceneLayer();
       Position = %this.getPosition();
       Size = "6 6";
-      ParticleInterpolation = true;
+      ParticleInterpolation = false;
    };
    if (!isObject(%trail))
       return;

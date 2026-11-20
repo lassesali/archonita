@@ -91,7 +91,7 @@ function SpellEffectManager::getSpellAssetId(%this, %spellFrame)
    return "";
 }
 
-function SpellEffectManager::spawnEffectAtPosition(%this, %assetId, %position, %sceneLayer, %emitDurationMs, %cleanupDelayMs)
+function SpellEffectManager::spawnEffectAtPosition(%this, %assetId, %position, %sceneLayer, %emitDurationMs, %cleanupDelayMs, %emissionScale)
 {
    if (!isObject(t2dScene) || %assetId $= "" || %position $= "")
       return "";
@@ -105,6 +105,8 @@ function SpellEffectManager::spawnEffectAtPosition(%this, %assetId, %position, %
       %emitDurationMs = %this.defaultEmitDurationMs;
    if (%cleanupDelayMs $= "" || %cleanupDelayMs <= %emitDurationMs)
       %cleanupDelayMs = %emitDurationMs + 1250;
+   if (%emissionScale $= "" || %emissionScale <= 0)
+      %emissionScale = 1.0;
 
    if (!isObject(%this.activeEffects))
       %this.activeEffects = new SimSet();
@@ -121,6 +123,12 @@ function SpellEffectManager::spawnEffectAtPosition(%this, %assetId, %position, %
    if (!isObject(%effect))
       return "";
 
+   %baseDensity = isObject($ResolutionManager)
+      ? $ResolutionManager.getParticleDensity()
+      : (($pref::T2D::ParticlePlayerEmissionRateScale !$= "") ? $pref::T2D::ParticlePlayerEmissionRateScale : 1.0);
+   if (%effect.isMethod("setEmissionRateScale"))
+      %effect.setEmissionRateScale(%baseDensity * %emissionScale);
+
    %this.activeEffects.add(%effect);
    %effect.stopEventId = %this.schedule(%emitDurationMs, "stopEffectEmission", %effect);
    %effect.cleanupEventId = %this.schedule(%cleanupDelayMs, "cleanupEffect", %effect);
@@ -128,12 +136,12 @@ function SpellEffectManager::spawnEffectAtPosition(%this, %assetId, %position, %
    return %effect;
 }
 
-function SpellEffectManager::spawnEffectOnPiece(%this, %piece, %assetId)
+function SpellEffectManager::spawnEffectOnPiece(%this, %piece, %assetId, %emissionScale)
 {
    if (!isObject(%piece) || %assetId $= "")
       return "";
 
-   return %this.spawnEffectAtPosition(%assetId, %piece.getPosition(), %this.boardEffectLayer, %this.defaultEmitDurationMs, %this.defaultCleanupDelayMs);
+   return %this.spawnEffectAtPosition(%assetId, %piece.getPosition(), %this.boardEffectLayer, %this.defaultEmitDurationMs, %this.defaultCleanupDelayMs, %emissionScale);
 }
 
 function SpellEffectManager::spawnEffectOnGroup(%this, %groupId, %assetId)
@@ -141,14 +149,29 @@ function SpellEffectManager::spawnEffectOnGroup(%this, %groupId, %assetId)
    if (!isObject(game) || %assetId $= "")
       return 0;
 
-   %spawnedCount = 0;
    %pieceCount = game.getPieceCount();
+   %targetCount = 0;
+   for (%i = 1; %i <= %pieceCount; %i++)
+   {
+      %unit = $nappulaSprite[%i];
+      if (isObject(%unit) && %unit.alive == 1 && %unit.groupid == %groupId)
+         %targetCount++;
+   }
+
+   if (%targetCount == 0)
+      return 0;
+
+   %aoeScale = (%targetCount > 3) ? (3.0 / %targetCount) : 1.0;
+   if (%aoeScale < 0.45)
+      %aoeScale = 0.45;
+
+   %spawnedCount = 0;
    for (%i = 1; %i <= %pieceCount; %i++)
    {
       %unit = $nappulaSprite[%i];
       if (isObject(%unit) && %unit.alive == 1 && %unit.groupid == %groupId)
       {
-         %effect = %this.spawnEffectOnPiece(%unit, %assetId);
+         %effect = %this.spawnEffectOnPiece(%unit, %assetId, %aoeScale);
          if (isObject(%effect))
             %spawnedCount++;
       }

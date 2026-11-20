@@ -6,8 +6,8 @@
         EmitterSize="6 6"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles7ImageMap"
-        Frame="0">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="24">
         <ParticleAssetEmitter.Fields>
             <Quantity>
                 <Key Time="0" Value="6" />
@@ -73,7 +73,7 @@
         EmitterSize="7 7"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles1ImageMap"
+        Image="@asset=Archon:particlesAtlasImageMap"
         Frame="1">
         <ParticleAssetEmitter.Fields>
             <Quantity>

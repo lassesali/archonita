@@ -37,6 +37,11 @@ function ResolutionManager::onAdd(%this)
    %this.baseUiScale = 75;
    %this.currentUiScale = 75;
 
+   %this.minParticleDensity = 0.0;
+   %this.maxParticleDensity = 1.0;
+   %this.defaultParticleDensity = 1.0;
+   %this.currentParticleDensity = 1.0;
+
    %this.loadPreferences();
 }
 
@@ -108,6 +113,12 @@ function ResolutionManager::loadPreferences(%this)
       %this.currentUiScale = %this.baseUiScale;
    $pref::UI::Scale = %this.currentUiScale;
 
+   if ($pref::T2D::ParticlePlayerEmissionRateScale !$= "")
+      %this.currentParticleDensity = %this.normalizeParticleDensity($pref::T2D::ParticlePlayerEmissionRateScale);
+   else
+      %this.currentParticleDensity = %this.defaultParticleDensity;
+   $pref::T2D::ParticlePlayerEmissionRateScale = %this.currentParticleDensity;
+
    if (isObject(mainScreenGui))
       %this.reanchorAllGuis();
 }
@@ -133,6 +144,10 @@ function ResolutionManager::savePreferences(%this)
       %this.currentUiScale = %uiScale;
       $pref::UI::Scale = %uiScale;
       %file.writeLine("$pref::UI::Scale = " @ %uiScale @ ";");
+      %density = %this.getParticleDensity();
+      %this.currentParticleDensity = %density;
+      $pref::T2D::ParticlePlayerEmissionRateScale = %density;
+      %file.writeLine("$pref::T2D::ParticlePlayerEmissionRateScale = " @ %density @ ";");
       %file.close();
    }
    %file.delete();
@@ -278,6 +293,50 @@ function ResolutionManager::setUiScale(%this, %percent, %skipSave)
       Canvas.repaint();
 
    return %norm;
+}
+
+function ResolutionManager::normalizeParticleDensity(%this, %scale)
+{
+   if (%scale $= "")
+      return %this.defaultParticleDensity;
+
+   %val = %scale * 1.0;
+   if (%val < %this.minParticleDensity)
+      %val = %this.minParticleDensity;
+   if (%val > %this.maxParticleDensity)
+      %val = %this.maxParticleDensity;
+   return %val;
+}
+
+function ResolutionManager::getParticleDensity(%this)
+{
+   return %this.normalizeParticleDensity(%this.currentParticleDensity);
+}
+
+function ResolutionManager::setParticleDensity(%this, %scale, %skipSave)
+{
+   %density = %this.normalizeParticleDensity(%scale);
+   %this.currentParticleDensity = %density;
+   $pref::T2D::ParticlePlayerEmissionRateScale = %density;
+
+   if (isObject(t2dScene))
+   {
+      %count = t2dScene.getCount();
+      for (%i = 0; %i < %count; %i++)
+      {
+         %obj = t2dScene.getObject(%i);
+         if (isObject(%obj) && %obj.getClassName() $= "ParticlePlayer")
+            %obj.setEmissionRateScale(%density);
+      }
+   }
+
+   if (isObject(CombatEngine) && isObject(magicButtonEffect))
+      CombatEngine.updateMagicButtonParticles();
+
+   if (!%skipSave)
+      %this.savePreferences();
+
+   return %density;
 }
 
 function ResolutionManager::getAspectRatioValue(%this, %aspectStr, %resStr)

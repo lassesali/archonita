@@ -378,8 +378,7 @@ function CombatEngine::updateMagicButtonParticles(%this)
          };
          if (isObject(magicButtonEffect))
          {
-            magicButtonEffect.stop(false, true);
-            magicButtonEffect.isPlaying = false;
+            magicButtonEffect.stop(false, false);
          }
       }
       else
@@ -394,26 +393,22 @@ function CombatEngine::updateMagicButtonParticles(%this)
                   game.getActivePlayer() == 0 && 
                   getGameState() == $gameBattleState);
 
+   %baseDensity = isObject($ResolutionManager)
+      ? $ResolutionManager.getParticleDensity()
+      : (($pref::T2D::ParticlePlayerEmissionRateScale !$= "") ? $pref::T2D::ParticlePlayerEmissionRateScale : 1.0);
+
    if (%isEligible)
    {
-      if (!magicButtonEffect.isPlaying)
-      {
+      if (!magicButtonEffect.getIsPlaying() || (magicButtonEffect.isMethod("getEmitterPaused") && magicButtonEffect.getEmitterPaused(0)))
          magicButtonEffect.play(false);
-         magicButtonEffect.isPlaying = true;
-      }
 
-      if (game.getSpellRevealed())
-         magicButtonEffect.ParticlePlayerEmissionRateScale = 1.7;
-      else
-         magicButtonEffect.ParticlePlayerEmissionRateScale = 1.0;
+      %rateScale = %baseDensity * (game.getSpellRevealed() ? 1.7 : 1.0);
+      magicButtonEffect.setEmissionRateScale(%rateScale);
    }
    else
    {
-      if (magicButtonEffect.isPlaying)
-      {
+      if (magicButtonEffect.getIsPlaying() && !(magicButtonEffect.isMethod("getEmitterPaused") && magicButtonEffect.getEmitterPaused(0)))
          magicButtonEffect.stop(true, false);
-         magicButtonEffect.isPlaying = false;
-      }
    }
 }
 
@@ -582,11 +577,7 @@ function CombatEngine::finalizeCombatAttack(%this, %targetEnemy, %result, %turn)
          echo("damagePiece(" @ %targetEnemy @ ")");
          %this.damagePiece(%targetEnemy);
          $fxbeen2 = playArchonSound(fxBeenHit);
-         if (isObject(blood))
-         {
-            blood.setPosition(%targetEnemy.getPosition());
-            %this.hideBloodEvent = schedule(300, 0, hideBlood);
-         }
+         %this.triggerBloodEffect(%targetEnemy.getPosition(), 300);
       } else {
          $fxsoita = playArchonSound(fxSword);
       }
@@ -597,11 +588,7 @@ function CombatEngine::finalizeCombatAttack(%this, %targetEnemy, %result, %turn)
          echo("damagePiece(" @ %targetEnemy @ ")");
          %this.damagePiece(%targetEnemy);
          $fx2 = playArchonSound(fxBeenHit);
-         if (isObject(blood))
-         {
-            blood.setPosition(%targetEnemy.getPosition());
-            %this.hideBloodEvent = schedule(300, 0, hideBlood);
-         }
+         %this.triggerBloodEffect(%targetEnemy.getPosition(), 300);
       } else {
          $fxsoita = playArchonSound(fxSword);
       }
@@ -612,9 +599,31 @@ function CombatEngine::finalizeCombatAttack(%this, %targetEnemy, %result, %turn)
    }
 }
 
+function CombatEngine::triggerBloodEffect(%this, %position, %durationMs)
+{
+   if (!isObject(blood))
+      return;
+
+   if (isEventPending(%this.hideBloodEvent))
+      cancel(%this.hideBloodEvent);
+
+   blood.setPosition(%position);
+   if (blood.isMethod("play"))
+      blood.play(false);
+
+   %this.hideBloodEvent = %this.schedule(%durationMs, "hideBlood");
+}
+
 function CombatEngine::hideBlood(%this)
 {
-   blood.setPosition("-50 -80");
+   %this.hideBloodEvent = 0;
+   if (!isObject(blood))
+      return;
+
+   if (blood.isMethod("stop"))
+      blood.stop(true, false);
+   else
+      blood.setPosition("-50 -80");
 }
 
 function CombatEngine::rollAttackDice(%this, %attacker, %defender)
@@ -997,8 +1006,7 @@ function CombatEngine::damagePiece(%this, %piece)
       %piece.setSceneLayerDepthBack();
       schedule(100, 0, "setPieceState", %piece, $olentoDieState[%piece.creatureID]);
       echo("setPieceState(" @ %piece @ "," @ $olentoDieState[%piece.creatureID] @ ")");
-      %this.hideBloodEvent = schedule(500, 0, hideBlood);
-      blood.setPosition(%piece.getPosition());
+      %this.triggerBloodEffect(%piece.getPosition(), 500);
       $soitadie = playArchonSound(fxDie);
 
       %selectedPiece = game.getSelectedPiece();

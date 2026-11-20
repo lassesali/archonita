@@ -5,11 +5,11 @@
         EmitterType="POINT"
         IntenseParticles="0"
         OldestInFront="1"
-        Image="@asset=Archon:particles2ImageMap"
-        Frame="0">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="4">
         <ParticleAssetEmitter.Fields>
             <Quantity>
-                <Key Time="0" Value="28" />
+                <Key Time="0" Value="18" />
             </Quantity>
             <Lifetime>
                 <Key Time="0" Value="0.35" />
@@ -71,11 +71,11 @@
         EmitterType="POINT"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles3ImageMap"
-        Frame="0">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="8">
         <ParticleAssetEmitter.Fields>
             <Quantity>
-                <Key Time="0" Value="22" />
+                <Key Time="0" Value="15" />
             </Quantity>
             <Lifetime>
                 <Key Time="0" Value="0.28" />

@@ -4,14 +4,14 @@
         EmitterName="sTARTrail"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles5ImageMap"
-        Frame="3">
+        Image="@asset=Archon:particlesAtlasImageMap"
+        Frame="19">
         <ParticleAssetEmitter.Fields>
             <Quantity>
-                <Key Time="0" Value="30" />
+                <Key Time="0" Value="18" />
             </Quantity>
             <Lifetime>
-                <Key Time="0" Value="0.6" />
+                <Key Time="0" Value="0.45" />
             </Lifetime>
             <Speed>
                 <Key Time="0" Value="2.5" />
@@ -56,14 +56,14 @@
         EmitterName="FlickerTrail"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles1ImageMap"
+        Image="@asset=Archon:particlesAtlasImageMap"
         Frame="3">
         <ParticleAssetEmitter.Fields>
             <Quantity>
-                <Key Time="0" Value="30" />
+                <Key Time="0" Value="18" />
             </Quantity>
             <Lifetime>
-                <Key Time="0" Value="0.6" />
+                <Key Time="0" Value="0.45" />
             </Lifetime>
             <Speed>
                 <Key Time="0" Value="3.0" />

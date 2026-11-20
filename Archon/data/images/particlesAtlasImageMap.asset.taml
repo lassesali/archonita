@@ -1,0 +1,44 @@
+<ImageAsset
+    AssetName="particlesAtlasImageMap"
+    ImageFile="particlesAtlas.png"
+    ExplicitMode="1">
+    <ImageAsset.Cells>
+        <Cell RegionName="p1_0" Offset="0 256" Width="64" Height="64" />
+        <Cell RegionName="p1_1" Offset="64 256" Width="64" Height="64" />
+        <Cell RegionName="p1_2" Offset="0 320" Width="64" Height="64" />
+        <Cell RegionName="p1_3" Offset="64 320" Width="64" Height="64" />
+        <Cell RegionName="p2_0" Offset="0 0" Width="128" Height="128" />
+        <Cell RegionName="p2_1" Offset="128 0" Width="128" Height="128" />
+        <Cell RegionName="p2_2" Offset="0 128" Width="128" Height="128" />
+        <Cell RegionName="p2_3" Offset="128 128" Width="128" Height="128" />
+        <Cell RegionName="p3_0" Offset="256 0" Width="128" Height="128" />
+        <Cell RegionName="p3_1" Offset="384 0" Width="128" Height="128" />
+        <Cell RegionName="p3_2" Offset="256 128" Width="128" Height="128" />
+        <Cell RegionName="p3_3" Offset="384 128" Width="128" Height="128" />
+        <Cell RegionName="p4_0" Offset="128 256" Width="64" Height="64" />
+        <Cell RegionName="p4_1" Offset="192 256" Width="64" Height="64" />
+        <Cell RegionName="p4_2" Offset="128 320" Width="64" Height="64" />
+        <Cell RegionName="p4_3" Offset="192 320" Width="64" Height="64" />
+        <Cell RegionName="p5_0" Offset="256 256" Width="64" Height="64" />
+        <Cell RegionName="p5_1" Offset="320 256" Width="64" Height="64" />
+        <Cell RegionName="p5_2" Offset="256 320" Width="64" Height="64" />
+        <Cell RegionName="p5_3" Offset="320 320" Width="64" Height="64" />
+        <Cell RegionName="p6_0" Offset="384 256" Width="64" Height="64" />
+        <Cell RegionName="p6_1" Offset="448 256" Width="64" Height="64" />
+        <Cell RegionName="p6_2" Offset="384 320" Width="64" Height="64" />
+        <Cell RegionName="p6_3" Offset="448 320" Width="64" Height="64" />
+        <Cell RegionName="p7_0" Offset="0 384" Width="64" Height="64" />
+        <Cell RegionName="p7_1" Offset="64 384" Width="64" Height="64" />
+        <Cell RegionName="p7_2" Offset="0 448" Width="64" Height="64" />
+        <Cell RegionName="p7_3" Offset="64 448" Width="64" Height="64" />
+        <Cell RegionName="p8_0" Offset="128 384" Width="64" Height="64" />
+        <Cell RegionName="p8_1" Offset="192 384" Width="64" Height="64" />
+        <Cell RegionName="p8_2" Offset="128 448" Width="64" Height="64" />
+        <Cell RegionName="p8_3" Offset="192 448" Width="64" Height="64" />
+        <Cell RegionName="p9_0" Offset="256 384" Width="64" Height="64" />
+        <Cell RegionName="p9_1" Offset="320 384" Width="64" Height="64" />
+        <Cell RegionName="p9_2" Offset="256 448" Width="64" Height="64" />
+        <Cell RegionName="p9_3" Offset="320 448" Width="64" Height="64" />
+        <Cell RegionName="blood_0" Offset="384 384" Width="128" Height="128" />
+    </ImageAsset.Cells>
+</ImageAsset>

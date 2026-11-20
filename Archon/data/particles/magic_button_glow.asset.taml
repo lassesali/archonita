@@ -4,7 +4,7 @@
         EmitterName="MagicGlow"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles1ImageMap"
+        Image="@asset=Archon:particlesAtlasImageMap"
         Frame="0">
         <ParticleAssetEmitter.Fields>
             <Quantity>
@@ -57,7 +57,7 @@
         EmitterName="GoldenSpark"
         IntenseParticles="1"
         OldestInFront="1"
-        Image="@asset=Archon:particles1ImageMap"
+        Image="@asset=Archon:particlesAtlasImageMap"
         Frame="1">
         <ParticleAssetEmitter.Fields>
             <Quantity>
