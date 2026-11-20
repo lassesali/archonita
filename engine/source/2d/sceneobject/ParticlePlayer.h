@@ -45,16 +45,16 @@ class ParticlePlayer : public SceneObject, protected AssetPtrCallback
 private:
     typedef SceneObject Parent;
 
-    /// Emitter node.
+    /// Emitter node storing active particles in contiguous cache-friendly memory.
     class EmitterNode
     {
     private:
-        ParticlePlayer*                 mOwner;
-        ParticleAssetEmitter*           mpAssetEmitter;
-        ParticleSystem::ParticleNode    mParticleNodeHead;
-        F32                             mTimeSinceLastGeneration;
-        bool                            mPaused;
-        bool                            mVisible;
+        ParticlePlayer*                         mOwner;
+        ParticleAssetEmitter*                   mpAssetEmitter;
+        Vector<ParticleSystem::ParticleNode>    mParticles;
+        F32                                     mTimeSinceLastGeneration;
+        bool                                    mPaused;
+        bool                                    mVisible;
 
     public:
         EmitterNode( ParticlePlayer* pParticlePlayer, ParticleAssetEmitter* pParticleAssetEmitter )
@@ -78,23 +78,23 @@ private:
             // Reset time since last generation.
             mTimeSinceLastGeneration = 0.0f;
 
-            // Reset the node head.
-            mParticleNodeHead.mNextNode = mParticleNodeHead.mPreviousNode = &mParticleNodeHead;
+            VECTOR_SET_ASSOCIATION( mParticles );
         }
 
         ~EmitterNode()
         {
             freeAllParticles();
+            if ( mParticles.capacity() > 0 && ParticleSystem::Instance != NULL )
+                ParticleSystem::Instance->adjustAllocatedParticleCount( -(S32)mParticles.capacity() );
         }
 
         inline ParticlePlayer* getOwner( void ) const { return mOwner; }
         inline ParticleAssetEmitter* getAssetEmitter( void ) const { return mpAssetEmitter; }
 
-        inline bool getActiveParticles( void ) const { return mParticleNodeHead.mNextNode != &mParticleNodeHead; }
-
-        inline ParticleSystem::ParticleNode* getFirstParticle( void ) const { return mParticleNodeHead.mNextNode; }
-        inline ParticleSystem::ParticleNode* getLastParticle( void ) const { return mParticleNodeHead.mPreviousNode; }
-        inline ParticleSystem::ParticleNode* getParticleNodeHead( void ) { return &mParticleNodeHead; }
+        inline bool getActiveParticles( void ) const { return !mParticles.empty(); }
+        inline U32 getParticleCount( void ) const { return (U32)mParticles.size(); }
+        inline ParticleSystem::ParticleNode* getParticles( void ) { return mParticles.address(); }
+        inline const ParticleSystem::ParticleNode* getParticles( void ) const { return mParticles.address(); }
 
         inline void setTimeSinceLastGeneration( const F32 timeSinceLastGeneration ) { mTimeSinceLastGeneration = timeSinceLastGeneration; }
         inline F32 getTimeSinceLastGeneration( void ) const { return mTimeSinceLastGeneration; }
@@ -105,9 +105,51 @@ private:
         inline void setVisible( const bool visible ) { mVisible = visible; }
         inline bool getVisible( void ) const { return mVisible; }
 
-        ParticleSystem::ParticleNode* createParticle( void );
-        void freeParticle( ParticleSystem::ParticleNode* pParticleNode );
-        void freeAllParticles( void );        
+        void reserveAdditional( const U32 count );
+        ParticleSystem::ParticleNode* allocateParticleSlot( void );
+        void compactToSize( const U32 newSize );
+        void freeAllParticles( void );
+    };
+
+    /// Per-emitter simulation state hoisted once per tick instead of re-read per particle.
+    struct EmitterTickContext
+    {
+        ParticleAssetEmitter*       pAssetEmitter;
+        const ParticleAssetField*   sizeXLife;
+        const ParticleAssetField*   sizeYLife;
+        const ParticleAssetField*   speedLife;
+        const ParticleAssetField*   fixedForceLife;
+        const ParticleAssetField*   randomMotionLife;
+        const ParticleAssetField*   spinLife;
+        const ParticleAssetField*   redLife;
+        const ParticleAssetField*   greenLife;
+        const ParticleAssetField*   blueLife;
+        const ParticleAssetField*   alphaLife;
+        F32                         sizeXMin, sizeXMax;
+        F32                         sizeYMin, sizeYMax;
+        F32                         speedMin, speedMax;
+        F32                         fixedForceMin, fixedForceMax;
+        F32                         randomMotionMin, randomMotionMax;
+        F32                         redMin, redMax;
+        F32                         greenMin, greenMax;
+        F32                         blueMin, blueMax;
+        F32                         alphaMin, alphaMax;
+        F32                         constRed, constGreen, constBlue, constAlpha;
+        F32                         alphaScale;
+        F32                         alignedAngleOffset;
+        Vector2                     fixedForceDirScaled;
+        F32                         animTotalTime;
+        U32                         animFrameCount;
+        bool                        animCycle;
+        bool                        animRandomStart;
+        bool                        fixedAspect;
+        bool                        singleParticle;
+        bool                        isStaticProvider;
+        bool                        keepAligned;
+        bool                        redConst;
+        bool                        greenConst;
+        bool                        blueConst;
+        bool                        alphaConst;
     };
 
     typedef Vector<EmitterNode*> typeEmitterVector;
@@ -119,6 +161,7 @@ private:
     F32                         mCameraIdleDistance;
 
     bool						mParticleInterpolation;
+    F32                         mRenderInterpDelta;
 
     bool                        mPlaying;
     bool                        mPaused;
@@ -272,6 +315,174 @@ public:
                (dstBlendFactor == GL_ONE_MINUS_SRC_ALPHA || dstBlendFactor == GL_ONE);
     }
 
+    /// Advance a lightweight per-particle animation clock and return the validated frame index.
+    static inline S32 stepParticleAnimation(
+        F32& animationTime,
+        bool& animationFinished,
+        const F32 elapsedTime,
+        const F32 totalTime,
+        const U32 validatedFrameCount,
+        const bool animationCycle )
+    {
+        if ( validatedFrameCount == 0 )
+        {
+            animationFinished = true;
+            return -1;
+        }
+        if ( totalTime <= 0.0f )
+            return 0;
+
+        const F32 frameTime = totalTime / (F32)validatedFrameCount;
+        if ( !animationFinished )
+        {
+            animationTime += elapsedTime;
+            if ( !animationCycle && mGreaterThanOrEqual( animationTime, totalTime ) )
+            {
+                animationFinished = true;
+                animationTime = totalTime - (frameTime * 0.5f);
+                return (S32)(validatedFrameCount - 1);
+            }
+            if ( animationTime >= totalTime || animationTime < 0.0f )
+            {
+                animationTime = mFmod( animationTime, totalTime );
+                if ( animationTime < 0.0f )
+                    animationTime += totalTime;
+            }
+        }
+        else if ( !animationCycle )
+        {
+            return (S32)(validatedFrameCount - 1);
+        }
+
+        S32 frameIndex = (S32)(animationTime / frameTime);
+        if ( frameIndex < 0 )
+            frameIndex = 0;
+        else if ( frameIndex >= (S32)validatedFrameCount )
+            frameIndex = (S32)(validatedFrameCount - 1);
+        return frameIndex;
+    }
+
+    /// Compute the 4 world-space quad vertices for a particle at render time, caching
+    /// the most recent particle angle's cos/sin across particles that share an angle.
+    static inline void computeParticleQuad(
+        const Vector2& pos,
+        const Vector2& renderSize,
+        const F32 orientationAngleDeg,
+        const F32 localMinX,
+        const F32 localMaxX,
+        const F32 localMinY,
+        const F32 localMaxY,
+        const bool attachPosition,
+        const bool attachRotation,
+        const Vector2& playerPosition,
+        const F32 playerCos,
+        const F32 playerSin,
+        F32& cachedAngleDeg,
+        F32& cachedCos,
+        F32& cachedSin,
+        Vector2 outQuad[4] )
+    {
+        const F32 lx0 = localMinX * renderSize.x;
+        const F32 lx1 = localMaxX * renderSize.x;
+        const F32 ly0 = localMinY * renderSize.y;
+        const F32 ly1 = localMaxY * renderSize.y;
+
+        F32 wx = pos.x;
+        F32 wy = pos.y;
+        if ( attachPosition )
+        {
+            if ( attachRotation )
+            {
+                wx = (playerCos * pos.x - playerSin * pos.y) + playerPosition.x;
+                wy = (playerSin * pos.x + playerCos * pos.y) + playerPosition.y;
+            }
+            else
+            {
+                wx = pos.x + playerPosition.x;
+                wy = pos.y + playerPosition.y;
+            }
+        }
+
+        if ( !attachRotation && orientationAngleDeg == 0.0f )
+        {
+            outQuad[0].Set( wx + lx0, wy + ly0 );
+            outQuad[1].Set( wx + lx1, wy + ly0 );
+            outQuad[2].Set( wx + lx1, wy + ly1 );
+            outQuad[3].Set( wx + lx0, wy + ly1 );
+            return;
+        }
+
+        F32 c = 1.0f;
+        F32 s = 0.0f;
+        if ( orientationAngleDeg == 0.0f )
+        {
+            c = playerCos;
+            s = playerSin;
+        }
+        else
+        {
+            if ( orientationAngleDeg != cachedAngleDeg )
+            {
+                cachedAngleDeg = orientationAngleDeg;
+                const F32 rad = mDegToRad( orientationAngleDeg );
+                cachedCos = mCos( rad );
+                cachedSin = mSin( rad );
+            }
+
+            if ( attachRotation )
+            {
+                c = playerCos * cachedCos - playerSin * cachedSin;
+                s = playerSin * cachedCos + playerCos * cachedSin;
+            }
+            else
+            {
+                c = cachedCos;
+                s = cachedSin;
+            }
+        }
+
+        const F32 cx0 = c * lx0;
+        const F32 cx1 = c * lx1;
+        const F32 sx0 = s * lx0;
+        const F32 sx1 = s * lx1;
+        const F32 sy0 = s * ly0;
+        const F32 sy1 = s * ly1;
+        const F32 cy0 = c * ly0;
+        const F32 cy1 = c * ly1;
+
+        outQuad[0].Set( wx + cx0 - sy0, wy + sx0 + cy0 );
+        outQuad[1].Set( wx + cx1 - sy0, wy + sx1 + cy0 );
+        outQuad[2].Set( wx + cx1 - sy1, wy + sx1 + cy1 );
+        outQuad[3].Set( wx + cx0 - sy1, wy + sx0 + cy1 );
+    }
+
+    static inline void computeParticleQuad(
+        const Vector2& pos,
+        const Vector2& renderSize,
+        const F32 orientationAngleDeg,
+        const F32 localMinX,
+        const F32 localMaxX,
+        const F32 localMinY,
+        const F32 localMaxY,
+        const bool attachPosition,
+        const bool attachRotation,
+        const Vector2& playerPosition,
+        const F32 playerCos,
+        const F32 playerSin,
+        Vector2 outQuad[4] )
+    {
+        F32 cachedAngleDeg = 0.0f;
+        F32 cachedCos = 1.0f;
+        F32 cachedSin = 0.0f;
+        computeParticleQuad(
+            pos, renderSize, orientationAngleDeg,
+            localMinX, localMaxX, localMinY, localMaxY,
+            attachPosition, attachRotation, playerPosition,
+            playerCos, playerSin,
+            cachedAngleDeg, cachedCos, cachedSin,
+            outQuad );
+    }
+
     /// Declare Console Object.
     DECLARE_CONOBJECT(ParticlePlayer);
 
@@ -282,8 +493,9 @@ protected:
     virtual void onAssetRefreshed( AssetPtrBase* pAssetPtrBase );
 
     /// Particle Creation/Integration.
-    void configureParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode );
-    void integrateParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode, const F32 particleAge, const F32 elapsedTime );
+    void buildEmitterTickContext( ParticleAsset* pParticleAsset, ParticleAssetEmitter* pParticleAssetEmitter, const F32 scaledTime, const F32 alphaScale, EmitterTickContext& outCtx ) const;
+    void configureParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode, const EmitterTickContext& ctx );
+    void integrateParticle( const EmitterTickContext& ctx, ParticleSystem::ParticleNode* pParticleNode, const F32 particleAge, const F32 elapsedTime );
 
     /// Persistence.
     virtual void onTamlAddParent( SimObject* pParentObject );

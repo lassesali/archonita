@@ -23,6 +23,7 @@
 #ifndef TORQUE_SHIPPING
 
 #include <memory>
+#include <type_traits>
 
 #ifndef _UNIT_TESTING_H_
 #include "testing/unitTesting.h"
@@ -385,6 +386,151 @@ TEST( ParticlePlayerBatchMathTests, QuadFrustumOverlapAndZeroAlphaCullingPredica
    EXPECT_FALSE( ParticlePlayer::canCullZeroAlphaForBlend( false, true, GL_ONE, GL_ONE ) );
    EXPECT_FALSE( ParticlePlayer::canCullZeroAlphaForBlend( false, true, GL_ONE, GL_ONE_MINUS_SRC_ALPHA ) );
    EXPECT_FALSE( ParticlePlayer::canCullZeroAlphaForBlend( false, true, GL_SRC_ALPHA, GL_ZERO ) );
+}
+
+TEST( ParticleSimulationOptTests, ParticleNodeCompactLayoutAndTelemetry )
+{
+   EXPECT_LE( sizeof( ParticleSystem::ParticleNode ), 96U );
+   EXPECT_FALSE( std::is_polymorphic<ParticleSystem::ParticleNode>::value );
+   EXPECT_TRUE( std::is_trivially_destructible<ParticleSystem::ParticleNode>::value );
+
+   ParticleSystem sys;
+   EXPECT_EQ( sys.getAllocatedParticleCount(), 0U );
+   EXPECT_EQ( sys.getActiveParticleCount(), 0U );
+
+   sys.adjustAllocatedParticleCount( 64 );
+   sys.adjustActiveParticleCount( 12 );
+   EXPECT_EQ( sys.getAllocatedParticleCount(), 64U );
+   EXPECT_EQ( sys.getActiveParticleCount(), 12U );
+
+   sys.adjustActiveParticleCount( -5 );
+   EXPECT_EQ( sys.getActiveParticleCount(), 7U );
+
+   // Underflow-safe clamping when decrement exceeds count.
+   sys.adjustActiveParticleCount( -100 );
+   sys.adjustAllocatedParticleCount( -100 );
+   EXPECT_EQ( sys.getActiveParticleCount(), 0U );
+   EXPECT_EQ( sys.getAllocatedParticleCount(), 0U );
+}
+
+TEST( ParticleSimulationOptTests, ComputeParticleQuadMatchesOOBBAndAttachedTransform )
+{
+   const Vector2 pivot( 0.25f, -0.3f );
+   const Vector2 localPivotAABB[4] = {
+      Vector2( -0.5f + pivot.x, -0.5f + pivot.y ),
+      Vector2(  0.5f + pivot.x, -0.5f + pivot.y ),
+      Vector2(  0.5f + pivot.x,  0.5f + pivot.y ),
+      Vector2( -0.5f + pivot.x,  0.5f + pivot.y )
+   };
+   const F32 localMinX = localPivotAABB[0].x;
+   const F32 localMaxX = localPivotAABB[1].x;
+   const F32 localMinY = localPivotAABB[0].y;
+   const F32 localMaxY = localPivotAABB[2].y;
+
+   const Vector2 pos( 3.25f, -4.5f );
+   const Vector2 renderSize( 2.5f, 1.75f );
+   const Vector2 playerPos( 14.0f, -6.25f );
+   const F32 playerAngleRad = mDegToRad( 63.0f );
+   const F32 playerCos = mCos( playerAngleRad );
+   const F32 playerSin = mSin( playerAngleRad );
+
+   const F32 anglesDeg[] = { 0.0f, 37.0f, -125.0f };
+   const bool attachPositions[] = { false, true };
+   const bool attachRotations[] = { false, true };
+
+   F32 cachedAngleDeg = 0.0f;
+   F32 cachedCos = 1.0f;
+   F32 cachedSin = 0.0f;
+
+   for ( bool attachPos : attachPositions )
+   {
+      for ( bool attachRot : attachRotations )
+      {
+         const bool effectiveAttachRot = attachPos && attachRot;
+         for ( F32 angleDeg : anglesDeg )
+         {
+            Vector2 scaledAABB[4];
+            for ( U32 i = 0; i < 4; ++i )
+               scaledAABB[i] = localPivotAABB[i] * renderSize;
+
+            b2Transform xf;
+            xf.Set( pos, mDegToRad( angleDeg ) );
+            Vector2 refLocalOOBB[4];
+            CoreMath::mCalculateOOBB( scaledAABB, xf, refLocalOOBB );
+
+            Vector2 refWorldOOBB[4];
+            if ( attachPos )
+               ParticlePlayer::transformAttachedOOBB( refLocalOOBB, refWorldOOBB, playerPos, playerAngleRad, effectiveAttachRot );
+            else
+               for ( U32 i = 0; i < 4; ++i )
+                  refWorldOOBB[i] = refLocalOOBB[i];
+
+            Vector2 fastUncached[4];
+            ParticlePlayer::computeParticleQuad(
+               pos, renderSize, angleDeg,
+               localMinX, localMaxX, localMinY, localMaxY,
+               attachPos, effectiveAttachRot,
+               playerPos, playerCos, playerSin,
+               fastUncached );
+
+            Vector2 fastCached[4];
+            ParticlePlayer::computeParticleQuad(
+               pos, renderSize, angleDeg,
+               localMinX, localMaxX, localMinY, localMaxY,
+               attachPos, effectiveAttachRot,
+               playerPos, playerCos, playerSin,
+               cachedAngleDeg, cachedCos, cachedSin,
+               fastCached );
+
+            for ( U32 i = 0; i < 4; ++i )
+            {
+               EXPECT_NEAR( fastUncached[i].x, refWorldOOBB[i].x, 1e-4f );
+               EXPECT_NEAR( fastUncached[i].y, refWorldOOBB[i].y, 1e-4f );
+               EXPECT_FLOAT_EQ( fastCached[i].x, fastUncached[i].x );
+               EXPECT_FLOAT_EQ( fastCached[i].y, fastUncached[i].y );
+            }
+         }
+      }
+   }
+}
+
+TEST( ParticleSimulationOptTests, StepParticleAnimationHandlesCyclingNonCyclingAndEdgeCases )
+{
+   // Cycling 4-frame animation over 1.0s (0.25s/frame).
+   F32 animTime = 0.0f;
+   bool animFinished = false;
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.0f, 1.0f, 4U, true ), 0 );
+   EXPECT_FALSE( animFinished );
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.30f, 1.0f, 4U, true ), 1 );
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.30f, 1.0f, 4U, true ), 2 );
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.30f, 1.0f, 4U, true ), 3 );
+   // Wrap around: 0.90 + 0.20 = 1.10 -> fmod 0.10 -> frame 0.
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.20f, 1.0f, 4U, true ), 0 );
+   EXPECT_FALSE( animFinished );
+   // Multi-cycle step: 0.10 + 2.50 = 2.60 -> fmod 0.60 -> frame 2.
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 2.50f, 1.0f, 4U, true ), 2 );
+   EXPECT_FALSE( animFinished );
+
+   // Non-cycling 4-frame animation stops and holds final frame 3.
+   animTime = 0.0f;
+   animFinished = false;
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.55f, 1.0f, 4U, false ), 2 );
+   EXPECT_FALSE( animFinished );
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.60f, 1.0f, 4U, false ), 3 );
+   EXPECT_TRUE( animFinished );
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.50f, 1.0f, 4U, false ), 3 );
+   EXPECT_TRUE( animFinished );
+
+   // Edge cases: 0 frames and 0 total time.
+   animTime = 0.0f;
+   animFinished = false;
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.1f, 1.0f, 0U, true ), -1 );
+   EXPECT_TRUE( animFinished );
+
+   animTime = 0.0f;
+   animFinished = false;
+   EXPECT_EQ( ParticlePlayer::stepParticleAnimation( animTime, animFinished, 0.1f, 0.0f, 4U, true ), 0 );
+   EXPECT_FALSE( animFinished );
 }
 
 #endif // TORQUE_SHIPPING

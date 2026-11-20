@@ -59,6 +59,14 @@ public:
     static ParticleAssetField::DataKey BadDataKey;
 
 private:
+    struct EvalSegment
+    {
+        F32 mStartTime;
+        F32 mEndTime;
+        F32 mStartValue;
+        F32 mSlope;
+    };
+
     StringTableEntry mFieldName;
     F32 mRepeatTime;
     F32 mMaxTime;
@@ -70,6 +78,17 @@ private:
     bool mValueBoundsDirty;
 
     Vector<DataKey> mDataKeys;
+
+    // Precomputed linear evaluation cache rebuilt whenever keys, scale, or repeat change.
+    Vector<EvalSegment> mEvalSegments;
+    F32 mFirstScaledValue;
+    F32 mLastScaledValue;
+    F32 mLastKeyTime;
+    bool mIsConstant;
+    bool mIsUnitRepeat;
+
+    void rebuildEvalCache( void );
+    F32 getFieldValueSlow( F32 time ) const;
 
 public:
     ParticleAssetField();
@@ -104,7 +123,15 @@ public:
     F32 getDataKeyTime( const U32 index ) const;
     inline U32 getDataKeyCount( void ) const { return (U32)mDataKeys.size(); }
     const DataKey& getDataKey( const U32 index ) const;
-    F32 getFieldValue( F32 time ) const;
+
+    inline bool isConstant( void ) const { return mIsConstant; }
+    inline F32 getConstantValue( void ) const { return mFirstScaledValue; }
+    inline F32 getFieldValue( const F32 time ) const
+    {
+        if ( mIsConstant || mIsZero( time ) || time < 0.0f )
+            return mFirstScaledValue;
+        return getFieldValueSlow( time );
+    }
 
     static F32 calculateFieldBV( const ParticleAssetField& base, const ParticleAssetField& variation, const F32 effectAge, const bool modulate = false, const F32 modulo = 0.0f );
     static F32 calculateFieldBVE( const ParticleAssetField& base, const ParticleAssetField& variation, const ParticleAssetField& effect, const F32 effectAge, const bool modulate = false, const F32 modulo = 0.0f );

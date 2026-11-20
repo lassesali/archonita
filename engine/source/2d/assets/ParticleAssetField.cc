@@ -64,10 +64,16 @@ ParticleAssetField::ParticleAssetField() :
                         mMaxValue( 0.0f ),
                         mDefaultValue( 1.0f ),
                         mValueScale( 1.0f ),
-                        mValueBoundsDirty( true )
+                        mValueBoundsDirty( true ),
+                        mFirstScaledValue( 0.0f ),
+                        mLastScaledValue( 0.0f ),
+                        mLastKeyTime( 0.0f ),
+                        mIsConstant( true ),
+                        mIsUnitRepeat( true )
 {
     // Set Vector Associations.
     VECTOR_SET_ASSOCIATION( mDataKeys );
+    VECTOR_SET_ASSOCIATION( mEvalSegments );
 }
 
 //-----------------------------------------------------------------------------
@@ -96,6 +102,8 @@ void ParticleAssetField::copyTo( ParticleAssetField& field )
         DataKey key = mDataKeys[i];
         field.addDataKey(key.mTime, key.mValue);
     }
+
+    field.rebuildEvalCache();
 }
 
 //-----------------------------------------------------------------------------
@@ -170,6 +178,8 @@ void ParticleAssetField::setValueBounds( F32 maxTime, F32 minValue, F32 maxValue
 
     // Flag the value bounds as dirty.
     mValueBoundsDirty = true;
+
+    rebuildEvalCache();
 }
 
 //-----------------------------------------------------------------------------
@@ -201,6 +211,7 @@ bool ParticleAssetField::setRepeatTime( const F32 repeatTime )
 
     // Set repeat time.
     mRepeatTime = repeatTime;
+    mIsUnitRepeat = (mRepeatTime == 1.0f);
 
     // Return Okay.
     return true;
@@ -222,6 +233,7 @@ bool ParticleAssetField::setValueScale( const F32 valueScale )
 
     // Set Value Scale/
     mValueScale = valueScale;
+    rebuildEvalCache();
 
     // Return Okay.
     return true;
@@ -290,8 +302,9 @@ S32 ParticleAssetField::addDataKey( const F32 time, const F32 value )
         // Found Time?
         if ( mDataKeys[index].mTime == time )
         {
-            // Yes, so set time.
+            // Yes, so set value.
             mDataKeys[index].mValue = value;
+            rebuildEvalCache();
 
             // Return Index.
             return index;
@@ -308,6 +321,7 @@ S32 ParticleAssetField::addDataKey( const F32 time, const F32 value )
     // Set Data-Key.
     mDataKeys[index].mTime = time;
     mDataKeys[index].mValue = value;
+    rebuildEvalCache();
 
     // Return Index.
     return index;
@@ -335,6 +349,7 @@ bool ParticleAssetField::removeDataKey( const U32 index )
 
     // Remove Index.
     mDataKeys.erase(index);
+    rebuildEvalCache();
 
     // Return Okay.
     return true;
@@ -362,6 +377,7 @@ bool ParticleAssetField::setDataKeyValue( const U32 index, const F32 value )
 
     // Set Data Key Value.
     mDataKeys[index].mValue = value;
+    rebuildEvalCache();
 
     // Return Okay.
     return true;
@@ -417,48 +433,121 @@ const ParticleAssetField::DataKey& ParticleAssetField::getDataKey( const U32 ind
 
 //-----------------------------------------------------------------------------
 
-F32 ParticleAssetField::getFieldValue( F32 time ) const
+void ParticleAssetField::rebuildEvalCache( void )
 {
-    // Return First Entry if it's the only one or we're using zero time.
-    if ( mIsZero(time) || getDataKeyCount() < 2)
-        return mDataKeys[0].mValue * mValueScale;
+    mIsUnitRepeat = (mRepeatTime == 1.0f);
+    mEvalSegments.clear();
 
-    // Clamp Key-Time.
-    time = getMin(getMax( 0.0f, time ), mMaxTime);
+    const U32 keyCount = (U32)mDataKeys.size();
+    if ( keyCount == 0 )
+    {
+        mFirstScaledValue = 0.0f;
+        mLastScaledValue = 0.0f;
+        mLastKeyTime = 0.0f;
+        mIsConstant = true;
+        return;
+    }
 
-    // Repeat Time.
-    time = mFmod( time * mRepeatTime, mMaxTime + FLT_EPSILON );
+    mFirstScaledValue = mDataKeys[0].mValue * mValueScale;
+    mLastKeyTime = mDataKeys[keyCount - 1].mTime;
+    mLastScaledValue = mDataKeys[keyCount - 1].mValue * mValueScale;
 
-    // Fetch Max Key Index.
-    const U32 maxKeyIndex = getDataKeyCount()-1;
+    if ( keyCount == 1 || mValueScale == 0.0f )
+    {
+        mIsConstant = true;
+        return;
+    }
 
-    // Return Last Value if we're on/past the last time.
-    if ( time >= mDataKeys[maxKeyIndex].mTime )
-        return mDataKeys[maxKeyIndex].mValue * mValueScale;
-
-    // Find Data-Key Indexes.
-    U32 index1;
-    U32 index2;
-    for ( index1 = 0; index1 < getDataKeyCount(); index1++ )
-        if ( mDataKeys[index1].mTime >= time )
+    bool allSameValue = true;
+    const F32 firstRawValue = mDataKeys[0].mValue;
+    for ( U32 i = 1; i < keyCount; ++i )
+    {
+        if ( mDataKeys[i].mValue != firstRawValue )
+        {
+            allSameValue = false;
             break;
+        }
+    }
 
-    // If we're exactly on a Data-Key, or before the first one, then return that key.
-    // (A time before the first key has no key to its left to interpolate from.)
-    if ( index1 == 0 || mIsEqual( mDataKeys[index1].mTime, time) )
-        return mDataKeys[index1].mValue * mValueScale;
+    if ( allSameValue )
+    {
+        mIsConstant = true;
+        return;
+    }
 
-    // Set Adjacent Indexes.
-    index2 = index1--;
+    mIsConstant = false;
+    mEvalSegments.reserve( keyCount - 1 );
+    for ( U32 i = 0; i < keyCount - 1; ++i )
+    {
+        const F32 t0 = mDataKeys[i].mTime;
+        const F32 t1 = mDataKeys[i + 1].mTime;
+        const F32 dt = t1 - t0;
+        if ( dt <= 0.0f )
+            continue;
 
-    // Fetch Index Times.
-    const F32 time1 = mDataKeys[index1].mTime;
-    const F32 time2 = mDataKeys[index2].mTime;
-    // Calculate Time Differential.
-    const F32 dTime = (time-time1)/(time2-time1);
+        const F32 v0 = mDataKeys[i].mValue * mValueScale;
+        const F32 v1 = mDataKeys[i + 1].mValue * mValueScale;
 
-    // Return lerped Value.
-    return ((mDataKeys[index1].mValue * (1.0f-dTime)) + (mDataKeys[index2].mValue * dTime)) * mValueScale;
+        EvalSegment segment;
+        segment.mStartTime = t0;
+        segment.mEndTime = t1;
+        segment.mStartValue = v0;
+        segment.mSlope = (v1 - v0) / dt;
+        mEvalSegments.push_back( segment );
+    }
+
+    if ( mEvalSegments.size() == 0 )
+        mIsConstant = true;
+}
+
+//-----------------------------------------------------------------------------
+
+F32 ParticleAssetField::getFieldValueSlow( F32 time ) const
+{
+    if ( time > mMaxTime )
+        time = mMaxTime;
+
+    if ( !mIsUnitRepeat )
+        time = mFmod( time * mRepeatTime, mMaxTime + FLT_EPSILON );
+
+    if ( time >= mLastKeyTime )
+        return mLastScaledValue;
+
+    const U32 segCount = (U32)mEvalSegments.size();
+    if ( segCount == 0 || time <= mEvalSegments[0].mStartTime )
+        return mFirstScaledValue;
+
+    const EvalSegment* pSeg = NULL;
+    if ( segCount <= 8 )
+    {
+        for ( U32 i = 0; i < segCount; ++i )
+        {
+            if ( time < mEvalSegments[i].mEndTime )
+            {
+                pSeg = &mEvalSegments[i];
+                break;
+            }
+        }
+    }
+    else
+    {
+        U32 lo = 0;
+        U32 hi = segCount - 1;
+        while ( lo < hi )
+        {
+            const U32 mid = lo + ((hi - lo) >> 1);
+            if ( time < mEvalSegments[mid].mEndTime )
+                hi = mid;
+            else
+                lo = mid + 1;
+        }
+        pSeg = &mEvalSegments[lo];
+    }
+
+    if ( pSeg == NULL )
+        return mLastScaledValue;
+
+    return pSeg->mStartValue + (time - pSeg->mStartTime) * pSeg->mSlope;
 }
 
 //-----------------------------------------------------------------------------
@@ -468,14 +557,15 @@ F32 ParticleAssetField::calculateFieldBV( const ParticleAssetField& base, const 
     // Fetch Graph Components.
     const F32 baseValue   = base.getFieldValue( effectAge );
     const F32 varValue    = variation.getFieldValue( effectAge ) * 0.5f;
+    const F32 randomizedBase = (varValue != 0.0f) ? (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) : baseValue;
 
     // Modulate?
     if ( modulate )
         // Return Modulo Calculation.
-        return mFmod( baseValue + CoreMath::mGetRandomF(-varValue, varValue), modulo );
+        return mFmod( randomizedBase, modulo );
     else
         // Return Clamped Calculation.
-        return mClampF( baseValue + CoreMath::mGetRandomF(-varValue, varValue), base.getMinValue(), base.getMaxValue() );
+        return mClampF( randomizedBase, base.getMinValue(), base.getMaxValue() );
 }
 
 //-----------------------------------------------------------------------------
@@ -486,14 +576,15 @@ F32 ParticleAssetField::calculateFieldBVE( const ParticleAssetField& base, const
     const F32 baseValue   = base.getFieldValue( effectAge );
     const F32 varValue    = variation.getFieldValue( effectAge ) * 0.5f;
     const F32 effectValue = effect.getFieldValue( effectAge );
+    const F32 randomizedBase = (varValue != 0.0f) ? (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) : baseValue;
 
     // Modulate?
     if ( modulate )
         // Return Modulo Calculation.
-        return mFmod( (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) * effectValue, modulo );
+        return mFmod( randomizedBase * effectValue, modulo );
     else
         // Return Clamped Calculation.
-        return mClampF( (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) * effectValue, base.getMinValue(), base.getMaxValue() );
+        return mClampF( randomizedBase * effectValue, base.getMinValue(), base.getMaxValue() );
 }
 
 //-----------------------------------------------------------------------------
@@ -505,14 +596,15 @@ F32 ParticleAssetField::calculateFieldBVLE( const ParticleAssetField& base, cons
     const F32 varValue    = variation.getFieldValue( effectAge ) * 0.5f;
     const F32 effectValue = effect.getFieldValue( effectAge );
     const F32 lifeValue   = overlife.getFieldValue( particleAge );
+    const F32 randomizedBase = (varValue != 0.0f) ? (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) : baseValue;
 
     // Modulate?
     if ( modulate )
         // Return Modulo Calculation.
-        return mFmod( (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) * effectValue * lifeValue, modulo );
+        return mFmod( randomizedBase * effectValue * lifeValue, modulo );
     else
         // Return Clamped Calculation.
-        return mClampF( (baseValue + CoreMath::mGetRandomF(-varValue, varValue)) * effectValue * lifeValue, base.getMinValue(), base.getMaxValue() );
+        return mClampF( randomizedBase * effectValue * lifeValue, base.getMinValue(), base.getMaxValue() );
 }
 
 //------------------------------------------------------------------------------
@@ -745,6 +837,8 @@ void ParticleAssetField::onTamlCustomRead( const TamlCustomNode* pCustomNode, co
 
     // Set the data keys.
     mDataKeys = keys;
+
+    rebuildEvalCache();
 }
 
 //-----------------------------------------------------------------------------

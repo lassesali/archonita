@@ -171,7 +171,8 @@ Scene::Scene() :
     mIsEditorScene(0),
     mUpdateCallback(false),
     mRenderCallback(false),
-    mSceneIndex(0)
+    mSceneIndex(0),
+    mParticleSystem(NULL)
 {
     // Set Vector Associations.
     VECTOR_SET_ASSOCIATION( mSceneObjects );
@@ -221,9 +222,6 @@ bool Scene::onAdd()
 
     // Set contact filter.
     mpWorld->SetContactFilter( &mContactFilter );
-
-    const b2ParticleSystemDef particleSystemDef;
-    mParticleSystem = mpWorld->CreateParticleSystem(&particleSystemDef);
 
     // Set contact listener.
     mpWorld->SetContactListener( this );

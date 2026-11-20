@@ -29,56 +29,61 @@
 
 //------------------------------------------------------------------------------
 
-ParticleSystem::ParticleNode* ParticlePlayer::EmitterNode::createParticle( void )
+void ParticlePlayer::EmitterNode::reserveAdditional( const U32 count )
 {
-    // Sanity!
-    AssertFatal( mOwner != NULL, "ParticlePlayer::EmitterNode::createParticle() - Cannot create a particle with a NULL owner." );
-  
-    // Fetch a free node,
-    ParticleSystem::ParticleNode* pFreeParticleNode = ParticleSystem::Instance->createParticle();
+    if ( count == 0 )
+        return;
 
-    // Insert node into emitter chain.
-    pFreeParticleNode->mNextNode        = mParticleNodeHead.mNextNode;
-    pFreeParticleNode->mPreviousNode    = &mParticleNodeHead;
-    mParticleNodeHead.mNextNode         = pFreeParticleNode;
-    pFreeParticleNode->mNextNode->mPreviousNode = pFreeParticleNode;
-
-    // Configure the node.
-    mOwner->configureParticle( this, pFreeParticleNode );
-
-    return pFreeParticleNode;
+    const U32 oldCap = mParticles.capacity();
+    mParticles.reserve( (U32)mParticles.size() + count );
+    const U32 newCap = mParticles.capacity();
+    if ( newCap != oldCap && ParticleSystem::Instance != NULL )
+        ParticleSystem::Instance->adjustAllocatedParticleCount( (S32)(newCap - oldCap) );
 }
 
 //------------------------------------------------------------------------------
 
-void ParticlePlayer::EmitterNode::freeParticle( ParticleSystem::ParticleNode* pParticleNode )
+ParticleSystem::ParticleNode* ParticlePlayer::EmitterNode::allocateParticleSlot( void )
 {
-    // Sanity!
-    AssertFatal( mOwner != NULL, "ParticlePlayer::EmitterNode::freeParticle() - Cannot free a particle with a NULL owner." );
+    const U32 oldCap = mParticles.capacity();
+    mParticles.increment();
+    const U32 newCap = mParticles.capacity();
 
-    // Deallocate the assets.
-    pParticleNode->mFrameProvider.deallocateAssets();
+    if ( ParticleSystem::Instance != NULL )
+    {
+        if ( newCap != oldCap )
+            ParticleSystem::Instance->adjustAllocatedParticleCount( (S32)(newCap - oldCap) );
+        ParticleSystem::Instance->adjustActiveParticleCount( 1 );
+    }
 
-    // Remove the node from the emitter chain.
-    pParticleNode->mPreviousNode->mNextNode = pParticleNode->mNextNode;
-    pParticleNode->mNextNode->mPreviousNode = pParticleNode->mPreviousNode;
-   
-    // Free the node.
-    ParticleSystem::Instance->freeParticle( pParticleNode );
+    return &mParticles.last();
+}
+
+//------------------------------------------------------------------------------
+
+void ParticlePlayer::EmitterNode::compactToSize( const U32 newSize )
+{
+    const U32 oldSize = (U32)mParticles.size();
+    if ( newSize >= oldSize )
+        return;
+
+    mParticles.setSize( newSize );
+    if ( ParticleSystem::Instance != NULL )
+        ParticleSystem::Instance->adjustActiveParticleCount( -(S32)(oldSize - newSize) );
 }
 
 //------------------------------------------------------------------------------
 
 void ParticlePlayer::EmitterNode::freeAllParticles( void )
 {
-    // Sanity!
-    AssertFatal( mOwner != NULL, "ParticlePlayer::EmitterNode::freeAllParticles() - Cannot free all particles with a NULL owner." );
+    const U32 count = (U32)mParticles.size();
+    if ( count == 0 )
+        return;
 
-    // Free all the nodes,
-    while( mParticleNodeHead.mNextNode != &mParticleNodeHead )
-    {
-        freeParticle( mParticleNodeHead.mNextNode );
-    }
+    if ( ParticleSystem::Instance != NULL )
+        ParticleSystem::Instance->adjustActiveParticleCount( -(S32)count );
+
+    mParticles.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -92,6 +97,7 @@ ParticlePlayer::ParticlePlayer() :
                     mPaused( false ),
                     mAge( 0.0f ),
                     mParticleInterpolation( false ),
+                    mRenderInterpDelta( 0.0f ),
                     mCameraIdleDistance( 0.0f ),
                     mCameraIdle( false ),
                     mWaitingForParticles( false ),
@@ -288,8 +294,14 @@ void ParticlePlayer::integrateObject( const F32 totalTime, const F32 elapsedTime
     // Is the camera idle?
     if ( !mCameraIdle )
     {
+        // A new physics tick has stepped positions to the tick boundary.
+        mRenderInterpDelta = 0.0f;
+
         // No, so update the particle player age.
         mAge += scaledTime;
+
+        // Evaluate effect-age alpha scale once for all emitters and particles in this tick.
+        const F32 alphaScale = pParticleAsset->getAlphaChannelScaleField().getFieldValue( mAge );
 
         // Iterate the emitters.
         for( typeEmitterVector::iterator emitterItr = mEmitters.begin(); emitterItr != mEmitters.end(); ++emitterItr )
@@ -300,55 +312,50 @@ void ParticlePlayer::integrateObject( const F32 totalTime, const F32 elapsedTime
             // Fetch the asset emitter.
             ParticleAssetEmitter* pParticleAssetEmitter = pEmitterNode->getAssetEmitter();
 
-            // Fetch the first particle node.
-            ParticleSystem::ParticleNode* pParticleNode = pEmitterNode->getFirstParticle();
+            // Hoist invariant emitter curve pointers and bounds once for the entire emitter.
+            EmitterTickContext ctx;
+            buildEmitterTickContext( pParticleAsset, pParticleAssetEmitter, scaledTime, alphaScale, ctx );
 
-            // Fetch the particle node head.
-            ParticleSystem::ParticleNode* pParticleNodeHead = pEmitterNode->getParticleNodeHead();
-
-            // Process All particle nodes.
-            while ( pParticleNode != pParticleNodeHead )
+            // Linearly compact expired particles while integrating survivors in cache order.
+            ParticleSystem::ParticleNode* particles = pEmitterNode->getParticles();
+            const U32 particleCount = pEmitterNode->getParticleCount();
+            U32 writeIndex = 0;
+            for ( U32 readIndex = 0; readIndex < particleCount; ++readIndex )
             {
-                // Update the particle age.
-                pParticleNode->mParticleAge += scaledTime;
+                ParticleSystem::ParticleNode& src = particles[readIndex];
+                src.mParticleAge += scaledTime;
 
-                // Has the particle expired?
-                // NOTE:-   If we're in single-particle mode then the particle lives as long as the particle player does.
-                if (    ( !pParticleAssetEmitter->getSingleParticle() && pParticleNode->mParticleAge > pParticleNode->mParticleLifetime ) ||
-                        ( mIsZero(pParticleNode->mParticleLifetime) ) )
+                if ( (!ctx.singleParticle && src.mParticleAge > src.mParticleLifetime) ||
+                     mIsZero( src.mParticleLifetime ) )
                 {
-                    // Yes, so fetch next particle before we kill it.
-                    pParticleNode = pParticleNode->mNextNode;
-
-                    // Kill the particle.
-                    // NOTE:-   Because we move to the next particle the particle to kill is now the previous!
-                    pEmitterNode->freeParticle( pParticleNode->mPreviousNode );
+                    continue;
                 }
-                else
-                {
-                    // No, so integrate the particle.
-                    integrateParticle( pEmitterNode, pParticleNode, pParticleNode->mParticleAge / pParticleNode->mParticleLifetime, scaledTime );
 
-                    // Move to the next particle node.
-                    pParticleNode = pParticleNode->mNextNode;
+                if ( writeIndex != readIndex )
+                    particles[writeIndex] = src;
 
-                    // Only count particles when not in single-particle mode.
-                    activeParticleCount++;
-                }
-            };
+                ParticleSystem::ParticleNode* pDst = &particles[writeIndex];
+                integrateParticle( ctx, pDst, pDst->mParticleAge / pDst->mParticleLifetime, scaledTime );
+                writeIndex++;
+            }
+
+            if ( writeIndex != particleCount )
+                pEmitterNode->compactToSize( writeIndex );
+
+            activeParticleCount += writeIndex;
 
             // Skip generating new particles if the emitter is paused.
             if ( pEmitterNode->getPaused() )
                 continue;
 
             // Are we in single-particle mode?
-            if ( pParticleAssetEmitter->getSingleParticle() )
+            if ( ctx.singleParticle )
             {
                 // Yes, so do we have a single particle yet?
-                if ( pParticleNodeHead->mNextNode == pParticleNodeHead )
+                if ( !pEmitterNode->getActiveParticles() )
                 {
-                    // No, so generate a single particle.
-                    pEmitterNode->createParticle();
+                    ParticleSystem::ParticleNode* pNode = pEmitterNode->allocateParticleSlot();
+                    configureParticle( pEmitterNode, pNode, ctx );
                 }
             }
             else
@@ -369,12 +376,13 @@ void ParticlePlayer::integrateObject( const F32 totalTime, const F32 elapsedTime
                 // Fetch the emissions.
                 const F32 baseEmission = quantityBaseField.getFieldValue( particlePlayerAge );
                 const F32 varEmission = quantityVaritationField.getFieldValue( particlePlayerAge ) * 0.5f;
+                const F32 randomizedEmission = (varEmission != 0.0f) ? (baseEmission + CoreMath::mGetRandomF(-varEmission, varEmission)) : baseEmission;
 
                 // Fetch the emission scale.
                 const F32 effectEmission = pParticleAsset->getQuantityScaleField().getFieldValue( particlePlayerAge ) * getEmissionRateScale();
 
                 // Calculate the local emission.
-                const F32 localEmission = mClampF(  (baseEmission + CoreMath::mGetRandomF(-varEmission, varEmission)) * effectEmission,
+                const F32 localEmission = mClampF(  randomizedEmission * effectEmission,
                                                     quantityBaseField.getMinValue(),
                                                     quantityBaseField.getMaxValue() );
 
@@ -391,9 +399,13 @@ void ParticlePlayer::integrateObject( const F32 totalTime, const F32 elapsedTime
                     if ( mIsZero( pEmitterNode->getTimeSinceLastGeneration() ) )
                         pEmitterNode->setTimeSinceLastGeneration( 0.0f );
 
-                    // Generate the required emission.
+                    // Pre-reserve all new slots in one allocation before configuring particles.
+                    pEmitterNode->reserveAdditional( emissionCount );
                     for ( U32 n = 0; n < emissionCount; n++ )
-                        pEmitterNode->createParticle();
+                    {
+                        ParticleSystem::ParticleNode* pNode = pEmitterNode->allocateParticleSlot();
+                        configureParticle( pEmitterNode, pNode, ctx );
+                    }
                 }
             }
         }
@@ -470,53 +482,7 @@ void ParticlePlayer::interpolateObject( const F32 timeDelta )
     if ( !mParticleInterpolation || !mPlaying || mCameraIdle || mPaused )
         return;
 
-    // Iterate the emitters.
-    for( typeEmitterVector::iterator emitterItr = mEmitters.begin(); emitterItr != mEmitters.end(); ++emitterItr )
-    {
-        // Fetch the emitter node.
-        EmitterNode* pEmitterNode = *emitterItr;
-
-        // Fetch First Particle Node.
-        ParticleSystem::ParticleNode* pParticleNode = pEmitterNode->getFirstParticle();
-
-        // Fetch the particle node head.
-        ParticleSystem::ParticleNode* pParticleNodeHead = pEmitterNode->getParticleNodeHead();
-
-        // Fetch the asset emitter.
-        ParticleAssetEmitter* pParticleAssetEmitter = pEmitterNode->getAssetEmitter();
-
-        // Fetch the local AABB..
-        const Vector2& localAABB0 = pParticleAssetEmitter->getLocalPivotAABB0();
-        const Vector2& localAABB1 = pParticleAssetEmitter->getLocalPivotAABB1();
-        const Vector2& localAABB2 = pParticleAssetEmitter->getLocalPivotAABB2();
-        const Vector2& localAABB3 = pParticleAssetEmitter->getLocalPivotAABB3();
-
-        // Process All particle nodes.
-        while ( pParticleNode != pParticleNodeHead )
-        {
-            // Interpolate the position.
-            pParticleNode->mRenderTickPosition = (timeDelta * pParticleNode->mPreTickPosition) + ((1.0f-timeDelta) * pParticleNode->mPostTickPosition);
-
-            // Set the transform.
-            pParticleNode->mTransform.p = pParticleNode->mRenderTickPosition;
-
-            // Fetch the render size.
-            const Vector2& renderSize = pParticleNode->mRenderSize;
-
-            // Calculate the scaled AABB.
-            Vector2 scaledAABB[4];
-            scaledAABB[0] = localAABB0 * renderSize;
-            scaledAABB[1] = localAABB1 * renderSize;
-            scaledAABB[2] = localAABB2 * renderSize;
-            scaledAABB[3] = localAABB3 * renderSize;
-
-            // Calculate the world OOBB..
-            CoreMath::mCalculateOOBB( scaledAABB, pParticleNode->mTransform, pParticleNode->mRenderOOBB );
-
-            // Move to the next particle.
-            pParticleNode = pParticleNode->mNextNode;
-        }
-    }
+    mRenderInterpDelta = timeDelta;
 }
 
 //-----------------------------------------------------------------------------
@@ -527,9 +493,17 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
     if ( !mPlaying || mCameraIdle )
         return;
 
-    // Fetch emitter count.
+    // Fetch emitter count and render-time interpolation parameters.
     const U32 emitterCount = mEmitters.size();
     const bool cullParticles = ( pSceneRenderState != NULL && pSceneRenderState->mCullParticles );
+    const bool useInterp = ( mParticleInterpolation && mRenderInterpDelta != 0.0f );
+    const F32 interpDelta = mRenderInterpDelta;
+    const F32 oneMinusInterp = 1.0f - interpDelta;
+
+    const F32 camMinX = cullParticles ? pSceneRenderState->mCameraAABB.lowerBound.x : 0.0f;
+    const F32 camMaxX = cullParticles ? pSceneRenderState->mCameraAABB.upperBound.x : 0.0f;
+    const F32 camMinY = cullParticles ? pSceneRenderState->mCameraAABB.lowerBound.y : 0.0f;
+    const F32 camMaxY = cullParticles ? pSceneRenderState->mCameraAABB.upperBound.y : 0.0f;
 
     // Render all the emitters.
     for ( U32 emitterIndex = 0; emitterIndex < emitterCount; ++emitterIndex )
@@ -545,7 +519,8 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
             continue;
 
         // Skip if there are no active particles.
-        if ( !pEmitterNode->getActiveParticles() )
+        const S32 particleCount = (S32)pEmitterNode->getParticleCount();
+        if ( particleCount == 0 )
             continue;
 
         // Fetch both image and animation assets.
@@ -557,6 +532,14 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
         const bool isRandomFrame = isStaticFrameProvider && pParticleAssetEmitter->getRandomImageFrame();
         TextureHandle* pEmitterTexture = NULL;
         Vector2 staticUv0, staticUv1, staticUv2, staticUv3;
+        U32 staticImageFrameCount = 0;
+
+        bool animNamedCells = false;
+        S32 animValidatedCount = 0;
+        U32 animImageFrameCount = 0;
+        const Vector<S32>* pAnimValidatedFrames = NULL;
+        const Vector<StringTableEntry>* pAnimValidatedNamedFrames = NULL;
+        ImageAsset* pAnimImageAsset = NULL;
 
         if ( isStaticFrameProvider )
         {
@@ -564,6 +547,7 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
             if ( imageAsset.isNull() || imageAsset->getFrameCount() == 0 )
                 continue;
 
+            staticImageFrameCount = imageAsset->getFrameCount();
             pEmitterTexture = &(imageAsset->getImageTexture());
             if ( pEmitterTexture->IsNull() )
                 continue;
@@ -581,7 +565,7 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
                 else
                 {
                     const U32 imageFrame = pParticleAssetEmitter->getImageFrame();
-                    if ( imageFrame >= imageAsset->getFrameCount() )
+                    if ( imageFrame >= staticImageFrameCount )
                         continue;
                     pTexelArea = &(imageAsset->getImageFrameArea( imageFrame ).mTexelArea);
                 }
@@ -604,12 +588,21 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
             if ( animImage.isNull() || animImage->getFrameCount() == 0 )
                 continue;
 
+            animNamedCells = animationAsset->getNamedCellsMode();
+            pAnimValidatedFrames = &(animationAsset->getValidatedAnimationFrames());
+            pAnimValidatedNamedFrames = &(animationAsset->getValidatedNamedAnimationFrames());
+            animValidatedCount = animNamedCells ? pAnimValidatedNamedFrames->size() : pAnimValidatedFrames->size();
+            if ( animValidatedCount == 0 )
+                continue;
+
+            pAnimImageAsset = animImage;
+            animImageFrameCount = animImage->getFrameCount();
             pEmitterTexture = &(animImage->getImageTexture());
             if ( pEmitterTexture->IsNull() )
                 continue;
         }
 
-        // Precompute per-emitter blend, culling, and attachment transforms once.
+        // Precompute per-emitter blend, culling, pivot bounds, and attachment transforms once.
         const bool intenseParticles = pParticleAssetEmitter->getIntenseParticles();
         const bool emitterBlendMode = pParticleAssetEmitter->getBlendMode();
         const GLenum emitterSrcBlend = (GLenum)pParticleAssetEmitter->getSrcBlendFactor();
@@ -622,35 +615,72 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
         const F32 renderAngle = attachRotation ? getRenderAngle() : 0.0f;
         const F32 rotCos = attachRotation ? mCos( renderAngle ) : 1.0f;
         const F32 rotSin = attachRotation ? mSin( renderAngle ) : 0.0f;
-        Vector2 transformedOOBB[4];
+
+        const F32 localMinX = pParticleAssetEmitter->getLocalPivotAABB0().x;
+        const F32 localMaxX = pParticleAssetEmitter->getLocalPivotAABB1().x;
+        const F32 localMinY = pParticleAssetEmitter->getLocalPivotAABB0().y;
+        const F32 localMaxY = pParticleAssetEmitter->getLocalPivotAABB2().y;
+
+        F32 cachedAngleDeg = 0.0f;
+        F32 cachedCos = 1.0f;
+        F32 cachedSin = 0.0f;
+        Vector2 quadVerts[4];
         bool emitterStateApplied = false;
 
-        // Fetch the oldest-in-front flag.
+        // With newest particles appended at the tail, drawing oldestInFront walks backward
+        // (newest drawn first, oldest last on top); otherwise forward (oldest drawn first).
         const bool oldestInFront = pParticleAssetEmitter->getOldestInFront();
+        const S32 startIndex = oldestInFront ? (particleCount - 1) : 0;
+        const S32 endIndex   = oldestInFront ? -1 : particleCount;
+        const S32 stepIndex  = oldestInFront ? -1 : 1;
+        const ParticleSystem::ParticleNode* pParticles = pEmitterNode->getParticles();
 
-        // Fetch the particle node head.
-        ParticleSystem::ParticleNode* pParticleNodeHead = pEmitterNode->getParticleNodeHead();
-
-        // Process all particle nodes without forcing batch flushes or GL matrix mutations.
-        for ( ParticleSystem::ParticleNode* pParticleNode = oldestInFront ? pEmitterNode->getFirstParticle() : pEmitterNode->getLastParticle();
-              pParticleNode != pParticleNodeHead;
-              pParticleNode = oldestInFront ? pParticleNode->mNextNode : pParticleNode->mPreviousNode )
+        for ( S32 i = startIndex; i != endIndex; i += stepIndex )
         {
-            if ( pParticleNode->mRenderSize.x <= 0.0f || pParticleNode->mRenderSize.y <= 0.0f )
+            const ParticleSystem::ParticleNode& particle = pParticles[i];
+
+            if ( particle.mRenderSize.x <= 0.0f || particle.mRenderSize.y <= 0.0f )
                 continue;
 
-            if ( canCullZeroAlpha && pParticleNode->mColor.alpha <= 0.001f )
+            if ( canCullZeroAlpha && particle.mColor.alpha <= 0.001f )
                 continue;
 
-            const Vector2* quadVerts = pParticleNode->mRenderOOBB;
-            if ( attachPosition )
+            const Vector2 renderPos = useInterp
+                ? Vector2(
+                    interpDelta * particle.mPreTickPosition.x + oneMinusInterp * particle.mPosition.x,
+                    interpDelta * particle.mPreTickPosition.y + oneMinusInterp * particle.mPosition.y )
+                : particle.mPosition;
+
+            if ( !attachRotation && particle.mOrientationAngle == 0.0f )
             {
-                transformAttachedOOBBPrecomputed( pParticleNode->mRenderOOBB, transformedOOBB, renderPosition, rotCos, rotSin, attachRotation );
-                quadVerts = transformedOOBB;
-            }
+                const F32 wx = attachPosition ? (renderPos.x + renderPosition.x) : renderPos.x;
+                const F32 wy = attachPosition ? (renderPos.y + renderPosition.y) : renderPos.y;
+                const F32 x0 = wx + localMinX * particle.mRenderSize.x;
+                const F32 x1 = wx + localMaxX * particle.mRenderSize.x;
+                const F32 y0 = wy + localMinY * particle.mRenderSize.y;
+                const F32 y1 = wy + localMaxY * particle.mRenderSize.y;
 
-            if ( cullParticles && !isQuadVisibleInAABB( quadVerts, pSceneRenderState->mCameraAABB ) )
-                continue;
+                if ( cullParticles && (x1 < camMinX || x0 > camMaxX || y1 < camMinY || y0 > camMaxY) )
+                    continue;
+
+                quadVerts[0].Set( x0, y0 );
+                quadVerts[1].Set( x1, y0 );
+                quadVerts[2].Set( x1, y1 );
+                quadVerts[3].Set( x0, y1 );
+            }
+            else
+            {
+                computeParticleQuad(
+                    renderPos, particle.mRenderSize, particle.mOrientationAngle,
+                    localMinX, localMaxX, localMinY, localMaxY,
+                    attachPosition, attachRotation, renderPosition,
+                    rotCos, rotSin,
+                    cachedAngleDeg, cachedCos, cachedSin,
+                    quadVerts );
+
+                if ( cullParticles && !isQuadVisibleInAABB( quadVerts, pSceneRenderState->mCameraAABB ) )
+                    continue;
+            }
 
             Vector2 uv0, uv1, uv2, uv3;
             const Vector2* pUv0 = &staticUv0;
@@ -660,13 +690,27 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
 
             if ( !isStaticFrameProvider )
             {
-                const ImageFrameProviderCore& frameProvider = pParticleNode->mFrameProvider;
-                if ( !frameProvider.isAnimationValid() )
+                if ( particle.mFrameIndex < 0 || particle.mFrameIndex >= animValidatedCount )
                     continue;
 
-                const ImageAsset::FrameArea::TexelArea& texelFrameArea = frameProvider.getProviderImageFrameArea().mTexelArea;
-                const Vector2& texLower = texelFrameArea.mTexelLower;
-                const Vector2& texUpper = texelFrameArea.mTexelUpper;
+                const ImageAsset::FrameArea::TexelArea* pTexelArea = NULL;
+                if ( animNamedCells )
+                {
+                    const StringTableEntry frameName = (*pAnimValidatedNamedFrames)[particle.mFrameIndex];
+                    if ( !pAnimImageAsset->containsFrame( frameName ) )
+                        continue;
+                    pTexelArea = &(pAnimImageAsset->getImageFrameArea( frameName ).mTexelArea);
+                }
+                else
+                {
+                    const S32 resolvedFrame = (*pAnimValidatedFrames)[particle.mFrameIndex];
+                    if ( resolvedFrame < 0 || (U32)resolvedFrame >= animImageFrameCount )
+                        continue;
+                    pTexelArea = &(pAnimImageAsset->getImageFrameArea( (U32)resolvedFrame ).mTexelArea);
+                }
+
+                const Vector2& texLower = pTexelArea->mTexelLower;
+                const Vector2& texUpper = pTexelArea->mTexelUpper;
                 uv0 = Vector2( texLower.x, texUpper.y );
                 uv1 = Vector2( texUpper.x, texUpper.y );
                 uv2 = Vector2( texUpper.x, texLower.y );
@@ -678,7 +722,10 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
             }
             else if ( isRandomFrame )
             {
-                const ImageAsset::FrameArea::TexelArea& texelFrameArea = imageAsset->getImageFrameArea( pParticleNode->mFrameProvider.getImageFrame() ).mTexelArea;
+                if ( particle.mFrameIndex < 0 || (U32)particle.mFrameIndex >= staticImageFrameCount )
+                    continue;
+
+                const ImageAsset::FrameArea::TexelArea& texelFrameArea = imageAsset->getImageFrameArea( (U32)particle.mFrameIndex ).mTexelArea;
                 const Vector2& texLower = texelFrameArea.mTexelLower;
                 const Vector2& texUpper = texelFrameArea.mTexelUpper;
                 uv0 = Vector2( texLower.x, texUpper.y );
@@ -724,7 +771,7 @@ void ParticlePlayer::sceneRender( const SceneRenderState* pSceneRenderState, con
                 *pUv2,
                 *pUv3,
                 *pEmitterTexture,
-                pParticleNode->mColor );
+                particle.mColor );
         }
     }
 }
@@ -847,6 +894,7 @@ bool ParticlePlayer::play( const bool resetParticles )
 
     // Reset the age.
     mAge = 0.0f;
+    mRenderInterpDelta = 0.0f;
 
     // Iterate the emitters.
     for( typeEmitterVector::iterator emitterItr = mEmitters.begin(); emitterItr != mEmitters.end(); ++emitterItr )
@@ -916,6 +964,7 @@ void ParticlePlayer::stop( const bool waitForParticles, const bool killEffect )
 
     // Reset the age.
     mAge = 0.0f;
+    mRenderInterpDelta = 0.0f;
 
     // Flag as stopped and not waiting.
     mPlaying = mWaitingForParticles = mWaitingForDelete = false;
@@ -937,7 +986,89 @@ void ParticlePlayer::stop( const bool waitForParticles, const bool killEffect )
 
 //------------------------------------------------------------------------------
 
-void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode )
+void ParticlePlayer::buildEmitterTickContext(
+    ParticleAsset* pParticleAsset,
+    ParticleAssetEmitter* pParticleAssetEmitter,
+    const F32 scaledTime,
+    const F32 alphaScale,
+    EmitterTickContext& outCtx ) const
+{
+    outCtx.pAssetEmitter = pParticleAssetEmitter;
+
+    outCtx.sizeXLife = &pParticleAssetEmitter->getSizeXLifeField();
+    outCtx.sizeYLife = &pParticleAssetEmitter->getSizeYLifeField();
+    outCtx.speedLife = &pParticleAssetEmitter->getSpeedLifeField();
+    outCtx.fixedForceLife = &pParticleAssetEmitter->getFixedForceLifeField();
+    outCtx.randomMotionLife = &pParticleAssetEmitter->getRandomMotionLifeField();
+    outCtx.spinLife = &pParticleAssetEmitter->getSpinLifeField();
+
+    outCtx.sizeXMin = pParticleAssetEmitter->getSizeXBaseField().getMinValue();
+    outCtx.sizeXMax = pParticleAssetEmitter->getSizeXBaseField().getMaxValue();
+    outCtx.sizeYMin = pParticleAssetEmitter->getSizeYBaseField().getMinValue();
+    outCtx.sizeYMax = pParticleAssetEmitter->getSizeYBaseField().getMaxValue();
+    outCtx.speedMin = pParticleAssetEmitter->getSpeedBaseField().getMinValue();
+    outCtx.speedMax = pParticleAssetEmitter->getSpeedBaseField().getMaxValue();
+    outCtx.fixedForceMin = pParticleAssetEmitter->getFixedForceBaseField().getMinValue();
+    outCtx.fixedForceMax = pParticleAssetEmitter->getFixedForceBaseField().getMaxValue();
+    outCtx.randomMotionMin = pParticleAssetEmitter->getRandomMotionBaseField().getMinValue();
+    outCtx.randomMotionMax = pParticleAssetEmitter->getRandomMotionBaseField().getMaxValue();
+
+    outCtx.redLife = &pParticleAssetEmitter->getRedChannelLifeField();
+    outCtx.greenLife = &pParticleAssetEmitter->getGreenChannelLifeField();
+    outCtx.blueLife = &pParticleAssetEmitter->getBlueChannelLifeField();
+    outCtx.alphaLife = &pParticleAssetEmitter->getAlphaChannelLifeField();
+
+    outCtx.redMin = outCtx.redLife->getMinValue();
+    outCtx.redMax = outCtx.redLife->getMaxValue();
+    outCtx.greenMin = outCtx.greenLife->getMinValue();
+    outCtx.greenMax = outCtx.greenLife->getMaxValue();
+    outCtx.blueMin = outCtx.blueLife->getMinValue();
+    outCtx.blueMax = outCtx.blueLife->getMaxValue();
+    outCtx.alphaMin = outCtx.alphaLife->getMinValue();
+    outCtx.alphaMax = outCtx.alphaLife->getMaxValue();
+
+    outCtx.redConst = outCtx.redLife->isConstant();
+    outCtx.greenConst = outCtx.greenLife->isConstant();
+    outCtx.blueConst = outCtx.blueLife->isConstant();
+    outCtx.alphaConst = outCtx.alphaLife->isConstant();
+
+    outCtx.constRed = outCtx.redConst ? mClampF( outCtx.redLife->getConstantValue(), outCtx.redMin, outCtx.redMax ) : 0.0f;
+    outCtx.constGreen = outCtx.greenConst ? mClampF( outCtx.greenLife->getConstantValue(), outCtx.greenMin, outCtx.greenMax ) : 0.0f;
+    outCtx.constBlue = outCtx.blueConst ? mClampF( outCtx.blueLife->getConstantValue(), outCtx.blueMin, outCtx.blueMax ) : 0.0f;
+    outCtx.constAlpha = outCtx.alphaConst ? mClampF( outCtx.alphaLife->getConstantValue() * alphaScale, outCtx.alphaMin, outCtx.alphaMax ) : 0.0f;
+
+    outCtx.alphaScale = alphaScale;
+    outCtx.alignedAngleOffset = pParticleAssetEmitter->getAlignedAngleOffset();
+    outCtx.fixedForceDirScaled = pParticleAssetEmitter->getFixedForceDirection() * (getForceScale() * scaledTime);
+
+    outCtx.fixedAspect = pParticleAssetEmitter->getFixedAspect();
+    outCtx.singleParticle = pParticleAssetEmitter->getSingleParticle();
+    outCtx.isStaticProvider = pParticleAssetEmitter->isStaticFrameProvider();
+    outCtx.keepAligned = pParticleAssetEmitter->getKeepAligned() &&
+                         (pParticleAssetEmitter->getOrientationType() == ParticleAssetEmitter::ALIGNED_ORIENTATION);
+
+    outCtx.animTotalTime = 0.0f;
+    outCtx.animFrameCount = 0;
+    outCtx.animCycle = false;
+    outCtx.animRandomStart = false;
+    if ( !outCtx.isStaticProvider )
+    {
+        const AssetPtr<AnimationAsset>& animAsset = pParticleAssetEmitter->getAnimationAsset();
+        if ( animAsset.notNull() && animAsset->getImage().notNull() )
+        {
+            outCtx.animFrameCount = animAsset->getNamedCellsMode()
+                ? (U32)animAsset->getValidatedNamedAnimationFrames().size()
+                : (U32)animAsset->getValidatedAnimationFrames().size();
+            outCtx.animTotalTime = animAsset->getAnimationTime();
+            outCtx.animCycle = animAsset->getAnimationCycle();
+            outCtx.animRandomStart = animAsset->getRandomStart();
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode, const EmitterTickContext& ctx )
 {
     // Fetch the particle player age.
     const F32 particlePlayerAge = mAge;
@@ -945,14 +1076,11 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
     // Fetch the particle player position.
     const Vector2& particlePlayerPosition = getPosition();
 
-    // Default to not suppressing movement.
-    pParticleNode->mSuppressMovement = false;
-
     // Fetch particle asset.
     ParticleAsset* pParticleAsset = mParticleAsset;
 
     // Fetch the asset emitter.
-    ParticleAssetEmitter* pParticleAssetEmitter = pEmitterNode->getAssetEmitter();
+    ParticleAssetEmitter* pParticleAssetEmitter = ctx.pAssetEmitter;
 
 
     // **********************************************************************************************************************
@@ -968,7 +1096,7 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
     const F32 emitterAngle = mDegToRad(pParticleAssetEmitter->getEmitterAngle());
 
     // Are we using Single Particle?
-    if ( pParticleAssetEmitter->getSingleParticle() )
+    if ( ctx.singleParticle )
     {
         // Determine whether to use world-space or emitter-space.
         if ( attachPositionToEmitter )
@@ -1136,6 +1264,7 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
             } break;
                 
             default:
+                pParticleNode->mPosition.SetZero();
                 break;
         }
     }
@@ -1152,7 +1281,7 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
 
 
     // **********************************************************************************************************************
-    // Calculate Particle Size-X.
+    // Calculate Particle Size-X / Y.
     // **********************************************************************************************************************
 
     pParticleNode->mSize.x = ParticleAssetField::calculateFieldBVE( pParticleAssetEmitter->getSizeXBaseField(),
@@ -1160,22 +1289,18 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
                                                                     pParticleAsset->getSizeXScaleField(),
                                                                     particlePlayerAge ) * getSizeScale();
 
-    // Is the particle using a fixed aspect?
-    if ( pParticleAssetEmitter->getFixedAspect() )
+    if ( ctx.fixedAspect )
     {
-        // Yes, so simply copy Size-X.
         pParticleNode->mSize.y = pParticleNode->mSize.x;
     }
     else
     {
-        // No, so calculate the particle Size-Y.
         pParticleNode->mSize.y = ParticleAssetField::calculateFieldBVE( pParticleAssetEmitter->getSizeYBaseField(),
                                                                         pParticleAssetEmitter->getSizeYVariationField(),
                                                                         pParticleAsset->getSizeYScaleField(),
                                                                         particlePlayerAge ) * getSizeScale();
     }
 
-    // Reset the render size.
     pParticleNode->mRenderSize.Set(-1.0f, -1.0f);
 
 
@@ -1183,13 +1308,11 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
     // Calculate Speed, Random Motion and Emission Angle.
     // **********************************************************************************************************************
 
-    // We reset the emission angle/arc in-case we're using single-particle mode as this is the default.
-    F32 emissionForce = 0;
-    F32 emissionAngle = 0;
-    F32 emissionArc = 0;
+    F32 emissionForce = 0.0f;
+    F32 emissionAngle = 0.0f;
+    F32 emissionArc = 0.0f;
 
-    // Ignore if we're using a single-particle.
-    if ( !pParticleAssetEmitter->getSingleParticle() )
+    if ( !ctx.singleParticle )
     {
         pParticleNode->mSpeed = ParticleAssetField::calculateFieldBVE(  pParticleAssetEmitter->getSpeedBaseField(),
                                                                         pParticleAssetEmitter->getSpeedVariationField(),
@@ -1201,8 +1324,6 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
                                                                                 pParticleAsset->getRandomMotionScaleField(),
                                                                                 particlePlayerAge ) * getForceScale();
 
-
-        //  Calculate the emission force.
         emissionForce = ParticleAssetField::calculateFieldBV(   pParticleAssetEmitter->getEmissionForceForceBaseField(),
                                                                 pParticleAssetEmitter->getEmissionForceVariationField(),
                                                                 particlePlayerAge) * getForceScale();
@@ -1218,14 +1339,12 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
         }
         else
         {
-
-           // Calculate Emission Angle.
            emissionAngle = ParticleAssetField::calculateFieldBV(  pParticleAssetEmitter->getEmissionAngleBaseField(),
                                                                   pParticleAssetEmitter->getEmissionAngleVariationField(),
                                                                   particlePlayerAge);
         }
-        // Calculate Emission Arc.
-        // NOTE:-   We're actually interested in half the emission arc!
+
+        // Half the emission arc.
         emissionArc = ParticleAssetField::calculateFieldBV( pParticleAssetEmitter->getEmissionArcBaseField(),
                                                             pParticleAssetEmitter->getEmissionArcVariationField(),
                                                             particlePlayerAge ) * 0.5f;
@@ -1234,27 +1353,38 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
         emissionAngle = calculateEmissionAngle( emissionAngle, getAngle(), pParticleAssetEmitter->getLinkEmissionRotation() );
 
         // Calculate the final emission angle choosing random Arc.
-        emissionAngle = mFmod( CoreMath::mGetRandomF( emissionAngle-emissionArc, emissionAngle+emissionArc ), 360.0f );
+        const F32 randomEmissionAngle = (emissionArc != 0.0f)
+            ? CoreMath::mGetRandomF( emissionAngle - emissionArc, emissionAngle + emissionArc )
+            : emissionAngle;
+        emissionAngle = mFmod( randomEmissionAngle, 360.0f );
 
         // Calculate the particle velocity.
-        const F32 emissionAngleRadians = mDegToRad( emissionAngle );
-        pParticleNode->mVelocity.Set( emissionForce * mCos( emissionAngleRadians ), emissionForce * mSin( emissionAngleRadians ) );
+        if ( emissionForce != 0.0f )
+        {
+            const F32 emissionAngleRadians = mDegToRad( emissionAngle );
+            pParticleNode->mVelocity.Set( emissionForce * mCos( emissionAngleRadians ), emissionForce * mSin( emissionAngleRadians ) );
+        }
+        else
+        {
+            pParticleNode->mVelocity.SetZero();
+        }
+    }
+    else
+    {
+        pParticleNode->mSpeed = 0.0f;
+        pParticleNode->mRandomMotion = 0.0f;
+        pParticleNode->mVelocity.SetZero();
     }
 
 
     // **********************************************************************************************************************
-    // Calculate Spin.
+    // Calculate Spin and Fixed-Force.
     // **********************************************************************************************************************
 
     pParticleNode->mSpin = ParticleAssetField::calculateFieldBVE(   pParticleAssetEmitter->getSpinBaseField(),
                                                                     pParticleAssetEmitter->getSpinVariationField(),
                                                                     pParticleAsset->getSpinScaleField(),
                                                                     particlePlayerAge );
-
-
-    // **********************************************************************************************************************
-    // Calculate Fixed-Force.
-    // **********************************************************************************************************************
 
     pParticleNode->mFixedForce = ParticleAssetField::calculateFieldBVE( pParticleAssetEmitter->getFixedForceBaseField(),
                                                                         pParticleAssetEmitter->getFixedForceVariationField(),
@@ -1266,14 +1396,14 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
     // Calculate Orientation Angle.
     // **********************************************************************************************************************
 
-    // Configure particle orientation.
+    pParticleNode->mOrientationAngle = 0.0f;
     switch( pParticleAssetEmitter->getOrientationType() )
     {
         // Aligned to initial emission.
         case ParticleAssetEmitter::ALIGNED_ORIENTATION:
         {
             // Use the emission angle with fixed offset.
-            pParticleNode->mOrientationAngle = mFmod( emissionAngle - pParticleAssetEmitter->getAlignedAngleOffset(), 360.0f );
+            pParticleNode->mOrientationAngle = mFmod( emissionAngle - ctx.alignedAngleOffset, 360.0f );
 
         } break;
 
@@ -1299,274 +1429,168 @@ void ParticlePlayer::configureParticle( EmitterNode* pEmitterNode, ParticleSyste
     }
 
     // **********************************************************************************************************************
-    // Calculate RGBA Components.
-    // **********************************************************************************************************************
-
-    // Fetch the channels.
-    const ParticleAssetField& redChannel = pParticleAssetEmitter->getRedChannelLifeField();
-    const ParticleAssetField& greenChannel = pParticleAssetEmitter->getGreenChannelLifeField();
-    const ParticleAssetField& blueChannel = pParticleAssetEmitter->getBlueChannelLifeField();
-    const ParticleAssetField& alphaChannel = pParticleAssetEmitter->getAlphaChannelLifeField();
-    const ParticleAssetField& alphaChannelScale = pParticleAsset->getAlphaChannelScaleField();
-
-    // Calculate the color.
-    //
-    // The channel fields are sampled at the PARTICLE's age -- zero here, because
-    // this particle is being born -- while the asset's alpha scale, like every
-    // other asset-scope scale field, is sampled at the EFFECT's age. It used to be
-    // sampled at zero as well, which read only its first key and threw away the
-    // rest of the curve the Scale Graph tab lets you draw.
-    pParticleNode->mColor.set(  mClampF( redChannel.getFieldValue( 0.0f ), redChannel.getMinValue(), redChannel.getMaxValue() ),
-                                mClampF( greenChannel.getFieldValue( 0.0f ),greenChannel.getMinValue(), greenChannel.getMaxValue() ),
-                                mClampF( blueChannel.getFieldValue( 0.0f ), blueChannel.getMinValue(),blueChannel.getMaxValue() ),
-                                mClampF( alphaChannel.getFieldValue( 0.0f ) * alphaChannelScale.getFieldValue( particlePlayerAge ), alphaChannel.getMinValue(), alphaChannel.getMaxValue() ) );
-
-
-    // **********************************************************************************************************************
     // Image, Frame and Animation Controller.
     // **********************************************************************************************************************
 
-    // Fetch the image frame provider.
-    ImageFrameProviderCore& frameProvider = pParticleNode->mFrameProvider;
-
-    // Allocate assets to the particle.
-    frameProvider.allocateAssets( &(pParticleAssetEmitter->getImageAsset()), &(pParticleAssetEmitter->getAnimationAsset()) );
-
-    // Is the emitter in static mode?
-    if ( pParticleAssetEmitter->isStaticFrameProvider() )
+    if ( ctx.isStaticProvider )
     {
-        // Yes, so is random image frame active?
+        pParticleNode->mAnimationTime = 0.0f;
+        pParticleNode->mAnimationFinished = true;
         if ( pParticleAssetEmitter->getRandomImageFrame() )
         {
-            // Yes, so fetch the frame count for the image asset.
-            const U32 frameCount = pParticleAssetEmitter->getImageAsset()->getFrameCount();
-
-            // Choose a random frame.
-            frameProvider.setImageFrame( (U32)CoreMath::mGetRandomI( 0, frameCount-1 ) );
+            const AssetPtr<ImageAsset>& imageAsset = pParticleAssetEmitter->getImageAsset();
+            const U32 frameCount = imageAsset.notNull() ? imageAsset->getFrameCount() : 0;
+            pParticleNode->mFrameIndex = (frameCount > 0) ? CoreMath::mGetRandomI( 0, (S32)frameCount - 1 ) : 0;
         }
         else
         {
-            // No, so set the emitter image frame.
-            if (pParticleAssetEmitter->isUsingNamedImageFrame())
-                frameProvider.setNamedImageFrame( pParticleAssetEmitter->getNamedImageFrame() );
-            else
-                frameProvider.setImageFrame( pParticleAssetEmitter->getImageFrame() );
+            pParticleNode->mFrameIndex = (S32)pParticleAssetEmitter->getImageFrame();
         }
     }
     else
     {
-        // No, so fetch the animation asset.
-        const AssetPtr<AnimationAsset>& animationAsset = pParticleAssetEmitter->getAnimationAsset();
-
-        // Play it.
-        frameProvider.playAnimation( animationAsset );
+        if ( ctx.animFrameCount > 0 )
+        {
+            pParticleNode->mAnimationTime = (ctx.animRandomStart && ctx.animTotalTime > 0.0f)
+                ? CoreMath::mGetRandomF( 0.0f, ctx.animTotalTime * 0.999f )
+                : 0.0f;
+            pParticleNode->mAnimationFinished = false;
+            pParticleNode->mFrameIndex = 0;
+        }
+        else
+        {
+            pParticleNode->mAnimationTime = 0.0f;
+            pParticleNode->mAnimationFinished = true;
+            pParticleNode->mFrameIndex = -1;
+        }
     }
 
-
-    // **********************************************************************************************************************
-    // Reset Tick Position.
-    // **********************************************************************************************************************
-    pParticleNode->mPreTickPosition = pParticleNode->mPostTickPosition = pParticleNode->mRenderTickPosition = pParticleNode->mPosition;
-
-
-    // **********************************************************************************************************************
-    // Do a Single Particle Integration to get things going.
-    // **********************************************************************************************************************
-    integrateParticle( pEmitterNode, pParticleNode, 0.0f, 0.0f );
+    // Reset tick position and integrate age 0 to populate initial render size, color, and animation frame.
+    pParticleNode->mPreTickPosition = pParticleNode->mPosition;
+    integrateParticle( ctx, pParticleNode, 0.0f, 0.0f );
 }
 
 //------------------------------------------------------------------------------
 
-void ParticlePlayer::integrateParticle( EmitterNode* pEmitterNode, ParticleSystem::ParticleNode* pParticleNode, F32 particleAge, F32 elapsedTime )
+void ParticlePlayer::integrateParticle( const EmitterTickContext& ctx, ParticleSystem::ParticleNode* pParticleNode, const F32 particleAge, const F32 elapsedTime )
 {
-    // Fetch particle asset.
-    ParticleAsset* pParticleAsset = mParticleAsset;
-
-    // Fetch the asset emitter.
-    ParticleAssetEmitter* pParticleAssetEmitter = pEmitterNode->getAssetEmitter();
-
-
-    // **********************************************************************************************************************
-    // Copy Old Tick Position.
-    // **********************************************************************************************************************
-    pParticleNode->mRenderTickPosition = pParticleNode->mPreTickPosition = pParticleNode->mPostTickPosition;
-
+    // Record pre-tick position before this tick's integration step.
+    pParticleNode->mPreTickPosition = pParticleNode->mPosition;
 
     // **********************************************************************************************************************
     // Scale Size.
     // **********************************************************************************************************************
 
-    // Scale Size-X.
-    pParticleNode->mRenderSize.x = mClampF( pParticleNode->mSize.x * pParticleAssetEmitter->getSizeXLifeField().getFieldValue( particleAge ),
-                                            pParticleAssetEmitter->getSizeXBaseField().getMinValue(),
-                                            pParticleAssetEmitter->getSizeXBaseField().getMaxValue());
+    pParticleNode->mRenderSize.x = (pParticleNode->mSize.x != 0.0f || ctx.sizeXMin > 0.0f)
+        ? mClampF( pParticleNode->mSize.x * ctx.sizeXLife->getFieldValue( particleAge ), ctx.sizeXMin, ctx.sizeXMax )
+        : 0.0f;
 
-    // Is the particle using a fixed aspect?
-    if ( pParticleAssetEmitter->getFixedAspect() )
+    if ( ctx.fixedAspect )
     {
-        // Yes, so simply copy Size-X.
         pParticleNode->mRenderSize.y = pParticleNode->mRenderSize.x;
     }
     else
     {
-        // No, so Scale Size-Y.
-        pParticleNode->mRenderSize.y = mClampF( pParticleNode->mSize.y * pParticleAssetEmitter->getSizeYLifeField().getFieldValue( particleAge ),
-                                                pParticleAssetEmitter->getSizeYBaseField().getMinValue(),
-                                                pParticleAssetEmitter->getSizeYBaseField().getMaxValue() );
+        pParticleNode->mRenderSize.y = (pParticleNode->mSize.y != 0.0f || ctx.sizeYMin > 0.0f)
+            ? mClampF( pParticleNode->mSize.y * ctx.sizeYLife->getFieldValue( particleAge ), ctx.sizeYMin, ctx.sizeYMax )
+            : 0.0f;
     }
 
 
     // **********************************************************************************************************************
-    // Scale Speed.
+    // Calculate RGBA Components (hoisted constant channels and effect-age alpha scale).
     // **********************************************************************************************************************
-    pParticleNode->mRenderSpeed = mClampF(  pParticleNode->mSpeed * pParticleAssetEmitter->getSpeedLifeField().getFieldValue( particleAge ),
-                                            pParticleAssetEmitter->getSpeedBaseField().getMinValue(),
-                                            pParticleAssetEmitter->getSpeedBaseField().getMaxValue() );
 
-
-    // **********************************************************************************************************************
-    // Scale Fixed-Force.
-    // **********************************************************************************************************************
-    pParticleNode->mRenderFixedForce = mClampF( pParticleNode->mFixedForce * pParticleAssetEmitter->getFixedForceLifeField().getFieldValue( particleAge ),
-                                                pParticleAssetEmitter->getFixedForceBaseField().getMinValue(),
-                                                pParticleAssetEmitter->getFixedForceBaseField().getMaxValue() );
+    pParticleNode->mColor.red   = ctx.redConst   ? ctx.constRed   : mClampF( ctx.redLife->getFieldValue( particleAge ), ctx.redMin, ctx.redMax );
+    pParticleNode->mColor.green = ctx.greenConst ? ctx.constGreen : mClampF( ctx.greenLife->getFieldValue( particleAge ), ctx.greenMin, ctx.greenMax );
+    pParticleNode->mColor.blue  = ctx.blueConst  ? ctx.constBlue  : mClampF( ctx.blueLife->getFieldValue( particleAge ), ctx.blueMin, ctx.blueMax );
+    pParticleNode->mColor.alpha = ctx.alphaConst ? ctx.constAlpha : mClampF( ctx.alphaLife->getFieldValue( particleAge ) * ctx.alphaScale, ctx.alphaMin, ctx.alphaMax );
 
 
     // **********************************************************************************************************************
-    // Scale Random-Motion.
-    // **********************************************************************************************************************
-    pParticleNode->mRenderRandomMotion = mClampF(   pParticleNode->mRandomMotion * pParticleAssetEmitter->getRandomMotionLifeField().getFieldValue( particleAge ),
-                                                    pParticleAssetEmitter->getRandomMotionBaseField().getMinValue(),
-                                                    pParticleAssetEmitter->getRandomMotionBaseField().getMaxValue() );
-
-
-    // **********************************************************************************************************************
-    // Calculate RGBA Components.
+    // Update Animation.
     // **********************************************************************************************************************
 
-    // Fetch the channels.
-    const ParticleAssetField& redChannel = pParticleAssetEmitter->getRedChannelLifeField();
-    const ParticleAssetField& greenChannel = pParticleAssetEmitter->getGreenChannelLifeField();
-    const ParticleAssetField& blueChannel = pParticleAssetEmitter->getBlueChannelLifeField();
-    const ParticleAssetField& alphaChannel = pParticleAssetEmitter->getAlphaChannelLifeField();
-    const ParticleAssetField& alphaChannelScale = pParticleAsset->getAlphaChannelScaleField();
-
-    // Calculate the color.
-    //
-    // Two different clocks, as in configureParticle above: the channel fields run
-    // on the particle's normalized age, the asset's alpha scale on the effect's
-    // age (mAge). Sampling the scale at zero read only its first key.
-    pParticleNode->mColor.set(  mClampF( redChannel.getFieldValue( particleAge ), redChannel.getMinValue(), redChannel.getMaxValue() ),
-                                mClampF( greenChannel.getFieldValue( particleAge ),greenChannel.getMinValue(), greenChannel.getMaxValue() ),
-                                mClampF( blueChannel.getFieldValue( particleAge ), blueChannel.getMinValue(),blueChannel.getMaxValue() ),
-                                mClampF( alphaChannel.getFieldValue( particleAge ) * alphaChannelScale.getFieldValue( mAge ), alphaChannel.getMinValue(), alphaChannel.getMaxValue() ) );
-
-
-    // **********************************************************************************************************************
-    // Integrate Particle.
-    // **********************************************************************************************************************
-
-
-    // Is the emitter in static mode?
-    if ( !pParticleAssetEmitter->isStaticFrameProvider() )
+    if ( !ctx.isStaticProvider && ctx.animFrameCount > 0 )
     {
-        // No, so update animation.
-        pParticleNode->mFrameProvider.updateAnimation( elapsedTime );
+        pParticleNode->mFrameIndex = stepParticleAnimation(
+            pParticleNode->mAnimationTime,
+            pParticleNode->mAnimationFinished,
+            elapsedTime,
+            ctx.animTotalTime,
+            ctx.animFrameCount,
+            ctx.animCycle );
     }
 
 
     // **********************************************************************************************************************
-    // Calculate New Velocity...
+    // Calculate Velocity and Position.
     // **********************************************************************************************************************
 
-    // Calculate the velocity if not a single particle.
-    if ( !pParticleAssetEmitter->getSingleParticle() )
+    if ( !ctx.singleParticle && elapsedTime != 0.0f )
     {
-        // Calculate random motion (if we've got any).
-        if ( mNotZero( pParticleNode->mRenderRandomMotion ) )
+        if ( pParticleNode->mRandomMotion != 0.0f || ctx.randomMotionMin > 0.0f )
         {
-            // Fetch random motion.
-            const F32 randomMotion = pParticleNode->mRenderRandomMotion * 0.5f;
-
-            // Add time-integrated random motion into velocity.
-            pParticleNode->mVelocity += Vector2( CoreMath::mGetRandomF(-randomMotion, randomMotion) * elapsedTime, CoreMath::mGetRandomF(-randomMotion, randomMotion) * elapsedTime );
+            const F32 renderRandomMotion = mClampF( pParticleNode->mRandomMotion * ctx.randomMotionLife->getFieldValue( particleAge ), ctx.randomMotionMin, ctx.randomMotionMax );
+            if ( mNotZero( renderRandomMotion ) )
+            {
+                const F32 halfRandom = renderRandomMotion * 0.5f * elapsedTime;
+                pParticleNode->mVelocity.x += CoreMath::mGetRandomF( -halfRandom, halfRandom );
+                pParticleNode->mVelocity.y += CoreMath::mGetRandomF( -halfRandom, halfRandom );
+            }
         }
 
-        // Do we have any fixed force?
-        if ( mNotZero( pParticleNode->mRenderFixedForce ) )
+        if ( pParticleNode->mFixedForce != 0.0f || ctx.fixedForceMin > 0.0f || ctx.fixedForceMax < 0.0f )
         {
-            // Yes, so time-integrate a fixed force to the velocity.
-            pParticleNode->mVelocity += (pParticleAssetEmitter->getFixedForceDirection() * (pParticleNode->mRenderFixedForce * getForceScale()) * elapsedTime);
+            const F32 renderFixedForce = mClampF( pParticleNode->mFixedForce * ctx.fixedForceLife->getFieldValue( particleAge ), ctx.fixedForceMin, ctx.fixedForceMax );
+            if ( mNotZero( renderFixedForce ) )
+            {
+                pParticleNode->mVelocity += ctx.fixedForceDirScaled * renderFixedForce;
+            }
         }
 
-        // Are we suppressing movement?
-        if ( !pParticleNode->mSuppressMovement )
+        if ( (pParticleNode->mVelocity.x != 0.0f || pParticleNode->mVelocity.y != 0.0f) &&
+             (pParticleNode->mSpeed != 0.0f || ctx.speedMin > 0.0f) )
         {
-            // No, so adjust particle position.
-            pParticleNode->mPosition += (pParticleNode->mVelocity * pParticleNode->mRenderSpeed * elapsedTime);
+            const F32 renderSpeed = mClampF( pParticleNode->mSpeed * ctx.speedLife->getFieldValue( particleAge ), ctx.speedMin, ctx.speedMax );
+            if ( renderSpeed != 0.0f )
+            {
+                const F32 step = renderSpeed * elapsedTime;
+                pParticleNode->mPosition.x += pParticleNode->mVelocity.x * step;
+                pParticleNode->mPosition.y += pParticleNode->mVelocity.y * step;
+            }
         }
     }
 
 
     // **********************************************************************************************************************
-    // Are we Aligning to motion?
+    // Orientation / Spin.
     // **********************************************************************************************************************
-    if ( pParticleAssetEmitter->getKeepAligned() && pParticleAssetEmitter->getOrientationType() == ParticleAssetEmitter::ALIGNED_ORIENTATION )
+
+    if ( ctx.keepAligned )
     {
-        // Yes, so calculate last movement direction.
-        F32 movementAngle = mRadToDeg( mAtan( pParticleNode->mVelocity.x, pParticleNode->mVelocity.y ) );
-
-        // Adjust for negative ArcTan quadrants.
-        if ( movementAngle < 0.0f )
-            movementAngle += 360.0f;
-
-        // Set new Orientation Angle.
-        pParticleNode->mOrientationAngle = movementAngle - pParticleAssetEmitter->getAlignedAngleOffset();
-
-    }
-    else
-    {
-        // No, so calculate the render spin.
-        pParticleNode->mRenderSpin = pParticleNode->mSpin * pParticleAssetEmitter->getSpinLifeField().getFieldValue( particleAge );
-
-        // Have we got some Spin?
-        if ( mNotZero(pParticleNode->mRenderSpin) )
+        if ( pParticleNode->mVelocity.x != 0.0f || pParticleNode->mVelocity.y != 0.0f )
         {
-            // Yes, so add into Orientation.
-            pParticleNode->mOrientationAngle += pParticleNode->mRenderSpin * elapsedTime;
-
-            // Clamp the orientation angle.
-            pParticleNode->mOrientationAngle = mFmod( pParticleNode->mOrientationAngle, 360.0f );
+            F32 movementAngle = mRadToDeg( mAtan( pParticleNode->mVelocity.x, pParticleNode->mVelocity.y ) );
+            if ( movementAngle < 0.0f )
+                movementAngle += 360.0f;
+            pParticleNode->mOrientationAngle = movementAngle - ctx.alignedAngleOffset;
+        }
+        else
+        {
+            pParticleNode->mOrientationAngle = -ctx.alignedAngleOffset;
         }
     }
-
-    // Calculate the transform.
-    pParticleNode->mTransform.Set( pParticleNode->mPosition, mDegToRad(pParticleNode->mOrientationAngle) );
-
-    // Fetch the local AABB..
-    const Vector2& localAABB0 = pParticleAssetEmitter->getLocalPivotAABB0();
-    const Vector2& localAABB1 = pParticleAssetEmitter->getLocalPivotAABB1();
-    const Vector2& localAABB2 = pParticleAssetEmitter->getLocalPivotAABB2();
-    const Vector2& localAABB3 = pParticleAssetEmitter->getLocalPivotAABB3();
-
-    // Fetch the render size.
-    const Vector2& renderSize = pParticleNode->mRenderSize;
-
-    // Calculate the scaled AABB.
-    Vector2 scaledAABB[4];
-    scaledAABB[0] = localAABB0 * renderSize;
-    scaledAABB[1] = localAABB1 * renderSize;
-    scaledAABB[2] = localAABB2 * renderSize;
-    scaledAABB[3] = localAABB3 * renderSize;
-
-    // Calculate the world OOBB..
-    CoreMath::mCalculateOOBB( scaledAABB, pParticleNode->mTransform, pParticleNode->mRenderOOBB );
-
-
-    // **********************************************************************************************************************
-    // Set Post Tick Position.
-    // **********************************************************************************************************************
-    pParticleNode->mPostTickPosition = pParticleNode->mPosition;
+    else if ( pParticleNode->mSpin != 0.0f && elapsedTime != 0.0f )
+    {
+        const F32 renderSpin = pParticleNode->mSpin * ctx.spinLife->getFieldValue( particleAge );
+        if ( mNotZero( renderSpin ) )
+        {
+            pParticleNode->mOrientationAngle += renderSpin * elapsedTime;
+            if ( pParticleNode->mOrientationAngle >= 360.0f || pParticleNode->mOrientationAngle <= -360.0f )
+                pParticleNode->mOrientationAngle = mFmod( pParticleNode->mOrientationAngle, 360.0f );
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------

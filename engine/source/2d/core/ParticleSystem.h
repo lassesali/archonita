@@ -23,8 +23,12 @@
 #ifndef _PARTICLE_SYSTEM_H_
 #define _PARTICLE_SYSTEM_H_
 
-#ifndef _IMAGE_FRAME_PROVIDER_H
-#include "2d/core/ImageFrameProvider.h"
+#ifndef _VECTOR2_H_
+#include "2d/core/Vector2.h"
+#endif
+
+#ifndef _GCOLOR_H_
+#include "graphics/gColor.h"
 #endif
 
 //-----------------------------------------------------------------------------
@@ -32,64 +36,33 @@
 class ParticleSystem
 {
 public:
-    /// Particle node.
-    struct ParticleNode : public IFactoryObjectReset
+    /// Compact, trivially destructible particle state laid out with render-hot fields first.
+    struct ParticleNode
     {
-        /// Particle Node Linkages.
-        ParticleNode*           mPreviousNode;
-        ParticleNode*           mNextNode;
+        // Render-hot fields (48 bytes — single cache line)
+        Vector2     mPosition;           //  0..7
+        Vector2     mRenderSize;         //  8..15
+        ColorF      mColor;              // 16..31
+        F32         mOrientationAngle;   // 32..35
+        S32         mFrameIndex;         // 36..39 (random static image frame or validated animation frame index)
+        Vector2     mPreTickPosition;    // 40..47
 
-        /// Suppress Movement.
-        bool                    mSuppressMovement;
-
-        /// Particle Components.
-        F32                     mParticleLifetime;
-        F32                     mParticleAge;
-        Vector2                 mPosition;
-        Vector2                 mVelocity;
-        F32                     mOrientationAngle;
-        Vector2                 mRenderOOBB[4];
-        b2Transform             mTransform;
-        ImageFrameProviderCore  mFrameProvider;
-
-        /// Render Properties.
-        Vector2                 mRenderSize;
-        F32                     mRenderSpeed;
-        F32                     mRenderSpin;
-        F32                     mRenderFixedForce;
-        F32                     mRenderRandomMotion;
-
-        /// Base Properties.
-        Vector2                 mSize;
-        F32                     mSpeed;
-        F32                     mSpin;
-        F32                     mFixedForce;
-        F32                     mRandomMotion;
-        ColorF                  mColor;    
-
-        /// Physics particles
-        bool                    mPhysicsParticles;
-        b2ParticleGroupDef      mParticleGroup;
-        b2ParticleSystem*       mParticleSystem;
-
-        /// Interpolated Tick Position.
-        Vector2                 mPreTickPosition;
-        Vector2                 mPostTickPosition;
-        Vector2                 mRenderTickPosition;
-
-        ParticleNode() { constructInPlace<ImageFrameProviderCore>(&mFrameProvider); resetState(); }
-
-        virtual void resetState( void )
-        {
-            mFrameProvider.resetState();
-        }
+        // Simulation fields (48 bytes)
+        Vector2     mVelocity;           // 48..55
+        Vector2     mSize;               // 56..63
+        F32         mParticleAge;        // 64..67
+        F32         mParticleLifetime;   // 68..71
+        F32         mSpeed;              // 72..75
+        F32         mSpin;               // 76..79
+        F32         mFixedForce;         // 80..83
+        F32         mRandomMotion;       // 84..87
+        F32         mAnimationTime;      // 88..91
+        bool        mAnimationFinished;  // 92 (+3 pad -> 96 bytes total)
     };
 
 private:
-    const U32               mParticlePoolBlockSize;
-    Vector<ParticleNode*>   mParticlePool;
-    ParticleNode*           mpFreeParticleNodes;
     U32                     mActiveParticleCount;
+    U32                     mAllocatedParticleCount;
 
 public:
     static void Init( void );
@@ -99,11 +72,11 @@ public:
     ParticleSystem();
     ~ParticleSystem();
 
-    ParticleNode* createParticle( void );
-    void freeParticle( ParticleNode* pParticleNode );
+    void adjustActiveParticleCount( const S32 delta );
+    void adjustAllocatedParticleCount( const S32 delta );
 
-    inline U32 getActiveParticleCount( void ) const { return mActiveParticleCount; };
-    inline U32 getAllocatedParticleCount( void ) const { return (U32)mParticlePool.size() * mParticlePoolBlockSize; }
+    inline U32 getActiveParticleCount( void ) const { return mActiveParticleCount; }
+    inline U32 getAllocatedParticleCount( void ) const { return mAllocatedParticleCount; }
 };
 
 #endif // _PARTICLE_SYSTEM_H_
